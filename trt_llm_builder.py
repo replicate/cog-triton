@@ -77,11 +77,12 @@ class TRTLLMBuilder:
 
     def _run_script(
         self,
-        local_model_dir,
+        target_model_dir,
         example_dir,
         output_dir,
         script,
         args,
+        input_dir=None,
     ):
         script = os.path.join(example_dir, script)
         cmd = self._assemble_subprocess_cmd(script, args)
