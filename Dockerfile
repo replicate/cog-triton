@@ -47,5 +47,5 @@ ENV CCACHE_BASEDIR=/src/TensorRT-LLM
 ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["python", "-m", "cog.server.http"]
 
-# Copy the source code
-COPY . /src
+COPY TensorRT-LLM /src/TensorRT-LLM
+COPY *.py *.yaml /src/

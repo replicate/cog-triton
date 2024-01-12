@@ -10,6 +10,7 @@ class Downloader:
         self.base_local_model_dir = base_local_model_dir
 
     def run(self, model_id, revision=None):
+        print(f"Downloading model artifacts for {model_id}...")
         output_dir = Path(self.base_local_model_dir) / model_id
 
         # if model is cached on replicate, download with pget

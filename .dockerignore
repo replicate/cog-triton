@@ -21,4 +21,11 @@ __pycache__
 models/
 *.bin
 *.safetensors
-**/gpt*/
+*.ot
+*.h5
+*.msgpack
+*.onnx
+**/gpt2/
+**/onnx/
+**/engine_outputs/
+*.tar.gz

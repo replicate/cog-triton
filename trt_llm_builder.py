@@ -55,18 +55,37 @@ class TRTLLMBuilder:
 
                 target_model_dir = step_config.output_dir
 
-        self._prepare_model_artifacts_for_upload(
+        output = self._prepare_model_artifacts_for_upload(
             target_model_dir, local_model_dir, config
         )
 
-        output = None
         return output
 
-    def _try_to_load_tokenizer(self, local_model_dir):
+    def _try_to_load_tokenizer(self, local_model_dir, model_id):
+        print(
+            f"Attempting to load tokenizer so that it can be packaged with the model artifacts..."
+        )
         try:
+            print(f"Trying to load tokenizer from {local_model_dir}...")
             tokenizer = AutoTokenizer.from_pretrained(local_model_dir)
-        except:
-            tokenizer = None
+        except Exception as e:
+            print(f"Could not load tokenizer from {local_model_dir}.")
+            print(f"Error: `{e}`")
+            print(
+                f"Trying to load tokenizer from HuggingFace Hub for model id {model_id}..."
+            )
+            try:
+                tokenizer = AutoTokenizer.from_pretrained(model_id)
+            except Exception as e:
+                print(
+                    f"Could not load tokenizer from HuggingFace Hub for model id {model_id}."
+                )
+                print(f"Error: `{e}`")
+                print(
+                    "No tokenizer will be included in the tarball, which means this will not run out of the box with cog-triton."
+                    "If you want to run this model with cog-triton, you will need to manually add a tokenizer to the tarball directory."
+                )
+                tokenizer = None
         return tokenizer
 
     def _run_script(
@@ -108,16 +127,36 @@ class TRTLLMBuilder:
         return example_dir
 
     def _prepare_model_artifacts_for_upload(
-        self, target_model_dir, local_model_dir, config
+        self,
+        target_model_dir,
+        local_model_dir,
+        config,
+        output_path="/src/engine.tar.gz",
+        cog_trt_llm_config_path="/src/cog-trt-llm-config.yaml",
     ):
         # write config to target_model_dir
-        with open(os.path.join(target_model_dir, "cog-trt-llm-config.yaml"), "w") as f:
+        print("Preparing model artifacts for upload...")
+        print(f"Saving cog-trt-llm config to {cog_trt_llm_config_path}...")
+        with open(os.path.join(target_model_dir, cog_trt_llm_config_path), "w") as f:
             f.write(OmegaConf.to_yaml(config))
 
         # try to load tokenizer and include in tarball if available
-        tokenizer = self._try_to_load_tokenizer(local_model_dir)
+        tokenizer = self._try_to_load_tokenizer(local_model_dir, config.model_id)
         if tokenizer:
-            tokenizer.save_pretrained(os.path.join(target_model_dir, "tokenizer"))
+            print("Saving tokenizer...")
+            tokenizer.save_pretrained(target_model_dir)
 
-        with tarfile.open("./engine.tar.gz", "w:gz") as tar:
-            tar.add(target_model_dir, arcname=os.path.basename(target_model_dir))
+        with tarfile.open(output_path, "w:gz") as tar:
+            # Add all files in target_model_dir to the tarball, but place them in the "engine" directory
+            for root, dirs, files in os.walk(target_model_dir):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    tar.add(
+                        file_path,
+                        arcname=os.path.join(
+                            "engine_outputs",
+                            os.path.relpath(file_path, target_model_dir),
+                        ),
+                    )
+
+        return output_path

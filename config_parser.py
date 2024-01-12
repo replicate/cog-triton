@@ -50,13 +50,13 @@ class ConfigParser:
 
     def print_config(self, config) -> None:
         # Convert the configuration to a YAML formatted string
-        yaml_str = OmegaConf.to_yaml(config)
+        yaml_str = OmegaConf.to_yaml(config, resolve=True)
 
-        # Highlight the YAML string
-        highlighted_str = highlight(yaml_str, YamlLexer(), TerminalFormatter())
-
-        # Print the highlighted string
+        # Print the YAML string with indents and no fancy formatting
         print("=========================================")
-        print("Using the following config:\n\n")
+        print("You submitted this config:\n")
+        print("=========================================\n\n")
 
-        print(highlighted_str)
+        # Print the YAML string with indents and no fancy formatting
+        print(yaml_str)
+        print("=========================================\n\n")
