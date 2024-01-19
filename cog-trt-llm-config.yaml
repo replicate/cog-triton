@@ -1,0 +1,19 @@
+model_id: sshleifer/tiny-gpt2
+example_name: gpt
+convert_to_ft:
+  script: hf_gpt_convert.py
+  output_dir: ./c-model/gpt2/1-gpu
+  args:
+    in-file: /src/models/sshleifer/tiny-gpt2
+    out-dir: ./c-model/gpt2
+    tensor-parallelism: 1
+    storage-type: float16
+build:
+  script: build.py
+  output_dir: ./engine_outputs/
+  args:
+    model_dir: ./c-model/gpt2/1-gpu
+    output_dir: ./engine_outputs/
+    use_gpt_attention_plugin: null
+    remove_input_padding: null
+merge: true

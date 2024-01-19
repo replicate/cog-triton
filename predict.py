@@ -30,19 +30,6 @@ class Predictor(BasePredictor):
 
     def predict(
         self,
-        # model_id: str = Input(
-        #     description="Provide the ID of the model that you want to compile.",
-        #     default=None,
-        # ),
-        # example_name: str = Input(
-        #     description="Provide the name of the TRT-LLM build example that you want to run.",
-        #     choices=EXAMPLE_NAMES,
-        #     default=None,
-        # ),
-        # model_name: str = Input(
-        #     description="Provide the name of the model that you want to compile.",
-        #     default=None,
-        # ),
         config: Path = Input(
             description="Path to your config file. If not provided, a default config will be used if available.",
             default=None,
@@ -51,9 +38,6 @@ class Predictor(BasePredictor):
         config = self.config_parser.load_config(config) if config else {}
         config = self.config_parser.update_config(
             config,
-            model_id=model_id,
-            example_name=example_name,
-            model_name=model_name,
         )
 
         self.config_parser.print_config(config)
@@ -61,9 +45,8 @@ class Predictor(BasePredictor):
         local_model_dir = self.downloader.run(config.model_id)
 
         output = self.builder.run(
-            example_name=example_name,
-            local_model_dir=local_model_dir,
             config=config,
+            local_model_dir=local_model_dir,
         )
 
         return Path(output)
