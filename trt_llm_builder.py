@@ -131,7 +131,7 @@ class TRTLLMBuilder:
         target_model_dir,
         local_model_dir,
         config,
-        output_path="/src/engine.tar.gz",
+        output_path="/src/engine.tar",
         cog_trt_llm_config_path="/src/cog-trt-llm-config.yaml",
     ):
         # write config to target_model_dir
@@ -146,7 +146,7 @@ class TRTLLMBuilder:
             print("Saving tokenizer...")
             tokenizer.save_pretrained(target_model_dir)
 
-        with tarfile.open(output_path, "w:gz") as tar:
+        with tarfile.open(output_path, "w") as tar:
             # Add all files in target_model_dir to the tarball, but place them in the "engine" directory
             for root, dirs, files in os.walk(target_model_dir):
                 for file in files:
