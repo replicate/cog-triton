@@ -19,3 +19,11 @@ curl http://localhost:5000/predictions -X POST \
 -d '{"input": {
   }}'
 ```
+
+curl -s -X POST \
+  -H "Content-Type: application/json" \
+  -d $'{
+    "input": {
+    }
+  }' \
+  http://localhost:5000/predictions
