@@ -60,6 +60,50 @@ build:
 
 # Development
 
+## Running a dev environment
+
+1. Build the image
+
+```
+cog build --dockerfile Dockerfile
+```
+or
+```
+docker build -t cog-trt-llm .
+```
+
+2. Run the image
+
+docker run --rm -it -p 5000:5000 --gpus=all --workdir /src  --net=host --volume $(pwd)/.:/src/. cog-trt-llm /bin/bash
+
+3. Start cog server in image
+
+```
+python -m cog.server.http
+```
+
+4. Expose configs via HTTP so they can be "downloaded" by cog
+
+```
+python3 -m http.server 8000 --bind 0.0.0.0
+``` 
+
+http://localhost:8000/examples/gpt/config.yaml
+
+5. Make a request
+
+```
+curl -s -X POST \
+  -H "Content-Type: application/json" \
+  -d $'{
+    "input": {
+        "config":"http://localhost:8000/examples/gpt/config.yaml"
+    }
+  }' \
+  http://localhost:5000/predictions
+
+```
+
 ## Tests 
 
 Current tests are fragile and minimal.
