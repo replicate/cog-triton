@@ -58,7 +58,29 @@ build:
     remove_input_padding: 
 ```
 
-## Development Notes
+# Development
+
+## Tests 
+
+Current tests are fragile and minimal.
+
+
+### Smoke tests
+
+This will run a local smoke test that does the following:
+* Expose a GPT test config via a local http server
+* Run cog-trt-llm in a container
+* Execute the GPT conversion and build steps specified in the config
+
+```
+cog build --dockerfile Dockerfile
+export COG_TRITON_IMAGE=cog-trt-llm
+LOCAL_TEST=true python3 -m pytest tests/smoke/test_gpt_convert_and_build.py
+```
+
+The server components are abstracted and can be reused in other test modules. To build out a test for a new config, you can start with this implementation and point to a new config.
+
+## Implementation Notes
 
 First, build the TRT-LLM image.
 
@@ -120,3 +142,18 @@ Alternatively, if you just want to use TRT-LLM locally, you can:
 docker run --rm  -it -p 5000:5000 --gpus=all --workdir /src --entrypoint /bin/bash  --volume $(pwd)/.:/src/. cog-trt-llm
 ```
 
+
+
+
+
+docker tag tensorrt_llm/release us-docker.pkg.dev/replicate-production/replicate-us/cog-trt-llm/tensorrt_llm
+docker push us-docker.pkg.dev/replicate-production/replicate-us/cog-trt-llm/tensorrt_llm
+
+
+docker push us-docker.pkg.dev/replicate-production/replicate-us/cog-trt-llm/tensorrt_llm
+
+
+
+tensorrt_llm/release:latest
+
+docker pull us-docker.pkg.dev/replicate-production/replicate-us/replicate/dreambooth@sha256:bc542f0dcc8a537ece4f26db27d92c0eee5b454ab0a6a8d981116ca1c76a79dc
