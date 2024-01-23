@@ -147,16 +147,13 @@ class TRTLLMBuilder:
             tokenizer.save_pretrained(target_model_dir)
 
         with tarfile.open(output_path, "w") as tar:
-            # Add all files in target_model_dir to the tarball, but place them in the "engine" directory
+            # Add all files in target_model_dir to the tarball, placing them at the top level
             for root, dirs, files in os.walk(target_model_dir):
                 for file in files:
                     file_path = os.path.join(root, file)
                     tar.add(
                         file_path,
-                        arcname=os.path.join(
-                            "engine_outputs",
-                            os.path.relpath(file_path, target_model_dir),
-                        ),
+                        arcname=os.path.relpath(file_path, target_model_dir),
                     )
 
         return output_path
