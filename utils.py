@@ -20,6 +20,7 @@ def maybe_download_tarball_with_pget(
     """
     
     if not os.path.exists(dest):
+        print("Downloading tarball...")
         command = ["pget", url, dest, "-x"]
         subprocess.check_call(command, close_fds=True)
     

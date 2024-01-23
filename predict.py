@@ -4,12 +4,13 @@
 from cog import BasePredictor, Input, Path
 from utils import maybe_download_tarball_with_pget
 
+URL = "https://replicate.delivery/pbxt/qkRFtudUXCoAKlntnVLc3dBhRutRoW02L127bU3Q4778emHJA/engine.tar"
 
 class Predictor(BasePredictor):
     def setup(self) -> None:
         print("Downloading model files...")
         maybe_download_tarball_with_pget(
-            url="https://replicate.delivery/pbxt/s1rSbePwyeihDEAAX7jXejuoYSoIy4ZZUS0ePiDSFr27SLvIB/engine.tar.gz",
+            url=URL,
             dest="./engine",
         )
         
