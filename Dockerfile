@@ -1,5 +1,5 @@
 #syntax=docker/dockerfile:1.4
-FROM nvcr.io/nvidia/tritonserver:23.12-trtllm-python-py3 as deps
+FROM triton_trt_llm as deps
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
