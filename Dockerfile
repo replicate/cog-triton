@@ -1,5 +1,29 @@
-#syntax=docker/dockerfile:1.4
-FROM triton_trt_llm as deps
+# First stage: Set up Triton TRT-LLM environment
+FROM nvcr.io/nvidia/tritonserver:23.12-trtllm-python-py3 as triton_trt_llm
+
+# Set the working directory in the container
+WORKDIR /src
+
+# Install git-lfs
+RUN apt-get update && apt-get install -y git-lfs
+ 
+# Clone the tensorrtllm_backend repository
+RUN git clone https://github.com/triton-inference-server/tensorrtllm_backend.git -b v0.7.1 /src/tensorrtllm_backend \
+    && cd /src/tensorrtllm_backend \
+    && git lfs install \
+    && git submodule update --init --recursive
+
+# Install other dependencies
+RUN apt-get install -y python3.10 python3-pip
+
+# # Install tensorrt_llm
+ENV TENSORRT_LLM_VERSION=0.7.1
+RUN pip3 install tensorrt_llm==$TENSORRT_LLM_VERSION --extra-index-url https://pypi.nvidia.com
+
+# # Second stage: Build upon the first stage and add additional dependencies and configurations
+# #syntax=docker/dockerfile:1.4
+FROM triton_trt_llm as final_stage
+
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
@@ -8,43 +32,36 @@ ENV NVIDIA_DRIVER_CAPABILITIES=all
 ENV PATH="/usr/bin:$PATH"
 
 # Install necessary packages
-RUN --mount=type=cache,target=/var/cache/apt set -eux; \
-    apt-get update -qq; \
-    apt-get install -qqy --no-install-recommends curl make build-essential libssl-dev zlib1g-dev \
-    libbz2-dev libreadline-dev libsqlite3-dev wget llvm libncurses5-dev libncursesw5-dev \
-    xz-utils tk-dev libffi-dev liblzma-dev git ca-certificates; \
-    rm -rf /var/lib/apt/lists/*
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get update -qq \
+    && apt-get install -qqy --no-install-recommends curl make build-essential libssl-dev zlib1g-dev \
+       libbz2-dev libreadline-dev libsqlite3-dev wget llvm libncurses5-dev libncursesw5-dev \
+       xz-utils tk-dev libffi-dev liblzma-dev git ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Tini
-RUN TINI_VERSION=v0.19.0; \
-    TINI_ARCH="$(dpkg --print-architecture)"; \
-    curl -sSL -o /sbin/tini "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TINI_ARCH}"; \
-    chmod +x /sbin/tini
+RUN TINI_VERSION=v0.19.0 \
+    && TINI_ARCH="$(dpkg --print-architecture)" \
+    && curl -sSL -o /sbin/tini "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TINI_ARCH}" \
+    && chmod +x /sbin/tini
 
-# Copy and install the Python wheel
+# Install Python wheel and requirements
 COPY .cog/tmp/build433494478/cog-0.0.1.dev-py3-none-any.whl /tmp/cog-0.0.1.dev-py3-none-any.whl
-RUN pip install /tmp/cog-0.0.1.dev-py3-none-any.whl
-
-# pip install requirements
 COPY requirements.txt /tmp/requirements.txt
-RUN pip install -r /tmp/requirements.txt
+RUN pip install /tmp/cog-0.0.1.dev-py3-none-any.whl \
+    && pip install -r /tmp/requirements.txt
 
-RUN curl -o /usr/local/bin/pget -L "https://github.com/replicate/pget/releases/download/v0.5.6/pget_linux_x86_64" && chmod +x /usr/local/bin/pget
-
-
-# Set the working directory
-WORKDIR /src
+# Install pget
+RUN curl -o /usr/local/bin/pget -L "https://github.com/replicate/pget/releases/download/v0.5.6/pget_linux_x86_64" \
+    && chmod +x /usr/local/bin/pget
 
 # Expose the necessary port
 EXPOSE 5000
-
-# Set the environment variables for TRT-LLM
-# ENV CCACHE_DIR=/src/TensorRT-LLM/cpp/.ccache
-# ENV CCACHE_BASEDIR=/src/TensorRT-LLM
 
 # Define entrypoint and command
 ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["python", "-m", "cog.server.http"]
 
-COPY tensorrtllm_backend /src/tensorrtllm_backend
+# # Copy application files
+# COPY tensorrtllm_backend /src/tensorrtllm_backend
 COPY *.py *.yaml /src/
