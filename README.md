@@ -54,10 +54,28 @@ docker run --rm -it -p 5000:5000 --gpus=all --workdir /src  --net=host --volume 
 
 docker run --rm -it --net host --shm-size=2g --ulimit memlock=-1 --ulimit stack=67108864 --gpus all -v /path/to/tensorrtllm_backend:/tensorrtllm_backend nvcr.io/nvidia/tritonserver:23.10-trtllm-python-py3 bash
 
+
 python3 inflight_batcher_llm/client/inflight_batcher_llm_client.py --request-output-len 200 --tokenizer-dir /src/tensorrtllm_backend/tensorrt_llm/examples/gpt/gpt2 --streaming
 
 
+* preprocessing 
+
+export HF_GPT_MODEL=/src/tensorrtllm_backend/tensorrt_llm/examples/gpt/gpt2
+python3 tools/fill_template.py -i triton_model_repo/preprocessing/config.pbtxt "triton_max_batch_size:4,tokenizer_dir:${HF_GPT_MODEL},tokenizer_type:auto,preprocessing_instance_count:1"
+
+* tensorrt_llm
+python3 tools/fill_template.py -i triton_model_repo/tensorrt_llm/config.pbtxt "triton_max_batch_size:4,decoupled_mode:False,engine_dir:/src/tensorrtllm_backend/triton_model_repo/tensorrt_llm/1,batching_strategy:V1,max_queue_delay_microseconds:100"
+
+* postprocessing
+python3 tools/fill_template.py -i triton_model_repo/postprocessing/config.pbtxt "triton_max_batch_size:4,tokenizer_dir:${HF_GPT_MODEL},tokenizer_type:auto,postprocessing_instance_count:1"
+
+* ensamble
+python3 tools/fill_template.py -i triton_model_repo/ensemble/config.pbtxt "triton_max_batch_size:4"
+
+
 python3 inflight_batcher_llm/client/inflight_batcher_llm_client.py --request-output-len 200 --tokenizer-dir /src/tensorrtllm_backend/tensorrt_llm/examples/gpt/gpt2
+
+python3 scripts/launch_triton_server.py --world_size=1 --model_repo=/src/tensorrtllm_backend/triton_model_repo
 
 ## Run tests
 
