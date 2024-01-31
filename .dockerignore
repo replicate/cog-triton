@@ -15,3 +15,13 @@ __pycache__
 
 # Exclude Python virtual environment
 /venv
+
+# *.bin
+*.safetensors
+
+gpt2/*.bin
+gpt2/onnx/
+gpt2/*.h5
+gpt2/*.onnx
+gpt2/*.msgpack
+gpt2/*.ot
