@@ -48,3 +48,4 @@ CMD ["python", "-m", "cog.server.http"]
 
 COPY tensorrtllm_backend /src/tensorrtllm_backend
 COPY *.py *.yaml /src/
+COPY triton_model_repo /src/triton_model_repo

@@ -5,6 +5,7 @@ import time
 import subprocess
 import sys
 from pathlib import Path
+import shutil
 
 
 import os
@@ -30,10 +31,13 @@ def maybe_download_tarball_with_pget(
 
     """
     print("Checking for tarball...")
-    if not os.path.exists(dest):
-        print("Downloading tarball...")
-        command = ["pget", url, dest, "-x"]
-        subprocess.check_call(command, close_fds=True)
+    # if dest exists, rm
+    if os.path.exists(dest):
+        shutil.rmtree(dest)
+
+    print("Downloading weights...")
+    command = ["pget", url, dest, "-x"]
+    subprocess.check_call(command, close_fds=True)
 
     return dest
 

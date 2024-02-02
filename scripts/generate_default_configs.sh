@@ -14,9 +14,12 @@ fi
 # Use the triton_fill_template.py script to generate the config.pbtxt files, overwriting the defaults
 # we copied.
 
+# get tokenizer_dir from TOKENIZER_DIR env variable, set default to /src/triton_model_repo/tensorrt_llm/1
+TOKENIZER_DIR=${TOKENIZER_DIR:-/src/triton_model_repo/tensorrt_llm/1/}
+
 # Generate preprocessing config
 python3 scripts/triton_fill_template.py triton_templates/preprocessing/config.pbtxt \
-     "triton_max_batch_size:4,tokenizer_dir:/src/gpt2/,tokenizer_type:auto,preprocessing_instance_count:1" \
+     "triton_max_batch_size:4,tokenizer_dir:${TOKENIZER_DIR},tokenizer_type:auto,preprocessing_instance_count:1" \
      > ./triton_model_repo/preprocessing/config.pbtxt
 
 # Generate tensorrt_llm config
@@ -26,7 +29,7 @@ python3 scripts/triton_fill_template.py triton_templates/tensorrt_llm/config.pbt
 
 # Generate postprocessing config
 python3 scripts/triton_fill_template.py triton_templates/postprocessing/config.pbtxt \
-    "triton_max_batch_size:4,tokenizer_dir:/src/gpt2/,tokenizer_type:auto,postprocessing_instance_count:1" \
+    "triton_max_batch_size:4,tokenizer_dir:${TOKENIZER_DIR},tokenizer_type:auto,postprocessing_instance_count:1" \
      > ./triton_model_repo/postprocessing/config.pbtxt
 
 # Generate ensemble config
