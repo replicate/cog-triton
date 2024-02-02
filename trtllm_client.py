@@ -215,6 +215,8 @@ class TRTLLMClient:
         self.lora_config_data = None
         self.return_context_logits_data = None
 
+        self.user_data = UserData()
+
     def _preprocess_request_parameters(
         self,
         # supported user inputs
@@ -377,7 +379,7 @@ class TRTLLMClient:
             try:
                 # Establish stream
                 triton_client.start_stream(
-                    callback=partial(callback, user_data, self.tokenizer),
+                    callback=partial(callback, self.user_data, self.tokenizer),
                     stream_timeout=self.stream_timeout,
                 )
                 # Send request
@@ -388,34 +390,35 @@ class TRTLLMClient:
                     request_id=request_id,
                 )
 
+            except Exception as e:
+                err = "Encountered error: " + str(e)
+
                 # Send stop signal
                 # triton_client.stop_stream(cancel_requests=cancel_requests)
 
-                # Parse the responses
-                while True:
-                    # Wait for the callback to put a result in the queue
-                    try:
-                        result = user_data._completed_requests.get(
-                            timeout=0.1
-                        )  # Adjust the timeout as needed
-                    except queue.Empty:
-                        continue  # Continue waiting for the callback
+                # # Parse the responses
+            #     while True:
+            #         # Wait for the callback to put a result in the queue
+            #         try:
+            #             result = self.user_data._completed_requests.get(timeout=0.1)
+            #         except queue.Empty:
+            #             continue  # Continue waiting for the callback
 
-                    # Check if the result is an error
-                    if isinstance(result, InferenceServerException):
-                        # Handle the error
-                        pass
+            #         # Check if the result is an error
+            #         if isinstance(result, InferenceServerException):
+            #             # Handle the error
+            #             pass
 
-                    # Try to get the decoded tokens
-                    try:
-                        decoded_token = user_data._decoded_tokens.get_nowait()
-                        yield decoded_token
-                    except queue.Empty:
-                        pass  # No decoded tokens available yet
-            except Exception as e:
-                err = "Encountered error: " + str(e)
-                print(err)
-                sys.exit(err)
+            #         # Try to get the decoded tokens
+            #         try:
+            #             decoded_token = self.user_data._decoded_tokens.get_nowait()
+            #             yield decoded_token
+            #         except queue.Empty:
+            #             pass  # No decoded tokens available yet
+            # except Exception as e:
+            #     err = "Encountered error: " + str(e)
+            #     print(err)
+            #     sys.exit(err)
 
     @staticmethod
     def generate_request_id():
