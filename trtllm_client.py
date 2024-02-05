@@ -436,4 +436,4 @@ if __name__ == "__main__":
         tokenizer=tokenizer,
     )
 
-    triton_trt_llm_client.run(text="This is fucking dumb wtf")
+    triton_trt_llm_client.run(text="Machine learning is")
