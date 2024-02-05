@@ -95,7 +95,7 @@ class Predictor(BasePredictor):
                 "Your model directory is empty, so there's nothing to do. Remember, you can't run this like a normal model. You need to YOLO!"
             )
             return
-        client = TRTLLMClient(tokenizer=tokenizer)
+        client = TRTLLMClient(tokenizer=self.tokenizer)
 
         # Ensure the client is configured with the shared queue
         client.user_data._completed_requests = (
