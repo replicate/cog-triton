@@ -1,12 +1,12 @@
 # Prediction interface for Cog ⚙️
 # https://github.com/replicate/cog/blob/main/docs/python.md
-import asyncio
 import os
 import subprocess
 
-from cog import BasePredictor, ConcatenateIterator, Input, Path
+from cog import BasePredictor, ConcatenateIterator
 from utils import maybe_download_tarball_with_pget
 import httpx
+from sse import receive_sse
 
 
 URL = "https://replicate.delivery/pbxt/qkRFtudUXCoAKlntnVLc3dBhRutRoW02L127bU3Q4778emHJA/engine.tar"
@@ -52,11 +52,11 @@ class Predictor(BasePredictor):
             )
             return
         args = {"text_input": prompt, "max_tokens": max_new_tokens, "stream": True}
-        req = client.stream(
+        req = self.client.stream(
             "POST",
             "http://localhost:8000/v2/models/ensemble/generate_stream",
             json=args,
         )
         async with req as resp:
-            async for event in receive_sse(req):
+            async for event in receive_sse(resp):
                 yield event.json()["text_output"]
