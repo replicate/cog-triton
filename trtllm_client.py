@@ -165,6 +165,7 @@ def prepare_stop_signals():
 # inference, error will be None, otherwise it will be an object of
 # tritonclientutils.InferenceServerException holding the error details
 def callback(user_data, tokenizer, result, error):
+    print(result)
     if error:
         user_data._completed_requests.put(error)
     else:
