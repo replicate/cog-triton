@@ -2,3 +2,4 @@ build:
    gpu: true
    python_version: "3.11"
 predict: "predict.py:Predictor"
+concurrency: 10

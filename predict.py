@@ -13,7 +13,7 @@ URL = "https://replicate.delivery/pbxt/qkRFtudUXCoAKlntnVLc3dBhRutRoW02L127bU3Q4
 
 
 class Predictor(BasePredictor):
-    def setup(self, weights: Path = None) -> None:
+    def setup(self, weights: str  = None) -> None:
         engine_dir = os.environ.get(
             "ENGINE_DIR", "/src/triton_model_repo/tensorrt_llm/1/"
         )
