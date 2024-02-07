@@ -1,6 +1,7 @@
 # Prediction interface for Cog ⚙️
 # https://github.com/replicate/cog/blob/main/docs/python.md
 import os
+import time
 import subprocess
 
 from cog import BasePredictor, ConcatenateIterator
@@ -41,6 +42,7 @@ class Predictor(BasePredictor):
                 "--model_repo=/src/triton_model_repo",
             ]
         )
+        time.sleep(5) # let triton start?
         self.client = httpx.AsyncClient()
 
     async def predict(
