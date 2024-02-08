@@ -61,7 +61,32 @@ build:
 # Development
 
 ## Running a dev environment
+ 
+1. Initialize TRT-LLM
 
+```
+# TensorRT-LLM uses git-lfs, which needs to be installed in advance.
+apt-get update && apt-get -y install git git-lfs
+
+git lfs install
+git lfs pull
+git submodule update --init --recursive
+```
+
+2. Set TRT-LLM Version.
+Note: This _must_ match the version used in the Triton server. 
+
+```
+export TRT_LLM_VERSION=0.7.1
+cd TensorRT-LLM
+git checkout v${TRT_LLM_VERSION}
+```
+
+3. Build TRT-LLM 
+
+```
+make -C docker release_build
+```
 1. Build the image
 
 ```
@@ -72,23 +97,17 @@ or
 docker build -t cog-trt-llm .
 ```
 
-2. Run the image
+2. Run the Cog Server
 
-docker run --rm -it -p 5000:5000 --gpus=all --workdir /src  --net=host --volume $(pwd)/.:/src/. cog-trt-llm /bin/bash
+docker run --rm -it -p 5000:5000 --gpus=all --workdir /src  --net=host --volume $(pwd)/.:/src/. cog-trt-llm python -m cog.server.http
 
-3. Start cog server in image
 
-```
-python -m cog.server.http
-```
 
 4. Expose configs via HTTP so they can be "downloaded" by cog
 
 ```
-python3 -m http.server 8000 --bind 0.0.0.0
+python3 -m http.server 8003 --bind 0.0.0.0
 ``` 
-
-http://localhost:8000/examples/gpt/config.yaml
 
 5. Make a request
 
@@ -96,8 +115,8 @@ http://localhost:8000/examples/gpt/config.yaml
 curl -s -X POST \
   -H "Content-Type: application/json" \
   -d $'{
-    "input": {
-        "config":"http://localhost:8000/examples/gpt/config.yaml"
+    "input": { 
+        "config":"http://localhost:8003/examples/gpt/config.yaml"
     }
   }' \
   http://localhost:5000/predictions
@@ -185,19 +204,3 @@ Alternatively, if you just want to use TRT-LLM locally, you can:
 ```
 docker run --rm  -it -p 5000:5000 --gpus=all --workdir /src --entrypoint /bin/bash  --volume $(pwd)/.:/src/. cog-trt-llm
 ```
-
-
-
-
-
-docker tag tensorrt_llm/release us-docker.pkg.dev/replicate-production/replicate-us/cog-trt-llm/tensorrt_llm
-docker push us-docker.pkg.dev/replicate-production/replicate-us/cog-trt-llm/tensorrt_llm
-
-
-docker push us-docker.pkg.dev/replicate-production/replicate-us/cog-trt-llm/tensorrt_llm
-
-
-
-tensorrt_llm/release:latest
-
-docker pull us-docker.pkg.dev/replicate-production/replicate-us/replicate/dreambooth@sha256:bc542f0dcc8a537ece4f26db27d92c0eee5b454ab0a6a8d981116ca1c76a79dc
