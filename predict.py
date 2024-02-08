@@ -34,14 +34,19 @@ class Predictor(BasePredictor):
             description="Path to your config file. If not provided, a default config will be used if available.",
             default=None,
         ),
+        hf_token: str = Input(description="Hugging Face API token", default=None),
     ) -> Path:
         config = self.config_parser.load_config(config) if config else {}
         config = self.config_parser.update_config(
             config,
         )
-
         self.config_parser.print_config(config)
-
+        if hf_token:
+            config["hf_token"] = hf_token
+        # check if a hf token was provided
+        if "hf_token" in config:
+            from huggingface_hub._login import _login
+            _login(token=config.hf_token, add_to_git_credential=False)
         local_model_dir = self.downloader.run(config.model_id)
 
         output = self.builder.run(
@@ -50,3 +55,8 @@ class Predictor(BasePredictor):
         )
 
         return Path(output)
+
+if __name__ == "__main__":
+    p = Predictor()
+    p.setup()
+    p.predict(config='starcoder_config.txt')

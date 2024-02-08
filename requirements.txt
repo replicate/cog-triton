@@ -1,2 +1,4 @@
 aiohttp[speedups]
+transformers
 omegaconf
+huggingface-hub
