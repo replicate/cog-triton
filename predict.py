@@ -5,7 +5,7 @@ from cog import BasePredictor, Input, Path
 import yaml
 import subprocess
 import os
-
+os.environ['HF_HUB_ENABLE_HF_TRANSFER'] = '1'
 from trt_llm_builder import TRTLLMBuilder
 from downloader import Downloader
 from config_parser import ConfigParser
