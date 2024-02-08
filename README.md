@@ -74,8 +74,9 @@ docker build -t cog-trt-llm .
 
 2. Run the image
 
+```
 docker run --rm -it -p 5000:5000 --gpus=all --workdir /src  --net=host --volume $(pwd)/.:/src/. cog-trt-llm /bin/bash
-
+```
 3. Start cog server in image
 
 ```
