@@ -36,6 +36,7 @@ class TRTLLMBuilder:
         self.trtllm_dir = trtllm_dir
 
     def run(self, config, local_model_dir):
+
         model_id = config.model_id
         example_name = config.example_name
         example_dir = self._get_example_dir(example_name)

@@ -4,6 +4,8 @@ from distutils.dir_util import copy_tree
 from pathlib import Path
 import subprocess
 
+import torch
+
 
 class Downloader:
     def __init__(self, base_local_model_dir="/src/models"):
@@ -58,6 +60,19 @@ class Downloader:
 
     def _download_with_pget(self, url, file_name):
         raise NotImplementedError()
+
+
+def get_gpu_info():
+    gpu_info = []
+    for i in range(torch.cuda.device_count()):
+        device = torch.device(f"cuda:{i}")
+        gpu_info.append(
+            {
+                "name": torch.cuda.get_device_name(device),
+                "capability": torch.cuda.get_device_capability(device),
+            }
+        )
+    return gpu_info
 
 
 if __name__ == "__main__":

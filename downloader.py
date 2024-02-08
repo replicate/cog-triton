@@ -33,10 +33,10 @@ class Downloader:
         # Check for .safetensors files:
         files = list_repo_files(model_id)
         allow_patterns = ["*.json", "tokenizer.model", "*.py"]
-        if any(filename.endswith(".safetensors") for filename in files):
-            allow_patterns.append("*.safetensors")
-        elif any(filename.endswith(".bin") for filename in files):
+        if any(filename.endswith(".bin") for filename in files):
             allow_patterns.append("*.bin")
+        elif any(filename.endswith(".safetensors") for filename in files):
+            allow_patterns.append("*.safetensors")
         elif any(filename.endswith(".pt") for filename in files):
             allow_patterns.append("*.pt")
         else:
@@ -59,6 +59,7 @@ class Downloader:
                     "*onnx*",
                 ],
                 local_dir=output_dir,
+                local_dir_use_symlinks=False,
             )
 
     def _download_with_pget(self, url, file_name):
