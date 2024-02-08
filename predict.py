@@ -59,4 +59,5 @@ class Predictor(BasePredictor):
 if __name__ == "__main__":
     p = Predictor()
     p.setup()
-    p.predict(config='tinygpt2_config.txt', hf_token=None)
+    config_path = os.path.join(os.getcwd(),"examples","gpt","config.yaml")
+    p.predict(config=config_path, hf_token=None)
