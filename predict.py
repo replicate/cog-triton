@@ -59,4 +59,4 @@ class Predictor(BasePredictor):
 if __name__ == "__main__":
     p = Predictor()
     p.setup()
-    p.predict(config='starcoder_config.txt')
+    p.predict(config='tinygpt2_config.txt', hf_token=None)

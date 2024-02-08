@@ -1,0 +1,30 @@
+# this is an identifier for downloading the model. e.g., 
+# https://huggingface.co/<model_id>
+model_id: bigcode/starcoder
+# this is the name of the trt-llm example directory to use for the build
+# See possible examples here: 
+example_name: gpt
+convert_to_ft:
+  script: hf_gpt_convert.py
+  output_dir: ./c-model/gpt2/1-gpu
+  args:
+    # Must be the path to the downloaded model
+    # Model will always be downloaded to
+    # /src/models/<model_name>/
+    in-file: /src/models/bigcode/starcoder
+    out-dir: ./c-model/starcoder
+    tensor-parallelism: 1
+    storage-type: float16
+    processes: 8
+build:
+  script: build.py
+  output_dir: ./engine_outputs/
+  args:
+    model_dir: ./c-model/starcoder/1-gpu
+    output_dir: ./engine_outputs/
+    dtype: float16
+    use_gemm_plugin: float16
+    use_gpt_attention_plugin: 
+    paged_kv_cache:
+    remove_input_padding:
+    # Keys without values are treated as flags
