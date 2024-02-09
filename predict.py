@@ -59,5 +59,5 @@ class Predictor(BasePredictor):
 if __name__ == "__main__":
     p = Predictor()
     p.setup()
-    config_path = os.path.join(os.getcwd(),"examples","gpt","config.yaml")
+    config_path = os.path.join(os.getcwd(),"examples","gpt","starcoder.yaml")
     p.predict(config=config_path, hf_token=None)

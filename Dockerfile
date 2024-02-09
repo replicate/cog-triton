@@ -23,7 +23,7 @@ RUN TINI_VERSION=v0.19.0; \
     chmod +x /sbin/tini
 
 # Copy and install the Python wheel
-COPY .cog/tmp/build3715298986/cog-0.0.1.dev-py3-none-any.whl /tmp/cog-0.0.1.dev-py3-none-any.whl
+COPY .cog/tmp/build3871159230/cog-0.0.1.dev-py3-none-any.whl /tmp/cog-0.0.1.dev-py3-none-any.whl
 RUN pip install /tmp/cog-0.0.1.dev-py3-none-any.whl
 
 # pip install requirements
@@ -33,6 +33,9 @@ RUN curl -o /usr/local/bin/pget -L "https://github.com/replicate/pget/releases/l
 
 # Set the working directory
 WORKDIR /src
+
+# Copy the examples
+COPY examples /src/examples
 
 # Expose the necessary port
 EXPOSE 5000
