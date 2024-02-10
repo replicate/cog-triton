@@ -21,9 +21,10 @@ RUN TINI_VERSION=v0.19.0; \
     curl -sSL -o /sbin/tini "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TINI_ARCH}"; \
     chmod +x /sbin/tini
 
-# Copy and install the Python wheel
-COPY .cog/tmp/build1194876799/cog-0.0.1.dev-py3-none-any.whl /tmp/cog-0.0.1.dev-py3-none-any.whl
-RUN pip install /tmp/cog-0.0.1.dev-py3-none-any.whl
+# # Copy and install the Python wheel
+# COPY .cog/tmp/build1194876799/cog-0.0.1.dev-py3-none-any.whl /tmp/cog-0.0.1.dev-py3-none-any.whl
+# RUN pip install /tmp/cog-0.0.1.dev-py3-none-any.whl
+
 
 # pip install requirements
 COPY requirements.txt /tmp/requirements.txt
@@ -41,8 +42,12 @@ COPY examples /src/examples
 EXPOSE 5000
 
 # Set the environment variables for TRT-LLM
-ENV CCACHE_DIR=/src/TensorRT-LLM/cpp/.ccache
-ENV CCACHE_BASEDIR=/src/TensorRT-LLM
+# ENV CCACHE_DIR=/src/TensorRT-LLM/cpp/.ccache
+# ENV CCACHE_BASEDIR=/src/TensorRT-LLM
+
+RUN pip install https://r2.drysys.workers.dev/tmp/cog-0.10.0a4.dev74+g8bbe583.d20240209-py3-none-any.whl
+RUN ln -sf $(which echo) $(which pip)
+
 
 # Define entrypoint and command
 ENTRYPOINT ["/sbin/tini", "--"]
