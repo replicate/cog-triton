@@ -1,8 +1,5 @@
 import yaml
 from omegaconf import OmegaConf
-from pygments import highlight
-from pygments.lexers import YamlLexer
-from pygments.formatters import TerminalFormatter
 
 
 # read yaml with omegaconf
