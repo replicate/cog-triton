@@ -14,7 +14,9 @@ class Downloader:
         output_dir = Path(self.base_local_model_dir) / model_id
 
         if self._is_model_present(output_dir):
-            print(f"Model {model_id} is already present in {output_dir}. Skipping download.")
+            print(
+                f"Model {model_id} is already present in {output_dir}. Skipping download."
+            )
             return output_dir
 
         # if model is cached on replicate, download with pget
@@ -56,7 +58,6 @@ class Downloader:
                 repo_id=model_id,
                 revision=revision,
                 cache_dir=tmpdir,
-                local_dir_use_symlinks = False,
                 allow_patterns=allow_patterns,
                 ignore_patterns=[
                     "*.onnx",
