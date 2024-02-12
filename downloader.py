@@ -13,6 +13,12 @@ class Downloader:
         print(f"Downloading model artifacts for {model_id}...")
         output_dir = Path(self.base_local_model_dir) / model_id
 
+        if self._is_model_present(output_dir):
+            print(
+                f"Model {model_id} is already present in {output_dir}. Skipping download."
+            )
+            return output_dir
+
         # if model is cached on replicate, download with pget
         # else, download from HF Hub
         self._download_from_hf_hub(model_id, output_dir, revision=revision)
@@ -20,6 +26,9 @@ class Downloader:
         print(f"Finished downloading {model_id}...")
 
         return output_dir
+
+    def _is_model_present(self, output_dir):
+        return output_dir.exists() and any(output_dir.iterdir())
 
     def _download_from_hf_hub(self, model_id, output_dir, revision=None):
         """

@@ -156,5 +156,6 @@ class TRTLLMBuilder:
                         file_path,
                         arcname=os.path.relpath(file_path, target_model_dir),
                     )
+                    print(f"Added {file_path} to `engine.tar`.")
 
         return output_path

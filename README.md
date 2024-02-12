@@ -99,9 +99,20 @@ docker build -t cog-trt-llm .
 
 2. Run the Cog Server
 
-docker run --rm -it -p 5000:5000 --gpus=all --workdir /src  --net=host --volume $(pwd)/.:/src/. cog-trt-llm python -m cog.server.http
+```
+docker run --rm -it -p 5000:5000 --gpus=all --workdir /src  --net=host --volume $(pwd)/.:/src/. cog-trt-llm /bin/bash
+```
+3. Start cog server in image
 
+```
+python -m cog.server.http
+```
 
+Note: You can also just call the following to run the image and start the server with one command:
+
+```
+docker run --rm -it -p 5000:5000 --gpus=all --workdir /src  --net=host --volume $(pwd)/.:/src/. cog-trt-llm bash -c "python -m cog.server.http"
+```
 
 4. Expose configs via HTTP so they can be "downloaded" by cog
 
