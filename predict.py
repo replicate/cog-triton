@@ -55,13 +55,13 @@ class Predictor(BasePredictor):
             config,
         )
         self.config_parser.print_config(config)
-        # if hf_token:
-        #     config["hf_token"] = hf_token
-        # # check if a hf token was provided
-        # if "hf_token" in config:
-        #     from huggingface_hub._login import _login
+        if hf_token:
+            config["hf_token"] = hf_token
+        # check if a hf token was provided
+        if "hf_token" in config:
+            from huggingface_hub._login import _login
 
-        #     _login(token=config.hf_token, add_to_git_credential=False)
+            _login(token=config.hf_token, add_to_git_credential=False)
         local_model_dir = self.downloader.run(config.model_id)
 
         output = self.builder.run(
