@@ -10,11 +10,8 @@ import httpx
 from sse import receive_sse
 
 
-URL = "https://replicate.delivery/pbxt/qkRFtudUXCoAKlntnVLc3dBhRutRoW02L127bU3Q4778emHJA/engine.tar"
-
-
 class Predictor(BasePredictor):
-    def setup(self, weights: str  = None) -> None:
+    def setup(self, weights: str = None) -> None:
         engine_dir = os.environ.get(
             "ENGINE_DIR", "/src/triton_model_repo/tensorrt_llm/1/"
         )
@@ -42,7 +39,7 @@ class Predictor(BasePredictor):
                 "--model_repo=/src/triton_model_repo",
             ]
         )
-        time.sleep(5) # let triton start?
+        time.sleep(5)  # let triton start?
         self.client = httpx.AsyncClient()
 
     async def predict(
