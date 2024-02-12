@@ -1,6 +1,52 @@
 # cog-triton
 A cog implementation of Nvidia's Triton server
 
+## Create a Replicate Model with cog-triton
+
+Currently, we use [yolo](https://github.com/replicate/yolo), a CLI tool we've built to help with non-standard Replicate workflows. To get started, install yolo:
+
+```
+sudo curl -o /usr/local/bin/yolo -L "https://github.com/replicate/yolo/releases/latest/download/yolo_$(uname -s)_$(uname -m)"
+sudo chmod +x /usr/local/bin/yolo
+```
+
+Once you have yolo installed, follow these steps:
+
+1. **Compile a TensorRT engine with cog-trt-llm**
+
+2. **If it doesn't exist already, you'll need to create the Replicate Model to which you'll push your cog-triton model**
+
+You can create a new Replicate Model via web or our API. To keep things simple, we'll use the latter method.
+
+First, set a Replicate API token.
+
+```
+export REPLICATE_API_TOKEN=<your-api-token>
+```
+
+```
+curl -s -X POST -H "Authorization: Token $REPLICATE_API_TOKEN" \
+    -d '{"owner": "my-username", "name": "my-new-model", "visibility": "private", "hardware": "gpu-a40-large"}' \
+    https://api.replicate.com/v1/models 
+```
+
+
+We'll call our model `staging-gpt2-triton-trt-llm`
+
+2. **Instantiate a cog-triton model with your TRT-LLM engine**
+
+staging-gpt2-triton-trt-llm
+
+```
+yolo push \
+--base r8.im/replicate-internal/cog-triton@sha256:5d784bf5f449a0578ceb903265bb756dae146a267fc075b4c77021babedc6637 \
+--dest r8.im/replicate-internal/staging-gpt2-triton-trt-llm \
+-e COG_WEIGHTS=https://replicate.delivery/pbxt/CUDp32x5hO6GMBWprN8o24vWOLZbnYm7AAoRTxLfe0CUfglkA/engine.tar
+```
+
+
+staging-gpt2-triton-trt-llm
+
 # Development
 
 ## End-to-end build process 
