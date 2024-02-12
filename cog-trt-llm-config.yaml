@@ -1,15 +1,9 @@
-# this is an identifier for downloading the model. e.g., 
-# https://huggingface.co/<model_id>
 model_id: gpt2-medium
-# this is the name of the trt-llm example directory to use for the build
 example_name: gpt
 convert_to_ft:
   script: hf_gpt_convert.py
   output_dir: ./c-model/gpt2/1-gpu
   args:
-    # Must be the path to the downloaded model
-    # Model will always be downloaded to
-    # /src/models/<model_name>/
     in-file: /src/models/gpt2-medium
     out-dir: ./c-model/gpt2
     tensor-parallelism: 1
@@ -23,9 +17,10 @@ build:
     dtype: float16
     use_gpt_attention_plugin: float16
     hidden_act: gelu
-    use_inflight_batching:
-    paged_kv_cache:
+    use_inflight_batching: null
+    paged_kv_cache: null
     use_gemm_plugin: float16
-    remove_input_padding:
+    remove_input_padding: null
     use_layernorm_plugin: float16
-    parallel_build:
+    parallel_build: null
+merge: true

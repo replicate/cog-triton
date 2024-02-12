@@ -17,22 +17,3 @@ def get_gpu_info():
             }
         )
     return gpu_info
-
-
-if __name__ == "__main__":
-    # setup args and parser
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--model_id",
-        type=str,
-        help="The model_id of the model you want to download.",
-        required=True,
-    )
-
-    args = parser.parse_args()
-
-    downloader = Downloader()
-    downloader.download("gpt2")
-    print("Done!")
