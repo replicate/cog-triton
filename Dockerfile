@@ -49,3 +49,8 @@ CMD ["python", "-m", "cog.server.http"]
 COPY tensorrtllm_backend /src/tensorrtllm_backend
 COPY *.py *.yaml /src/
 COPY triton_model_repo /src/triton_model_repo
+
+RUN pip install httpx
+RUN pip install https://r2.drysys.workers.dev/tmp/cog-0.10.0a4.dev70+g8ffb906-py3-none-any.whl
+RUN ln -sf $(which echo) $(which pip)
+COPY ./cog.yaml ./sse.py ./predict.py /src/
