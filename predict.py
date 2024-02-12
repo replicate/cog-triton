@@ -59,6 +59,7 @@ class Predictor(BasePredictor):
             config["hf_token"] = hf_token
         # check if a hf token was provided
         if "hf_token" in config:
+            print("Logging in to Hugging Face Hub...")
             from huggingface_hub._login import _login
 
             _login(token=config.hf_token, add_to_git_credential=False)
