@@ -83,6 +83,12 @@ docker run --rm -it -p 5000:5000 --gpus=all --workdir /src  --net=host --volume 
 python -m cog.server.http
 ```
 
+Note: You can also just call the following to run the image and start the server with one command:
+
+```
+docker run --rm -it -p 5000:5000 --gpus=all --workdir /src  --net=host --volume $(pwd)/.:/src/. cog-trt-llm bash -c "python -m cog.server.http"
+```
+
 4. Expose configs via HTTP so they can be "downloaded" by cog
 
 ```
@@ -186,19 +192,3 @@ Alternatively, if you just want to use TRT-LLM locally, you can:
 ```
 docker run --rm  -it -p 5000:5000 --gpus=all --workdir /src --entrypoint /bin/bash  --volume $(pwd)/.:/src/. cog-trt-llm
 ```
-
-
-
-
-
-docker tag tensorrt_llm/release us-docker.pkg.dev/replicate-production/replicate-us/cog-trt-llm/tensorrt_llm
-docker push us-docker.pkg.dev/replicate-production/replicate-us/cog-trt-llm/tensorrt_llm
-
-
-docker push us-docker.pkg.dev/replicate-production/replicate-us/cog-trt-llm/tensorrt_llm
-
-
-
-tensorrt_llm/release:latest
-
-docker pull us-docker.pkg.dev/replicate-production/replicate-us/replicate/dreambooth@sha256:bc542f0dcc8a537ece4f26db27d92c0eee5b454ab0a6a8d981116ca1c76a79dc
