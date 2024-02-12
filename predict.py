@@ -39,18 +39,51 @@ class Predictor(BasePredictor):
                 "--model_repo=/src/triton_model_repo",
             ]
         )
-        time.sleep(5)  # let triton start?
+        # Health check Triton until it is ready
+        while True:
+            try:
+                response = httpx.get("http://localhost:8000/v2/health/ready")
+                if response.status_code == 200:
+                    print("Triton is ready.")
+                    break
+            except httpx.RequestError:
+                pass
+            time.sleep(1)
+
         self.client = httpx.AsyncClient()
 
     async def predict(
-        self, prompt: str, max_new_tokens: int = 500
+        self,
+        prompt: str,
+        max_new_tokens: int = 250,
+        min_length: int = None,
+        top_k: int = 0,
+        top_p: float = 0.0,
+        temperature: float = 1.0,
+        length_penalty: float = 1.0,
+        presence_penalty: float = 0.0,
+        frequency_penalty: float = 0.0,
+        stop_words: str = None,
     ) -> ConcatenateIterator:
         if not self.model_exists:
             print(
                 "Your model directory is empty, so there's nothing to do. Remember, you can't run this like a normal model. You need to YOLO!"
             )
             return
-        args = {"text_input": prompt, "max_tokens": max_new_tokens, "stream": True}
+
+        args = self._process_args(
+            prompt=prompt,
+            max_new_tokens=max_new_tokens,
+            min_length=min_length,
+            top_k=top_k,
+            top_p=top_p,
+            temperature=temperature,
+            length_penalty=length_penalty,
+            presence_penalty=presence_penalty,
+            frequency_penalty=frequency_penalty,
+            stop_words=stop_words,
+        )
+
         req = self.client.stream(
             "POST",
             "http://localhost:8000/v2/models/ensemble/generate_stream",
@@ -59,3 +92,35 @@ class Predictor(BasePredictor):
         async with req as resp:
             async for event in receive_sse(resp):
                 yield event.json()["text_output"]
+
+    def _process_args(
+        self,
+        prompt: str,
+        max_new_tokens: int = 250,
+        min_length: int = None,
+        top_k: int = 0,
+        top_p: float = 0.0,
+        temperature: float = 1.0,
+        length_penalty: float = 1.0,
+        presence_penalty: float = 0.0,
+        frequency_penalty: float = 0.0,
+        stop_words: str = None,
+    ):
+
+        stop_words_list = stop_words.split(",") if stop_words else []
+        min_length = 0 if min_length is None else min_length
+
+        args = {
+            "text_input": prompt,
+            "max_tokens": max_new_tokens,
+            "min_length": min_length,
+            "top_k": top_k,
+            "temperature": temperature,
+            "top_p": top_p,
+            "length_penalty": length_penalty,
+            "presence_penalty": presence_penalty,
+            "stop_words": stop_words_list,
+            "stream": True,
+        }
+
+        return args
