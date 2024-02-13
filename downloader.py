@@ -9,7 +9,7 @@ class Downloader:
     def __init__(self, base_local_model_dir="/src/models"):
         self.base_local_model_dir = base_local_model_dir
 
-    def run(self, model_id, revision=None):
+    def run(self, model_id, revision=None, weight_format=None):
         print(f"Downloading model artifacts for {model_id}...")
         output_dir = Path(self.base_local_model_dir) / model_id
 
@@ -21,7 +21,9 @@ class Downloader:
 
         # if model is cached on replicate, download with pget
         # else, download from HF Hub
-        self._download_from_hf_hub(model_id, output_dir, revision=revision)
+        self._download_from_hf_hub(
+            model_id, output_dir, revision=revision, weight_format=weight_format
+        )
 
         print(f"Finished downloading {model_id}...")
 
@@ -30,7 +32,9 @@ class Downloader:
     def _is_model_present(self, output_dir):
         return output_dir.exists() and any(output_dir.iterdir())
 
-    def _download_from_hf_hub(self, model_id, output_dir, revision=None):
+    def _download_from_hf_hub(
+        self, model_id, output_dir, revision=None, weight_format=None
+    ):
         """
         This will download the model from the HuggingFace Hub.
         Currently, `snapshot_download` caches in a default location and then creates
@@ -42,18 +46,35 @@ class Downloader:
         # Check for .safetensors files:
         files = list_repo_files(model_id)
         allow_patterns = ["*.json", "tokenizer.model", "*.py"]
-        if any(filename.endswith(".bin") for filename in files):
-            allow_patterns.append("*.bin")
-        elif any(filename.endswith(".safetensors") for filename in files):
-            allow_patterns.append("*.safetensors")
-        elif any(filename.endswith(".pt") for filename in files):
-            allow_patterns.append("*.pt")
+
+        # weight format can be .bin, .safe_tensors, or .pt
+        if weight_format:
+            if weight_format == "bin":
+                allow_patterns.append("*.bin")
+            elif weight_format == "safetensors":
+                allow_patterns.append("*.safetensors")
+            elif weight_format == "pt":
+                allow_patterns.append("*.pt")
+            else:
+                raise Exception(
+                    "Invalid weight format. Must be one of: bin, safetensors, pt"
+                )
         else:
-            raise Exception(
-                "No valid model files found in the repo. Must be one of: .bin, .pt, .safetensors"
-            )
+            if any(filename.endswith(".bin") for filename in files):
+                allow_patterns.append("*.bin")
+            elif any(filename.endswith(".safetensors") for filename in files):
+                allow_patterns.append("*.safetensors")
+            elif any(filename.endswith(".pt") for filename in files):
+                allow_patterns.append("*.pt")
+            else:
+                raise Exception(
+                    "No valid model files found in the repo. Must be one of: .bin, .pt, .safetensors"
+                )
 
         with TemporaryDirectory() as tmpdir:
+            # print tmpdir
+            print(f"Downloading {model_id} to {tmpdir}...")
+
             snapshot_dir = snapshot_download(
                 repo_id=model_id,
                 revision=revision,
@@ -71,7 +92,7 @@ class Downloader:
                 local_dir_use_symlinks=False,
             )
 
-    def _download_with_pget(self, url, file_name):
+    def _download_with_pget(self, url, file_name, weight_format=None):
         raise NotImplementedError()
 
 
