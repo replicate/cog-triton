@@ -4,6 +4,7 @@
 import os
 
 os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
+os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
 
 from cog import BasePredictor, Input, Path
 import yaml
@@ -54,6 +55,11 @@ class Predictor(BasePredictor):
         config = self.config_parser.update_config(
             config,
         )
+
+        # if weight_format not in config, set to None
+        if "weight_format" not in config:
+            config["weight_format"] = None
+
         self.config_parser.print_config(config)
         if hf_token:
             config["hf_token"] = hf_token
@@ -63,7 +69,10 @@ class Predictor(BasePredictor):
             from huggingface_hub._login import _login
 
             _login(token=config.hf_token, add_to_git_credential=False)
-        local_model_dir = self.downloader.run(config.model_id)
+
+        local_model_dir = self.downloader.run(
+            config.model_id, weight_format=config.weight_format
+        )
 
         output = self.builder.run(
             config=config,
