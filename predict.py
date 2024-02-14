@@ -86,12 +86,15 @@ class Predictor(BasePredictor):
 
         req = self.client.stream(
             "POST",
-            "http://localhost:8000/v2/models/ensemble/generate_stream",
+            "http://localhost:8000/v2/models/tensorrt_llm_bls/generate_stream",
             json=args,
         )
+        output = ""
         async with req as resp:
             async for event in receive_sse(resp):
-                yield event.json()["text_output"]
+                next_output = event.json()["text_output"]
+                yield next_output.removeprefix(output)
+                output = next_output
 
     def _process_args(
         self,
