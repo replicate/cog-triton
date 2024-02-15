@@ -3,12 +3,12 @@
 # https://docs.docker.com/engine/reference/builder/#dockerignore-file
 
 # Exclude Git files
-.git
-.github
-.gitignore
+**/.git
+**/.github
+**/.gitignore
 
 # Exclude Python cache files
-__pycache__
+**/__pycache__
 .mypy_cache
 .pytest_cache
 .ruff_cache
@@ -18,7 +18,7 @@ __pycache__
 
 # *.bin
 *.safetensors
-*.tar
+**/*.tar
 
 gpt2/*.bin
 gpt2/onnx/
@@ -26,3 +26,8 @@ gpt2/*.h5
 gpt2/*.onnx
 gpt2/*.msgpack
 gpt2/*.ot
+
+# stuff from the nvidia source repos
+**/*.html
+**/*.pdf
+**/docs
