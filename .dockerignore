@@ -18,6 +18,7 @@ __pycache__
 
 # *.bin
 *.safetensors
+*.tar
 
 gpt2/*.bin
 gpt2/onnx/
