@@ -30,11 +30,6 @@ def maybe_download_tarball_with_pget(
         path (str): Path to the directory where files were downloaded
 
     """
-    print("Checking for tarball...")
-    # if dest exists, rm
-    if os.path.exists(dest):
-        shutil.rmtree(dest)
-
     print("Downloading weights...")
     command = ["pget", url, dest, "-x"]
     subprocess.check_call(command, close_fds=True)
