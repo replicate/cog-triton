@@ -30,9 +30,8 @@ def maybe_download_tarball_with_pget(
         path (str): Path to the directory where files were downloaded
 
     """
-    print("Checking for tarball...")
-    # if dest exists, rm
     if os.path.exists(dest):
+        print("Tarball seems to exit...")
         shutil.rmtree(dest)
 
     print("Downloading weights...")
