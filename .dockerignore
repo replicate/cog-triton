@@ -29,4 +29,4 @@ tests/
 **/gpt2/
 **/onnx/
 **/engine_outputs/
-*.tar.gz
+*.tar
