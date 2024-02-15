@@ -1,19 +1,18 @@
 # Prediction interface for Cog ⚙️
 # https://github.com/replicate/cog/blob/main/docs/python.md
 import os
-import time
 import subprocess
+import time
 
-from cog import BasePredictor, ConcatenateIterator
-from utils import maybe_download_tarball_with_pget
 import httpx
+from cog import BasePredictor, ConcatenateIterator
+
 from sse import receive_sse
-import string
+from utils import maybe_download_tarball_with_pget
 
 
 class Predictor(BasePredictor):
     def setup(self, weights: str = None) -> None:
-
         self.system_prompt_exists = os.getenv("SYSTEM_PROMPT", None)
 
         engine_dir = os.environ.get(
@@ -122,7 +121,6 @@ class Predictor(BasePredictor):
         frequency_penalty: float = 0.0,
         stop_words: str = None,
     ):
-
         stop_words_list = stop_words.split(",") if stop_words else []
         min_length = 0 if min_length is None else min_length
 
@@ -144,18 +142,13 @@ class Predictor(BasePredictor):
     def _format_prompt(
         self, prompt: str, prompt_template: str, system_prompt: str
     ) -> str:
-
         if not prompt_template:
             return prompt
-
-        elif "system_prompt" in prompt_template:
-
+        if "system_prompt" in prompt_template:
             system_prompt = system_prompt if system_prompt else ""
             formatted_prompt = prompt_template.format(
                 system_prompt=system_prompt, prompt=prompt
             )
             return formatted_prompt
-
-        else:
-            formatted_prompt = prompt_template.format(prompt=prompt)
-            return formatted_prompt
+        formatted_prompt = prompt_template.format(prompt=prompt)
+        return formatted_prompt

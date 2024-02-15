@@ -6,6 +6,7 @@ import httpx
 
 # adapted from https://github.com/florimondmanca/httpx-sse/tree/master
 
+
 class SSEError(httpx.TransportError):
     pass
 
