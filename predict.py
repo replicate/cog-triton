@@ -78,8 +78,6 @@ class Predictor(BasePredictor):
             )
             return
 
-        print("promt_template: ", prompt_template)
-
         formatted_prompt = self._format_prompt(
             prompt=prompt, system_prompt=system_prompt, prompt_template=prompt_template
         )
