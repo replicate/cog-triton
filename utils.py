@@ -13,6 +13,11 @@ import subprocess
 from pathlib import Path
 import logging
 
+import argparse
+import subprocess
+import sys
+from pathlib import Path
+
 
 def maybe_download_tarball_with_pget(
     url: str,
@@ -30,26 +35,12 @@ def maybe_download_tarball_with_pget(
         path (str): Path to the directory where files were downloaded
 
     """
+
     print("Downloading weights...")
     command = ["pget", url, dest, "-x"]
     subprocess.check_call(command, close_fds=True)
 
     return dest
-
-    # subprocess.run(
-    #     [
-    #         "python3",
-    #         "/src/tensorrtllm_backend/scripts/launch_triton_server.py",
-    #         "--world_size=1",
-    #         "--model_repo=/src/triton_model_repo",
-    #     ]
-    # )
-
-
-import argparse
-import subprocess
-import sys
-from pathlib import Path
 
 
 class TritonHandler:
