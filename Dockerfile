@@ -21,16 +21,7 @@ RUN TINI_VERSION=v0.19.0; \
     curl -sSL -o /sbin/tini "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TINI_ARCH}"; \
     chmod +x /sbin/tini
 
-# Copy and install the Python wheel
-COPY .cog/tmp/build433494478/cog-0.0.1.dev-py3-none-any.whl /tmp/cog-0.0.1.dev-py3-none-any.whl
-RUN pip install /tmp/cog-0.0.1.dev-py3-none-any.whl
-
-# pip install requirements
-COPY requirements.txt /tmp/requirements.txt
-RUN pip install -r /tmp/requirements.txt
-
 RUN curl -o /usr/local/bin/pget -L "https://github.com/replicate/pget/releases/download/v0.5.6/pget_linux_x86_64" && chmod +x /usr/local/bin/pget
-
 
 # Set the working directory
 WORKDIR /src
@@ -47,10 +38,18 @@ ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["python", "-m", "cog.server.http"]
 
 COPY tensorrtllm_backend /src/tensorrtllm_backend
+
+# Copy and install the Python wheel
+# COPY .cog/tmp/build433494478/cog-0.0.1.dev-py3-none-any.whl /tmp/cog-0.0.1.dev-py3-none-any.whl
+RUN pip install https://r2.drysys.workers.dev/tmp/cog-0.10.0a4.dev70+g8ffb906-py3-none-any.whl
+
+# pip install requirements
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt
+
 COPY *.py *.yaml /src/
 COPY triton_model_repo /src/triton_model_repo
 
-RUN pip install httpx
-RUN pip install https://r2.drysys.workers.dev/tmp/cog-0.10.0a4.dev70+g8ffb906-py3-none-any.whl
+# prevent replicate from downgrading cog
 RUN ln -sf $(which echo) $(which pip)
 COPY ./cog.yaml ./sse.py ./predict.py /src/

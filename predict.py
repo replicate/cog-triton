@@ -1,17 +1,20 @@
 # Prediction interface for Cog ⚙️
 # https://github.com/replicate/cog/blob/main/docs/python.md
 import os
-import time
 import subprocess
+import time
 
-from cog import BasePredictor, ConcatenateIterator
-from utils import maybe_download_tarball_with_pget
 import httpx
+from cog import BasePredictor, ConcatenateIterator
+
 from sse import receive_sse
+from utils import maybe_download_tarball_with_pget
 
 
 class Predictor(BasePredictor):
     def setup(self, weights: str = None) -> None:
+        self.system_prompt_exists = os.getenv("SYSTEM_PROMPT", None)
+
         engine_dir = os.environ.get(
             "ENGINE_DIR", "/src/triton_model_repo/tensorrt_llm/1/"
         )
@@ -28,6 +31,7 @@ class Predictor(BasePredictor):
             print("Engine directory is empty. Exiting.")
             self.model_exists = False
             return
+
         self.model_exists = True
         # # launch triton server
         # # python3 scripts/launch_triton_server.py --world_size=1 --model_repo=/src/tensorrtllm_backend/triton_model
@@ -55,6 +59,7 @@ class Predictor(BasePredictor):
     async def predict(
         self,
         prompt: str,
+        system_prompt: str = os.getenv("SYSTEM_PROMPT", None),
         max_new_tokens: int = 250,
         min_length: int = None,
         top_k: int = 0,
@@ -64,6 +69,7 @@ class Predictor(BasePredictor):
         presence_penalty: float = 0.0,
         frequency_penalty: float = 0.0,
         stop_words: str = None,
+        prompt_template: str = os.getenv("PROMPT_TEMPLATE", None),
     ) -> ConcatenateIterator:
         if not self.model_exists:
             print(
@@ -71,8 +77,12 @@ class Predictor(BasePredictor):
             )
             return
 
+        formatted_prompt = self._format_prompt(
+            prompt=prompt, system_prompt=system_prompt, prompt_template=prompt_template
+        )
+
         args = self._process_args(
-            prompt=prompt,
+            prompt=formatted_prompt,
             max_new_tokens=max_new_tokens,
             min_length=min_length,
             top_k=top_k,
@@ -96,6 +106,8 @@ class Predictor(BasePredictor):
                 yield next_output.removeprefix(output)
                 output = next_output
 
+        print(f"Formatted prompt: `{formatted_prompt}`")
+
     def _process_args(
         self,
         prompt: str,
@@ -109,7 +121,6 @@ class Predictor(BasePredictor):
         frequency_penalty: float = 0.0,
         stop_words: str = None,
     ):
-
         stop_words_list = stop_words.split(",") if stop_words else []
         min_length = 0 if min_length is None else min_length
 
@@ -127,3 +138,17 @@ class Predictor(BasePredictor):
         }
 
         return args
+
+    def _format_prompt(
+        self, prompt: str, prompt_template: str, system_prompt: str
+    ) -> str:
+        if not prompt_template:
+            return prompt
+        if "system_prompt" in prompt_template:
+            system_prompt = system_prompt if system_prompt else ""
+            formatted_prompt = prompt_template.format(
+                system_prompt=system_prompt, prompt=prompt
+            )
+            return formatted_prompt
+        formatted_prompt = prompt_template.format(prompt=prompt)
+        return formatted_prompt
