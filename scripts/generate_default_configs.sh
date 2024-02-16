@@ -26,7 +26,7 @@ python3 scripts/triton_fill_template.py triton_templates/preprocessing/config.pb
 
 # Generate tensorrt_llm config
 python3 scripts/triton_fill_template.py triton_templates/tensorrt_llm/config.pbtxt \
-    "triton_max_batch_size:${MAX_BATCH_SIZE},decoupled_mode:True,engine_dir:/src/triton_model_repo/tensorrt_llm/1,batching_strategy:inflight_fused_batching,batch_scheduler_policy:max_utilization,max_queue_delay_microseconds:100" \
+    "enable_kv_cache_reuse:true,triton_max_batch_size:${MAX_BATCH_SIZE},decoupled_mode:True,engine_dir:/src/triton_model_repo/tensorrt_llm/1,batching_strategy:inflight_fused_batching,batch_scheduler_policy:max_utilization,max_queue_delay_microseconds:100" \
      > ./triton_model_repo/tensorrt_llm/config.pbtxt
 
 # Generate postprocessing config
