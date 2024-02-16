@@ -106,7 +106,7 @@ class Predictor(BasePredictor):
                 yield next_output.removeprefix(output)
                 output = next_output
 
-        print("Formatted prompt:\n", formatted_prompt)
+        print(f"Formatted prompt: `{formatted_prompt}`")
 
     def _process_args(
         self,
