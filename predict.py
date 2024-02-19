@@ -33,13 +33,14 @@ class Predictor(BasePredictor):
             return
 
         self.model_exists = True
+        world_size = os.getenv("WORLD_SIZE", "1")
         # # launch triton server
         # # python3 scripts/launch_triton_server.py --world_size=1 --model_repo=/src/tensorrtllm_backend/triton_model
         subprocess.run(
             [
                 "python3",
                 "/src/tensorrtllm_backend/scripts/launch_triton_server.py",
-                "--world_size=1",
+                f"--world_size={world_size}",
                 "--model_repo=/src/triton_model_repo",
             ]
         )
