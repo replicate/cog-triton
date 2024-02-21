@@ -105,7 +105,7 @@ class Predictor(BasePredictor):
         Returns:
             dict: Dictionary containing the config.
         """
-        config = self.config_parser.load_config(config) if config else {}
+        config = self.config_parser.load_config(config_path) if config_path else {}
         config = self.config_parser.update_config(config)
         config = self._post_process_config(config)
         return config
