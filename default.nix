@@ -1,4 +1,6 @@
-{ pkgs, config, ... }: {
+{ pkgs, config, ... }:
+let deps = config.deps; in
+{
   cog.build = {
     python_version = "3.10";
     cuda = "12.1";
@@ -61,20 +63,40 @@
     rev = "854bdcbe13fec20a695130f21811ca22cb4e1a13";
     hash = "sha256-JWmvULKt3YkaFLYL0WqQ/T+psnjznys2YTMyeZO4CLg=";
   };
-  deps.tensorrt_llm = pkgs.fetchFromGitHub {
-    owner = "NVIDIA";
-    repo = "TensorRT-LLM";
-    rev = "v0.7.1";
-    hash = "sha256-24BrTOs8S1q2+Y9p1laW0BRPhDPkzv8DbqKZ6EjZvhQ=";
-  };
   deps.googletest = pkgs.fetchFromGitHub {
     owner = "google";
     repo = "googletest";
     rev = "9406a60c7839052e4944ea4dbc8344762a89f9bd";
     hash = "sha256-pYoL34KZVjg/bpUQJBEBkjhU6XDDe6yzc1ehe0JfREg=";
   };
+  deps.tensorrt = pkgs.fetchFromGitHub {
+    owner = "NVIDIA";
+    repo = "TensorRT";
+    rev = "v9.2.0";
+    hash = "sha256-Yo9CsHwu8hIPQwigePIwHu7UWtfROuMQFYtC/QIMTO0=";
+  };
     
-  deps.trtllm_backend = let deps = config.deps; in pkgs.stdenv.mkDerivation rec {
+  deps.tensorrt_llm = pkgs.stdenv.mkDerivation rec {
+    pname = "tensorrt_llm";
+    version = "0.7.1";
+    src = pkgs.fetchFromGitHub {
+      owner = "NVIDIA";
+      repo = "TensorRT-LLM";
+      rev = "v0.7.1";
+      hash = "sha256-24BrTOs8S1q2+Y9p1laW0BRPhDPkzv8DbqKZ6EjZvhQ=";
+    };
+    sourceRoot = "source/cpp";
+    nativeBuildInputs = [ pkgs.cmake pkgs.ninja pkgs.python3 ];
+    buildInputs = [ pkgs.rapidjson pkgs.cudaPackages_12_1.cudatoolkit pkgs.openmpi ];
+    cmakeFlags = [
+      "-DBUILD_PYT=OFF"
+      "-DBUILD_PYBIND=OFF"
+      "-DTRT_LIB_DIR=${config.python-env.pip.drvs.tensorrt-libs.public}/lib/python3.10/site-packages/tensorrt_libs"
+      "-DTRT_INCLUDE_DIR=${deps.tensorrt}/include"
+      "-DFETCHCONTENT_SOURCE_DIR_GOOGLETEST=${deps.googletest}"
+    ];
+  };
+  deps.trtllm_backend = pkgs.stdenv.mkDerivation rec {
     pname = "tensorrtllm_backend";
     version = "0.7.1";
     src = pkgs.fetchFromGitHub {
@@ -84,7 +106,7 @@
       hash = "sha256-5+a/+YCl7FuwlQFwWMHgEzPArAr8npLH7qTJ+Sm5Cns=";
     };
     nativeBuildInputs = [ pkgs.cmake pkgs.ninja pkgs.python3 ];
-    buildInputs = [ pkgs.rapidjson pkgs.cudaPackages_11_8.cudatoolkit pkgs.openmpi ];
+    buildInputs = [ pkgs.rapidjson pkgs.cudaPackages_12_1.cudatoolkit pkgs.openmpi ];
     sourceRoot = "source/inflight_batcher_llm";
     cmakeFlags = [
       #"-DCMAKE_INSTALL_PREFIX=${out}"
@@ -94,7 +116,9 @@
       "-DFETCHCONTENT_SOURCE_DIR_REPO-CORE=${deps.triton_repo_core}"
       "-DFETCHCONTENT_SOURCE_DIR_GOOGLETEST=${deps.googletest}"
       "-DFETCHCONTENT_SOURCE_DIR_JSON=${pkgs.nlohmann_json.src}"
-      "-DTRTLLM_DIR=${deps.tensorrt_llm}"
+      "-DTRT_LIB_DIR=${config.python-env.pip.drvs.tensorrt-libs.public}"
+      "-DTRT_INCLUDE_DIR=${deps.tensorrt}/include"
+      "-DTRTLLM_DIR=${deps.tensorrt_llm.src}" # todo: not src
     ];
     # buildInputs = [ pkgs.tensorrt-llm pkgs.inflight_batcher_llm ];
   };
