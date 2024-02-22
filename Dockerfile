@@ -7,13 +7,13 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia
 ENV NVIDIA_DRIVER_CAPABILITIES=all
 ENV PATH="/usr/bin:$PATH"
 
-# Install necessary packages
-RUN --mount=type=cache,target=/var/cache/apt set -eux; \
-    apt-get update -qq; \
-    apt-get install -qqy --no-install-recommends curl make build-essential libssl-dev zlib1g-dev \
-    libbz2-dev libreadline-dev libsqlite3-dev wget llvm libncurses5-dev libncursesw5-dev \
-    xz-utils tk-dev libffi-dev liblzma-dev git ca-certificates; \
-    rm -rf /var/lib/apt/lists/*
+# # Install unnecessary packages
+# RUN --mount=type=cache,target=/var/cache/apt set -eux; \
+#     apt-get update -qq; \
+#     apt-get install -qqy --no-install-recommends curl make build-essential libssl-dev zlib1g-dev \
+#     libbz2-dev libreadline-dev libsqlite3-dev wget llvm libncurses5-dev libncursesw5-dev \
+#     xz-utils tk-dev libffi-dev liblzma-dev git ca-certificates; \
+#     rm -rf /var/lib/apt/lists/*
 
 # Install Tini
 RUN TINI_VERSION=v0.19.0; \
@@ -39,13 +39,9 @@ CMD ["python", "-m", "cog.server.http"]
 
 COPY tensorrtllm_backend /src/tensorrtllm_backend
 
-# Copy and install the Python wheel
-# COPY .cog/tmp/build433494478/cog-0.0.1.dev-py3-none-any.whl /tmp/cog-0.0.1.dev-py3-none-any.whl
-RUN pip install https://r2.drysys.workers.dev/tmp/cog-0.10.0a4.dev70+g8ffb906-py3-none-any.whl
-
-# pip install requirements
+# pip install requirements and prerelease cog
 COPY requirements.txt /tmp/requirements.txt
-RUN pip install -r /tmp/requirements.txt
+RUN pip install cog==0.10.0a5 -r /tmp/requirements.txt
 
 COPY *.py *.yaml /src/
 COPY triton_model_repo /src/triton_model_repo
