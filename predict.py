@@ -34,10 +34,8 @@ class Predictor(BasePredictor):
 
         self.model_exists = True
         world_size = os.getenv("WORLD_SIZE", "1")
-
-        # load config here
-        self.config = None
-
+        # # launch triton server
+        # # python3 scripts/launch_triton_server.py --world_size=1 --model_repo=/src/tensorrtllm_backend/triton_model
         subprocess.run(
             [
                 "python3",
@@ -70,7 +68,6 @@ class Predictor(BasePredictor):
         temperature: float = 1.0,
         length_penalty: float = 1.0,
         presence_penalty: float = 0.0,
-        frequency_penalty: float = 0.0,
         stop_words: str = None,
         prompt_template: str = os.getenv("PROMPT_TEMPLATE", None),
     ) -> ConcatenateIterator:
@@ -79,13 +76,10 @@ class Predictor(BasePredictor):
                 "Your model directory is empty, so there's nothing to do. Remember, you can't run this like a normal model. You need to YOLO!"
             )
             return
-        prompt_template = "<s>[\n[INST]\n<<SYS>>\nYou are a helpful assistant.\n<</SYS>>\n\n{prompt}[/INST]"
 
         formatted_prompt = self._format_prompt(
             prompt=prompt, system_prompt=system_prompt, prompt_template=prompt_template
         )
-
-        # TEMP
 
         args = self._process_args(
             prompt=formatted_prompt,
@@ -96,7 +90,6 @@ class Predictor(BasePredictor):
             temperature=temperature,
             length_penalty=length_penalty,
             presence_penalty=presence_penalty,
-            frequency_penalty=frequency_penalty,
             stop_words=stop_words,
         )
 
@@ -110,9 +103,9 @@ class Predictor(BasePredictor):
         generation_length = 0
         async with req as resp:
             async for event in receive_sse(resp):
-                output = event.json()["text_output"].replace(
-                    "\N{Replacement Character}", ""
-                )
+                output = event.json()["text_output"]
+                output = output.replace("\N{Replacement Character}", "")
+
                 if len(output) == generation_length:
                     # don't yield an empty string
                     continue
@@ -131,11 +124,10 @@ class Predictor(BasePredictor):
         temperature: float = 1.0,
         length_penalty: float = 1.0,
         presence_penalty: float = 0.0,
-        frequency_penalty: float = 0.0,
         stop_words: str = None,
-        pad_id: int = 2,
-        end_id: int = 2,
         stream: bool = True,
+        end_id: int = 2,
+        pad_id: int = 2,
     ):
         stop_words_list = stop_words.split(",") if stop_words else []
         min_length = 0 if min_length is None else min_length
@@ -149,7 +141,6 @@ class Predictor(BasePredictor):
             "top_p": top_p,
             "length_penalty": length_penalty,
             "presence_penalty": presence_penalty,
-            "frequency_penalty": frequency_penalty,
             "stop_words": stop_words_list,
             "stream": stream,
             "pad_id": pad_id,
