@@ -68,7 +68,6 @@ class Predictor(BasePredictor):
         temperature: float = 1.0,
         length_penalty: float = 1.0,
         presence_penalty: float = 0.0,
-        frequency_penalty: float = 0.0,
         stop_words: str = None,
         prompt_template: str = os.getenv("PROMPT_TEMPLATE", None),
     ) -> ConcatenateIterator:
@@ -91,7 +90,6 @@ class Predictor(BasePredictor):
             temperature=temperature,
             length_penalty=length_penalty,
             presence_penalty=presence_penalty,
-            frequency_penalty=frequency_penalty,
             stop_words=stop_words,
         )
 
@@ -100,12 +98,19 @@ class Predictor(BasePredictor):
             "http://localhost:8000/v2/models/tensorrt_llm_bls/generate_stream",
             json=args,
         )
+
         output = ""
+        generation_length = 0
         async with req as resp:
             async for event in receive_sse(resp):
-                next_output = event.json()["text_output"]
-                yield next_output.removeprefix(output)
-                output = next_output
+                output = event.json()["text_output"]
+                output = output.replace("\N{Replacement Character}", "")
+
+                if len(output) == generation_length:
+                    # don't yield an empty string
+                    continue
+                yield output[generation_length:]
+                generation_length = len(output)
 
         print(f"Formatted prompt: `{formatted_prompt}`")
 
@@ -119,8 +124,10 @@ class Predictor(BasePredictor):
         temperature: float = 1.0,
         length_penalty: float = 1.0,
         presence_penalty: float = 0.0,
-        frequency_penalty: float = 0.0,
         stop_words: str = None,
+        stream: bool = True,
+        end_id: int = 2,
+        pad_id: int = 2,
     ):
         stop_words_list = stop_words.split(",") if stop_words else []
         min_length = 0 if min_length is None else min_length
@@ -135,7 +142,9 @@ class Predictor(BasePredictor):
             "length_penalty": length_penalty,
             "presence_penalty": presence_penalty,
             "stop_words": stop_words_list,
-            "stream": True,
+            "stream": stream,
+            "pad_id": pad_id,
+            "end_id": end_id,
         }
 
         return args
