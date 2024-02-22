@@ -35,6 +35,12 @@ let deps = config.deps; in
       ln -s libnvToolsExt-*.so.1 libnvToolsExt.so.1
       popd
     '';
+    tensorrt-libs.mkDerivation.postFixup = ''
+      pushd $out/lib/python3.10/site-packages/tensorrt_libs
+      ln -s libnvinfer.so.9 libnvinfer.so
+      ln -s libnvonnxparser.so.9 libnvonnxparser.so
+      popd
+    '';
     tensorrt-llm = {
       mkDerivation.propagatedBuildInputs = with pyPkgs; [
         tensorrt-libs.public # libnvinfer, onnxparse
@@ -69,11 +75,11 @@ let deps = config.deps; in
     rev = "9406a60c7839052e4944ea4dbc8344762a89f9bd";
     hash = "sha256-pYoL34KZVjg/bpUQJBEBkjhU6XDDe6yzc1ehe0JfREg=";
   };
-  deps.tensorrt = pkgs.fetchFromGitHub {
+  deps.tensorrt_src = pkgs.fetchFromGitHub {
     owner = "NVIDIA";
     repo = "TensorRT";
-    rev = "v9.2.0";
-    hash = "sha256-Yo9CsHwu8hIPQwigePIwHu7UWtfROuMQFYtC/QIMTO0=";
+    rev = "93b6044fc106b69bce6751f27aa9fc198b02bddc"; # release/9.2 branch
+    hash = "sha256-W3ytzwq0mm40w6HZ/hArT6G7ID3HSUwzoZ8ix0Q/F6E=";
   };
     
   deps.tensorrt_llm = pkgs.stdenv.mkDerivation rec {
@@ -82,21 +88,44 @@ let deps = config.deps; in
     src = pkgs.fetchFromGitHub {
       owner = "NVIDIA";
       repo = "TensorRT-LLM";
-      rev = "v0.7.1";
-      hash = "sha256-24BrTOs8S1q2+Y9p1laW0BRPhDPkzv8DbqKZ6EjZvhQ=";
+      rev = "v${version}";
+      fetchSubmodules = true;
+      fetchLFS = true; # libtensorrt_llm_batch_manager_static.a
+      hash = "sha256-CezACpWlUFmBGVOV6UDQ3EiejRLinoLFxXk2AOfKaec=";
     };
     sourceRoot = "source/cpp";
     nativeBuildInputs = [ pkgs.cmake pkgs.ninja pkgs.python3 ];
-    buildInputs = [ pkgs.rapidjson pkgs.cudaPackages_12_1.cudatoolkit pkgs.openmpi ];
-    cmakeFlags = [
-      "-DBUILD_PYT=OFF"
-      "-DBUILD_PYBIND=OFF"
-      "-DTRT_LIB_DIR=${config.python-env.pip.drvs.tensorrt-libs.public}/lib/python3.10/site-packages/tensorrt_libs"
-      "-DTRT_INCLUDE_DIR=${deps.tensorrt}/include"
-      "-DFETCHCONTENT_SOURCE_DIR_GOOGLETEST=${deps.googletest}"
+    buildInputs = with pkgs; [
+      rapidjson # not sure?
+      # python bindings need torch
+      cudaPackages_12_1.cudatoolkit
+      cudaPackages_12_1.cudnn
+      cudaPackages_12_1.nccl
+      openmpi
     ];
+    cmakeFlags = [
+      "-DBUILD_PYT=OFF" # needs torch
+      "-DBUILD_PYBIND=OFF"
+      "-DBUILD_TESTS=OFF" # needs nvonnxparser.h
+      # believe it or not, this is the actual binary distribution channel for tensorrt:
+      "-DTRT_LIB_DIR=${config.python-env.pip.drvs.tensorrt-libs.public}/lib/python3.10/site-packages/tensorrt_libs"
+      "-DTRT_INCLUDE_DIR=${deps.tensorrt_src}/include"
+      "-DCMAKE_CUDA_ARCHITECTURES=86-real" # just a5000, a40, ain't got all day
+    ];
+    installPhase = ''
+      mkdir -p $out
+      cp -r $src/cpp $out/
+      chmod -R u+w $out/cpp
+      mkdir -p $out/cpp/build/tensorrt_llm/plugins
+      pushd tensorrt_llm
+      cp ./libtensorrt_llm.so $out/cpp/build/tensorrt_llm/
+      cp ./libtensorrt_llm_static.a $out/cpp/build/tensorrt_llm/
+      cp ./plugins/libnvinfer_plugin_tensorrt_llm.so* $out/cpp/build/tensorrt_llm/plugins/
+    '';
   };
-  deps.trtllm_backend = pkgs.stdenv.mkDerivation rec {
+  deps.trtllm_backend = let
+    trt_lib_dir = "${config.python-env.pip.drvs.tensorrt-libs.public}/lib/python3.10/site-packages/tensorrt_libs";
+  in pkgs.stdenv.mkDerivation rec {
     pname = "tensorrtllm_backend";
     version = "0.7.1";
     src = pkgs.fetchFromGitHub {
@@ -109,17 +138,19 @@ let deps = config.deps; in
     buildInputs = [ pkgs.rapidjson pkgs.cudaPackages_12_1.cudatoolkit pkgs.openmpi ];
     sourceRoot = "source/inflight_batcher_llm";
     cmakeFlags = [
-      #"-DCMAKE_INSTALL_PREFIX=${out}"
-      #"-DCMAKE_BUILD_TYPE=Release"
       "-DFETCHCONTENT_SOURCE_DIR_REPO-COMMON=${deps.triton_repo_common}"
       "-DFETCHCONTENT_SOURCE_DIR_REPO-BACKEND=${deps.triton_repo_backend}"
       "-DFETCHCONTENT_SOURCE_DIR_REPO-CORE=${deps.triton_repo_core}"
       "-DFETCHCONTENT_SOURCE_DIR_GOOGLETEST=${deps.googletest}"
       "-DFETCHCONTENT_SOURCE_DIR_JSON=${pkgs.nlohmann_json.src}"
-      "-DTRT_LIB_DIR=${config.python-env.pip.drvs.tensorrt-libs.public}"
-      "-DTRT_INCLUDE_DIR=${deps.tensorrt}/include"
-      "-DTRTLLM_DIR=${deps.tensorrt_llm.src}" # todo: not src
+      "-DTRT_LIB_DIR=${trt_lib_dir}"
+      "-DTRT_INCLUDE_DIR=${deps.tensorrt_src}/include"
+      "-DTRTLLM_DIR=${deps.tensorrt_llm}" # todo: not src
     ];
     # buildInputs = [ pkgs.tensorrt-llm pkgs.inflight_batcher_llm ];
+    # linking to stubs/libtritonserver.so is maybe a bit shady
+    postFixup = ''
+      patchelf $out/backends/tensorrtllm/libtriton_tensorrtllm.so --add-rpath $out/lib/stubs:${trt_lib_dir}:${deps.tensorrt_llm}/cpp/build/tensorrt_llm/plugins
+    '';
   };
 }
