@@ -7,13 +7,13 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia
 ENV NVIDIA_DRIVER_CAPABILITIES=all
 ENV PATH="/usr/bin:$PATH"
 
-# Install necessary packages
-RUN --mount=type=cache,target=/var/cache/apt set -eux; \
-    apt-get update -qq; \
-    apt-get install -qqy --no-install-recommends curl make build-essential libssl-dev zlib1g-dev \
-    libbz2-dev libreadline-dev libsqlite3-dev wget llvm libncurses5-dev libncursesw5-dev \
-    xz-utils tk-dev libffi-dev liblzma-dev git ca-certificates; \
-    rm -rf /var/lib/apt/lists/*
+# # Install necessary packages
+# RUN --mount=type=cache,target=/var/cache/apt set -eux; \
+#     apt-get update -qq; \
+#     apt-get install -qqy --no-install-recommends curl make build-essential libssl-dev zlib1g-dev \
+#     libbz2-dev libreadline-dev libsqlite3-dev wget llvm libncurses5-dev libncursesw5-dev \
+#     xz-utils tk-dev libffi-dev liblzma-dev git ca-certificates; \
+#     rm -rf /var/lib/apt/lists/*
 
 # Install Tini
 RUN TINI_VERSION=v0.19.0; \
@@ -28,7 +28,7 @@ RUN TINI_VERSION=v0.19.0; \
 
 # pip install requirements
 COPY requirements.txt /tmp/requirements.txt
-RUN pip install -r /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt cog==0.10.0a5
 
 RUN curl -o /usr/local/bin/pget -L "https://github.com/replicate/pget/releases/download/v0.5.6/pget_linux_x86_64" && chmod +x /usr/local/bin/pget
 
@@ -46,6 +46,7 @@ EXPOSE 5000
 # ENV CCACHE_BASEDIR=/src/TensorRT-LLM
 
 RUN pip install https://r2.drysys.workers.dev/tmp/cog-0.10.0a4.dev74+g8bbe583.d20240209-py3-none-any.whl
+RUN pip install ammo
 RUN ln -sf $(which echo) $(which pip)
 
 

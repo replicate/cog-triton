@@ -3,6 +3,7 @@
 model_id: gpt2-medium
 # this is the name of the trt-llm example directory to use for the build
 example_name: gpt
+model_tar_url: https://weights.replicate.delivery/default/official-models/hf/gpt2-medium/model.tar
 convert_to_ft:
   script: hf_gpt_convert.py
   output_dir: ./c-model/gpt2/1-gpu
@@ -25,6 +26,8 @@ build:
     hidden_act: gelu
     use_inflight_batching:
     paged_kv_cache:
+    use_paged_context_fmha:
+    enable_context_fmha:
     use_gemm_plugin: float16
     remove_input_padding:
     use_layernorm_plugin: float16

@@ -30,3 +30,4 @@ tests/
 **/onnx/
 **/engine_outputs/
 *.tar
+**/*engine*/
