@@ -3,13 +3,15 @@ from tempfile import TemporaryDirectory
 from distutils.dir_util import copy_tree
 from pathlib import Path
 import subprocess
+import shutil
+import os
 
 
 class Downloader:
     def __init__(self, base_local_model_dir="/src/models"):
         self.base_local_model_dir = base_local_model_dir
 
-    def run(self, model_id, revision=None, weight_format=None):
+    def run(self, model_id, revision=None, weight_format=None, model_tar_url=None):
         print(f"Downloading model artifacts for {model_id}...")
         output_dir = Path(self.base_local_model_dir) / model_id
 
@@ -19,11 +21,13 @@ class Downloader:
             )
             return output_dir
 
-        # if model is cached on replicate, download with pget
-        # else, download from HF Hub
-        self._download_from_hf_hub(
-            model_id, output_dir, revision=revision, weight_format=weight_format
-        )
+        if model_tar_url:
+            self._download_with_pget(model_tar_url, output_dir)
+
+        else:
+            self._download_from_hf_hub(
+                model_id, output_dir, revision=revision, weight_format=weight_format
+            )
 
         print(f"Finished downloading {model_id}...")
 
@@ -43,6 +47,7 @@ class Downloader:
         across runs of the cog model. However, right now, we're biased toward minimizing number of downloads
         for a given set of weights.
         """
+        print(f"Downloading {model_id} from HuggingFace Hub...")
         # Check for .safetensors files:
         files = list_repo_files(model_id)
         allow_patterns = ["*.json", "tokenizer.model", "*.py"]
@@ -92,8 +97,13 @@ class Downloader:
                 local_dir_use_symlinks=False,
             )
 
-    def _download_with_pget(self, url, file_name, weight_format=None):
-        raise NotImplementedError()
+    def _download_with_pget(self, url, dest):
+        if os.path.exists(dest):
+            shutil.rmtree(dest)
+
+        print(f"Downloading model assets from {url}...")
+        command = ["pget", url, dest, "-x"]
+        subprocess.check_call(command, close_fds=True)
 
 
 if __name__ == "__main__":

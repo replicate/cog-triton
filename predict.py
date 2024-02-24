@@ -14,6 +14,8 @@ from downloader import Downloader
 from config_parser import ConfigParser
 from utils import get_gpu_info
 
+from huggingface_hub._login import _login
+
 # Temporarily using the Triton w/ TRT-LLM backend image
 # Set: TRTLLM_DIR="/src/tensorrtllm_backend/TensorRT-LLM",
 # When we switch back to a TRT-LLM image
@@ -29,7 +31,6 @@ else:
 
 class Predictor(BasePredictor):
     def setup(self) -> None:
-        # TODO: Might be nice to print relevant system specs at setup
 
         self.downloader = Downloader(base_local_model_dir="/src/models")
         self.config_parser = ConfigParser()
@@ -51,27 +52,15 @@ class Predictor(BasePredictor):
         ),
         hf_token: str = Input(description="Hugging Face API token", default=None),
     ) -> Path:
-        config = self.config_parser.load_config(config) if config else {}
-        config = self.config_parser.update_config(
-            config,
-        )
 
-        # if weight_format not in config, set to None
-        if "weight_format" not in config:
-            config["weight_format"] = None
-
+        config = self.load_config(config)
+        self._login_to_hf_if_token_provided(config, hf_token)
         self.config_parser.print_config(config)
-        if hf_token:
-            config["hf_token"] = hf_token
-        # check if a hf token was provided
-        if "hf_token" in config:
-            print("Logging in to Hugging Face Hub...")
-            from huggingface_hub._login import _login
-
-            _login(token=config.hf_token, add_to_git_credential=False)
 
         local_model_dir = self.downloader.run(
-            config.model_id, weight_format=config.weight_format
+            config.model_id,
+            weight_format=config.weight_format,
+            model_tar_url=config.model_tar_url,
         )
 
         output = self.builder.run(
@@ -80,6 +69,46 @@ class Predictor(BasePredictor):
         )
 
         return Path(output)
+
+    def _post_process_config(self, config: dict) -> dict:
+        # We should do proper validation one day
+        if "weight_format" not in config:
+            config["weight_format"] = None
+
+        if "model_tar_url" in config and not config.model_tar_url.endswith(".tar"):
+            raise ValueError(
+                f"model_tar_url must be a URL to a .tar file, but got {config.model_tar_url}"
+            )
+
+        if "model_tar_url" not in config:
+            config["model_tar_url"] = None
+
+        return config
+
+    def _login_to_hf_if_token_provided(self, config: dict, hf_token: str) -> dict:
+        # Prioritize hf_token from input over config
+        if not hf_token:
+            if "hf_token" in config:
+                # pop hf_token from config
+                hf_token = config.pop("hf_token")
+
+        if hf_token:
+            print("Logging in to Hugging Face Hub...")
+            _login(token=config.hf_token, add_to_git_credential=False)
+
+    def load_config(self, config_path: str) -> dict:
+        """Load a config file from a path.
+
+        Args:
+            config_path (str): Path to the config file.
+
+        Returns:
+            dict: Dictionary containing the config.
+        """
+        config = self.config_parser.load_config(config_path) if config_path else {}
+        config = self.config_parser.update_config(config)
+        config = self._post_process_config(config)
+        return config
 
 
 # if __name__ == "__main__":
