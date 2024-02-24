@@ -94,7 +94,7 @@ class Predictor(BasePredictor):
 
         if hf_token:
             print("Logging in to Hugging Face Hub...")
-            _login(token=config.hf_token, add_to_git_credential=False)
+            _login(token=hf_token, add_to_git_credential=False)
 
     def load_config(self, config_path: str) -> dict:
         """Load a config file from a path.
