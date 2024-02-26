@@ -8,7 +8,10 @@ import httpx
 from cog import BasePredictor, ConcatenateIterator
 
 from sse import receive_sse
-from utils import maybe_download_tarball_with_pget
+from utils.utils import (
+    maybe_download_tarball_with_pget,
+    StreamingTextStopSequenceHandler,
+)
 
 
 class Predictor(BasePredictor):
@@ -101,16 +104,37 @@ class Predictor(BasePredictor):
 
         output = ""
         generation_length = 0
+        stop_sequence_handler = StreamingTextStopSequenceHandler(
+            stop_sequences=args["stop_words"]
+        )  # Example stop sequences
+
         async with req as resp:
             async for event in receive_sse(resp):
+                # Output is the _entire_ sequence, from the beginning
                 output = event.json()["text_output"]
+                # Catches partial emojis, waits for them to finish
                 output = output.replace("\N{Replacement Character}", "")
 
                 if len(output) == generation_length:
-                    # don't yield an empty string
+                    # No new tokens
                     continue
-                yield output[generation_length:]
+
+                # Remove the tokens that were already yielded
+                current_output = output[generation_length:]
+                # Process the output for stop sequences
+                current_output = stop_sequence_handler(current_output)
+                # If we have a partial stop sequence match or a full match,
+                # `current_output` will be `None`
+                if current_output:
+                    yield current_output
+
+                # Update generation length
                 generation_length = len(output)
+
+            # Handles the case where the generation ends without a stop sequence, but also contains valid start text
+            current_output = stop_sequence_handler.finalize()
+            if current_output:
+                yield current_output
 
         print(f"Formatted prompt: `{formatted_prompt}`")
 

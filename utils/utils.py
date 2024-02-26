@@ -6,17 +6,8 @@ import subprocess
 import sys
 from pathlib import Path
 import shutil
-
-
-import os
-import subprocess
-from pathlib import Path
-import logging
-
-import argparse
-import subprocess
-import sys
-from pathlib import Path
+import typing as tp
+from collections import deque
 
 
 def maybe_download_tarball_with_pget(
@@ -130,3 +121,96 @@ class TritonHandler:
         except RuntimeError as e:
             process.terminate()
             raise e
+
+
+class StreamingTextStopSequenceHandler:
+    def __init__(
+        self,
+        stop_sequences: tp.List[str] = None,
+        eos_token: str = "<encountered-stop-sequence>",
+    ):
+        self.stop_sequences = stop_sequences or []
+        self.eos_token = eos_token
+        self.cache = []
+
+        self.stop_sequence_tracker = [0] * len(self.stop_sequences)
+        self.stop_sequence_lens = [len(seq) for seq in self.stop_sequences]
+        self.stop_sequence_fulfilled = False
+
+    def get_match_length(self, text: str, stop_sequence: str):
+        """
+        Checks if the end of the provided text matches the beginning of the stop sequence.
+        Returns the length of the matched stop sequence if it exists, otherwise returns 0.
+        """
+        matched_len = 0
+        for i in range(1, len(stop_sequence) + 1):
+            if stop_sequence[:i] in text:
+                matched_len = i
+
+        return matched_len
+
+    def process(self, token):
+        partial_match = False
+        output = None
+
+        text = "".join(self.cache) + token
+        for idx, stop_sequence in enumerate(self.stop_sequences):
+            match_length = self.get_match_length(text, stop_sequence)
+
+            if match_length:
+                if match_length == self.stop_sequence_lens[idx]:
+                    self.cache.append(token)
+                    text_before_stop_sequence = "".join(self.cache).split(
+                        stop_sequence, maxsplit=1
+                    )[0]
+                    self.cache.clear()
+                    self.stop_sequence_tracker = [0] * len(self.stop_sequences)
+                    if text_before_stop_sequence:
+                        self.cache = [text_before_stop_sequence]
+                        self.stop_sequence_fulfilled = True
+
+                        return None
+                    else:
+                        self.stop_sequence_fulfilled = True
+                        return None
+
+                elif stop_sequence.startswith(text[-match_length]):
+                    partial_match = True
+                    self.stop_sequence_tracker[idx] = max(
+                        match_length, self.stop_sequence_tracker[idx]
+                    )
+
+            else:
+                self.stop_sequence_tracker[idx] = 0
+
+        if not partial_match:
+            output = text
+            self.cache.clear()
+
+        elif partial_match:
+            reset_tracker = any(
+                i < j
+                for i, j in zip(
+                    self.stop_sequence_tracker, [0] * len(self.stop_sequences)
+                )
+            )
+            if reset_tracker:
+                output = "".join(self.cache)
+                self.cache.clear()
+
+            self.cache.append(token)
+
+        return output
+
+    def __call__(self, token):
+        if self.stop_sequences:
+            return self.process(token)
+        else:
+            return token
+
+    def finalize(self):
+        if self.cache:
+            final_output = "".join(self.cache)
+            self.cache.clear()
+            return final_output
+        return None
