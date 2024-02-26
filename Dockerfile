@@ -48,4 +48,4 @@ COPY triton_model_repo /src/triton_model_repo
 
 # prevent replicate from downgrading cog
 RUN ln -sf $(which echo) $(which pip)
-COPY ./cog.yaml ./sse.py ./predict.py /src/
+COPY ./cog.yaml ./sse.py ./predict.py ./utils.py /src/

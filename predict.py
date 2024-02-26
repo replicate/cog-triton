@@ -8,7 +8,7 @@ import httpx
 from cog import BasePredictor, ConcatenateIterator
 
 from sse import receive_sse
-from utils.utils import (
+from utils import (
     maybe_download_tarball_with_pget,
     StreamingTextStopSequenceHandler,
 )
