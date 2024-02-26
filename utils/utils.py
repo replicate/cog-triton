@@ -124,7 +124,11 @@ class TritonHandler:
 
 
 class StreamingTextStopSequenceHandler:
-    def __init__(self, stop_sequences: tp.List[str] = None, eos_token: str = None):
+    def __init__(
+        self,
+        stop_sequences: tp.List[str] = None,
+        eos_token: str = "<encountered-stop-sequence>",
+    ):
         self.stop_sequences = stop_sequences or []
         self.eos_token = eos_token
         self.cache = []
@@ -152,6 +156,7 @@ class StreamingTextStopSequenceHandler:
         text = "".join(self.cache) + token
         for idx, stop_sequence in enumerate(self.stop_sequences):
             match_length = self.get_match_length(text, stop_sequence)
+
             if match_length:
                 if match_length == self.stop_sequence_lens[idx]:
                     self.cache.append(token)
@@ -169,11 +174,12 @@ class StreamingTextStopSequenceHandler:
                         self.stop_sequence_fulfilled = True
                         return None
 
-                elif stop_sequence.startswith(text):
+                elif stop_sequence.startswith(text[-match_length]):
                     partial_match = True
                     self.stop_sequence_tracker[idx] = max(
                         match_length, self.stop_sequence_tracker[idx]
                     )
+
             else:
                 self.stop_sequence_tracker[idx] = 0
 
