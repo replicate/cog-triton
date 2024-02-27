@@ -1,9 +1,7 @@
-# Prediction interface for Cog ⚙️
-# https://github.com/replicate/cog/blob/main/docs/python.md
+import asyncio
 import os
 import subprocess
-import time
-
+from typing import Optional
 import httpx
 from cog import BasePredictor, ConcatenateIterator
 
@@ -15,7 +13,7 @@ from utils import (
 
 
 class Predictor(BasePredictor):
-    def setup(self, weights: str = None) -> None:
+    async def setup(self, weights: str = None) -> None:
         self.system_prompt_exists = os.getenv("SYSTEM_PROMPT", None)
 
         engine_dir = os.environ.get(
@@ -36,29 +34,70 @@ class Predictor(BasePredictor):
             return
 
         self.model_exists = True
+        self.client = httpx.AsyncClient()
+        self.ready = False
+        self.triton_is_starting = True
+        # self.last_healthcheck = refreshing_value(1, self.triton_healthcheck)
+        # self.last_poll = refreshing_value(0.02, self.triton_is_running)
+        await self.start_triton()
+
+    async def triton_healthcheck(self) -> Optional[httpx.Response]:
+        try:
+            return await self.client.get("http://localhost:8000/v2/health/ready")
+        except httpx.RequestError:
+            return None
+
+    async def start_triton(self):
         world_size = os.getenv("WORLD_SIZE", "1")
         # # launch triton server
         # # python3 scripts/launch_triton_server.py --world_size=1 --model_repo=/src/tensorrtllm_backend/triton_model
-        subprocess.run(
+        self.proc = subprocess.Popen(
             [
                 "python3",
-                "/src/tensorrtllm_backend/scripts/launch_triton_server.py",
+                "/src/launch_triton_server.py",
                 f"--world_size={world_size}",
                 "--model_repo=/src/triton_model_repo",
-            ]
+            ],
+            close_fds=False,
         )
         # Health check Triton until it is ready
         while True:
-            try:
-                response = httpx.get("http://localhost:8000/v2/health/ready")
-                if response.status_code == 200:
-                    print("Triton is ready.")
-                    break
-            except httpx.RequestError:
-                pass
-            time.sleep(1)
+            response = await self.triton_healthcheck()
+            if response.status_code == 200:
+                print("Triton is ready.")
+                self.ready = True
+                self.triton_is_starting = False
+                break
+            await asyncio.sleep(1)
 
-        self.client = httpx.AsyncClient()
+    async def monitor_triton_poll(self):
+        while True:
+            self.triton_running = self.proc and self.proc.poll() is None
+            if not self.triton_running:
+                self.ready = False
+                if self.triton_is_starting is False:
+                    self.triton_is_starting = True
+                    await self.start_triton()
+            # we don't want to do a syscall 128 times a second,
+            # but syscalls are still pretty cheap
+            await asyncio.sleep(0.02)
+
+    async def monitor_triton_health(self):
+        while True:
+            try:
+                response = await self.triton_healthcheck()
+                self.last_healthcheck = response.json()
+                self.ready = response.status_code == 200
+            except httpx.RequestError:
+                self.last_healthcheck = None
+            await asyncio.sleep(1)
+        # if triton was not running, start it
+        # if triton crashed, restart it
+        # if we're already starting it don't start it again
+        # if the healthcheck is not ready, don't serve requests
+
+    def triton_is_running(self) -> bool:
+        return self.proc and self.proc.poll() is None and self.last_healthcheck
 
     async def predict(
         self,
@@ -79,6 +118,10 @@ class Predictor(BasePredictor):
                 "Your model directory is empty, so there's nothing to do. Remember, you can't run this like a normal model. You need to YOLO!"
             )
             return
+        if not self.ready:
+            raise Exception(
+                f"triton is not ready. last healthcheck was {self.last_healthcheck}. triton subprocess is {self.proc and self.proc.wait()}"
+            )
 
         formatted_prompt = self._format_prompt(
             prompt=prompt, system_prompt=system_prompt, prompt_template=prompt_template
@@ -96,43 +139,55 @@ class Predictor(BasePredictor):
             stop_words=stop_words,
         )
 
-        req = self.client.stream(
-            "POST",
-            "http://localhost:8000/v2/models/tensorrt_llm_bls/generate_stream",
-            json=args,
-        )
+        try:
+            req = self.client.stream(
+                "POST",
+                "http://localhost:8000/v2/models/tensorrt_llm_bls/generate_stream",
+                json=args,
+            )
 
-        output = ""
-        generation_length = 0
-        stop_sequence_handler = StreamingTokenStopSequenceHandler(
-            stop_sequences=args["stop_words"]
-        )
+            output = ""
+            generation_length = 0
+            stop_sequence_handler = StreamingTokenStopSequenceHandler(
+                stop_sequences=args["stop_words"]
+            )
 
-        async with req as resp:
-            async for event in receive_sse(resp):
-                # Output is the _entire_ sequence, from the beginning
-                output = event.json()["text_output"]
-                # Catches partial emojis, waits for them to finish
-                output = output.replace("\N{Replacement Character}", "")
-                # Remove the tokens that were already yielded
-                current_output = output[generation_length:]
+            async with req as resp:
+                async for event in receive_sse(resp):
+                    # Output is the _entire_ sequence, from the beginning
+                    output = event.json()["text_output"]
+                    # Catches partial emojis, waits for them to finish
+                    output = output.replace("\N{Replacement Character}", "")
+                    # Remove the tokens that were already yielded
+                    current_output = output[generation_length:]
 
-                if current_output:
-                    # Process the output for stop sequences
-                    current_output = stop_sequence_handler(current_output)
-                    # If we have a partial stop sequence match or a full match,
-                    # `current_output` will be `None` and we shouldn't yield
                     if current_output:
-                        yield current_output
+                        # Process the output for stop sequences
+                        current_output = stop_sequence_handler(current_output)
+                        # If we have a partial stop sequence match or a full match,
+                        # `current_output` will be `None` and we shouldn't yield
+                        if current_output:
+                            yield current_output
 
-                # Update generation length
-                generation_length = len(output)
+                    # Update generation length
+                    generation_length = len(output)
 
-            # Handles the case where the generation ends in the middle of a valid stop sequence
-            current_output = stop_sequence_handler.finalize()
-            if current_output:
-                yield current_output
-
+                # Handles the case where the generation ends in the middle of a valid stop sequence
+                current_output = stop_sequence_handler.finalize()
+                if current_output:
+                    yield current_output
+        except httpx.RequestError as e:
+            code = self.proc.poll()
+            if code is not None:
+                print(f"triton exited with code {code}")
+                self.start_triton()
+                # check if triton actually started...
+                raise Exception(
+                    f"triton exited unexpectedly with code {code}, restart triton, please retry"
+                )
+            raise Exception(
+                "triton client http error, but triton is still running"
+            ) from e
         print(f"Formatted prompt: `{formatted_prompt}`")
 
     def _process_args(
