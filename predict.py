@@ -13,7 +13,7 @@ from utils import (
 
 
 class Predictor(BasePredictor):
-    async def setup(self, weights: str = None) -> None:
+    async def setup(self, weights: str = "") -> None:
         self.system_prompt_exists = os.getenv("SYSTEM_PROMPT", None)
 
         engine_dir = os.environ.get(
@@ -65,7 +65,7 @@ class Predictor(BasePredictor):
         # Health check Triton until it is ready
         while True:
             response = await self.triton_healthcheck()
-            if response.status_code == 200:
+            if response and response.status_code == 200:
                 print("Triton is ready.")
                 self.ready = True
                 self.triton_is_starting = False
@@ -88,8 +88,8 @@ class Predictor(BasePredictor):
         while True:
             try:
                 response = await self.triton_healthcheck()
-                self.last_healthcheck = response.json()
-                self.ready = response.status_code == 200
+                self.last_healthcheck = response and response.json()
+                self.ready = response and response.status_code == 200
             except httpx.RequestError:
                 self.last_healthcheck = None
             # http requests are more heavyweight than one syscall, one second is fine
