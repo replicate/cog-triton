@@ -40,6 +40,8 @@ class Predictor(BasePredictor):
         # self.last_healthcheck = refreshing_value(1, self.triton_healthcheck)
         # self.last_poll = refreshing_value(0.02, self.triton_is_running)
         await self.start_triton()
+        asyncio.create_task(self.monitor_triton_health())
+        asyncio.create_task(self.monitor_triton_poll())
 
     async def triton_healthcheck(self) -> Optional[httpx.Response]:
         try:
@@ -90,6 +92,7 @@ class Predictor(BasePredictor):
                 self.ready = response.status_code == 200
             except httpx.RequestError:
                 self.last_healthcheck = None
+            # http requests are more heavyweight than one syscall, one second is fine
             await asyncio.sleep(1)
         # if triton was not running, start it
         # if triton crashed, restart it
@@ -180,10 +183,12 @@ class Predictor(BasePredictor):
             code = self.proc.poll()
             if code is not None:
                 print(f"triton exited with code {code}")
-                self.start_triton()
+                if not self.triton_is_starting:
+                    self.triton_is_starting = True
+                    self.start_triton()
                 # check if triton actually started...
                 raise Exception(
-                    f"triton exited unexpectedly with code {code}, restart triton, please retry"
+                    f"triton exited unexpectedly with code {code}, maybe restarted triton, please retry"
                 )
             raise Exception(
                 "triton client http error, but triton is still running"
