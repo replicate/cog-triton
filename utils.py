@@ -127,7 +127,6 @@ class StreamingTokenStopSequenceHandler:
     def __init__(
         self,
         stop_sequences: tp.List[str] = None,
-        eos_token: str = "<|STOP|>",
     ):
         self.stop_sequences = stop_sequences or []
         self.stop_sequence_fulfilled = False
