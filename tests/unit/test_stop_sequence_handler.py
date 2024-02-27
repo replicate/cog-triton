@@ -2,151 +2,91 @@ import sys
 
 sys.path.append(".")
 
-from utils.utils import StreamingTextStopSequenceHandler
+from utils import StreamingTokenStopSequenceHandler
 
 
 def test_process_with_no_stop_sequences():
-    handler = StreamingTextStopSequenceHandler(stop_sequences=[])
+    handler = StreamingTokenStopSequenceHandler(stop_sequences=[])
     output = handler("Hello")
     assert output == "Hello"
 
 
-def test_process_with_single_stop_sequence():
-    handler = StreamingTextStopSequenceHandler(stop_sequences=["world"])
-    output = handler("Hello")
-    assert output == "Hello"
+def test_token_stream_with_mismatched_stop_sequence():
+    handler = StreamingTokenStopSequenceHandler(stop_sequences=["Candy"])
+    output_tokens = ["H", "acker", "\n", "B", "ear", " +", " C", "andy", " ="]
+    expected_output = ["H", "acker", "\n", "B", "ear", " +", " C", "andy", " ="]
 
-    output = handler(" ")
-    assert output == " "
-
-    result = handler("world")
-    assert result == None
+    for token, expected_token in zip(output_tokens, expected_output):
+        output = handler(token)
+        assert output == expected_token
 
 
-def test_process_with_single_stop_sequence_and_trailing_text():
-    handler = StreamingTextStopSequenceHandler(stop_sequences=["world"])
-    output = handler("Hello")
-    assert output == "Hello"
+def test_token_stream_with_matched_stop_sequence():
 
-    output = handler(" ")
-    assert output == " "
+    handler = StreamingTokenStopSequenceHandler(stop_sequences=["\n"])
+    output_tokens = ["H", "acker", "\n"]
+    expected_output = ["H", "acker", None]
 
-    result = handler("world and universe")
-    assert result == None
+    for token, expected_token in zip(output_tokens, expected_output):
+        output = handler(token)
 
-
-def test_with_multiple_stop_sequences():
-    handler = StreamingTextStopSequenceHandler(stop_sequences=["world", "universe"])
-    output = handler("Hello")
-    assert output == "Hello"
-
-    output = handler(" ")
-    assert output == " "
-
-    output = handler("universe")
-    assert output == None
-
-
-def test_with_partial_stop_sequence():
-    handler = StreamingTextStopSequenceHandler(stop_sequences=["dogs of the world"])
-    output = handler("Hello")
-    assert output == "Hello"
-
-    output = handler(" ")
-    assert output == " "
-
-    output = handler("dogs")
-    assert output == None
-
-    output = handler(" of the universe")
-    assert output == "dogs of the universe"
-
-
-def test_with_overlapping_stop_sequences():
-    handler = StreamingTextStopSequenceHandler(
-        stop_sequences=["dogs  and cats", "dogs and cats"]
-    )
-    output = handler("Hello")
-    assert output == "Hello"
-
-    output = handler(" ")
-    assert output == " "
-
-    output = handler("dogs")
-    assert output == None
-
-    output = handler(" ")
-    assert output == None
-
-    output = handler("and cats")
-    assert output == None
-
-
-def test_partial_unfulfilled_match():
-    handler = StreamingTextStopSequenceHandler(stop_sequences=["dogs world"])
-
-    output = handler("Hello ")
-    assert output == "Hello "
-
-    output = handler("dog ")
-    assert output == "dog "
-
-    output = handler("world")
-    assert output == None
-
-    output = handler(" how are you?")
-    assert output == "world how are you?"
+        assert output == expected_token
 
     output = handler.finalize()
     assert output == None
 
 
-def test_final_cache_clearing():
-    handler = StreamingTextStopSequenceHandler(stop_sequences=["dogs world"])
-    output = handler("Hello")
-    assert output == "Hello"
+def test_token_stream_with_matched_two_part_stop_sequence():
+    handler = StreamingTokenStopSequenceHandler(stop_sequences=[" Candy"])
+    output_tokens = ["H", "acker", "\n", "B", "ear", " +", " C", "andy"]
+    expected_output = ["H", "acker", "\n", "B", "ear", " +", None, None]
 
-    output = handler("dogs")
-    assert output == None
-
-    output = handler(" world, how are you?")
-    assert output == None
+    for token, expected_token in zip(output_tokens, expected_output):
+        output = handler(token)
+        assert output == expected_token
 
     output = handler.finalize()
     assert output == None
 
-    output = handler("Hello ")
-    assert output == "Hello "
 
-    output = handler("dog ")
-    assert output == "dog "
+def test_token_stream_with_three_stop_sequences():
 
-    output = handler("world")
-    assert output == None
+    handler = StreamingTokenStopSequenceHandler(stop_sequences=["hello", "world", "\n"])
+    output_tokens = ["H", "acker", "\n"]
+    expected_output = ["H", "acker", None]
 
-    output = handler.finalize()
-    assert output == "world"
-
-
-def test_stop_sequence_with_following_text():
-    handler = StreamingTextStopSequenceHandler(stop_sequences=["stop here"])
-    output = handler("Hello")
-    assert output == "Hello"
-
-    output = handler(" this stop here blue")
-    assert output == None
+    for token, expected_token in zip(output_tokens, expected_output):
+        output = handler(token)
+        assert output == expected_token
 
     output = handler.finalize()
-    assert output == " this "
-
-
-def test_stop_sequence_with_trailing_space():
-    handler = StreamingTextStopSequenceHandler(stop_sequences=["Candy"])
-    output = handler(" C")
     assert output == None
 
-    output = handler("andy")
-    assert output == None
+
+def test_token_stream_with_overlapping_stop_sequence():
+
+    handler = StreamingTokenStopSequenceHandler(stop_sequences=["Hello world", "\n"])
+    output_tokens = ["Hello", " dog", ",", " how", "\n"]
+    expected_output = [None, "Hello dog", ",", " how", None]
+
+    for token, expected_token in zip(output_tokens, expected_output):
+        output = handler(token)
+        assert output == expected_token
 
     output = handler.finalize()
-    assert output == " "
+    assert output == None
+
+
+def test_token_stream_with_overlapping_stop_sequence():
+
+    handler = StreamingTokenStopSequenceHandler(stop_sequences=[" not to be"])
+    output_tokens = ["To", " be", " or", " not", " to"]
+
+    expected_output = ["To", " be", " or", None, None, None]
+
+    for token, expected_token in zip(output_tokens, expected_output):
+        output = handler(token)
+        assert output == expected_token
+
+    output = handler.finalize()
+    assert output == " not to"
