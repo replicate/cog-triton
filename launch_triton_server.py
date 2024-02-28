@@ -68,7 +68,10 @@ def get_cmd(
     log,
     log_file,
 ):
-    cmd = ["mpirun", "--allow-run-as-root"]
+    if os.getenv("NO_PROFILE"):
+        cmd = ["mpirun", "--allow-run-as-root"]
+    else:
+        cmd = ["nsys", "profile", "--wait=primary", "mpirun", "--allow-run-as-root"]
     for i in range(world_size):
         cmd += ["-n", "1", tritonserver]
         if log and (i == 0):
