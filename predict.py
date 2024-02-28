@@ -35,13 +35,13 @@ class Predictor(BasePredictor):
 
         self.model_exists = True
         self.client = httpx.AsyncClient()
-        self.ready = False
-        self.triton_is_starting = True
+        # self.ready = False
+        # self.triton_is_starting = True
         # self.last_healthcheck = refreshing_value(1, self.triton_healthcheck)
         # self.last_poll = refreshing_value(0.02, self.triton_is_running)
         await self.start_triton()
-        asyncio.create_task(self.monitor_triton_health())
-        asyncio.create_task(self.monitor_triton_poll())
+        # asyncio.create_task(self.monitor_triton_health())
+        # asyncio.create_task(self.monitor_triton_poll())
 
     async def triton_healthcheck(self) -> Optional[httpx.Response]:
         try:
@@ -67,40 +67,40 @@ class Predictor(BasePredictor):
             response = await self.triton_healthcheck()
             if response and response.status_code == 200:
                 print("Triton is ready.")
-                self.ready = True
-                self.triton_is_starting = False
+                # self.ready = True
+                # self.triton_is_starting = False
                 break
             await asyncio.sleep(1)
 
-    async def monitor_triton_poll(self):
-        while True:
-            self.triton_running = self.proc and self.proc.poll() is None
-            if not self.triton_running:
-                self.ready = False
-                if self.triton_is_starting is False:
-                    self.triton_is_starting = True
-                    await self.start_triton()
-            # we don't want to do a syscall 128 times a second,
-            # but syscalls are still pretty cheap
-            await asyncio.sleep(0.02)
+    # async def monitor_triton_poll(self):
+    #     while True:
+    #         self.triton_running = self.proc and self.proc.poll() is None
+    #         if not self.triton_running:
+    #             self.ready = False
+    #             if self.triton_is_starting is False:
+    #                 self.triton_is_starting = True
+    #                 await self.start_triton()
+    #         # we don't want to do a syscall 128 times a second,
+    #         # but syscalls are still pretty cheap
+    #         await asyncio.sleep(0.02)
 
-    async def monitor_triton_health(self):
-        while True:
-            try:
-                response = await self.triton_healthcheck()
-                self.last_healthcheck = response and response.json()
-                self.ready = response and response.status_code == 200
-            except httpx.RequestError:
-                self.last_healthcheck = None
-            # http requests are more heavyweight than one syscall, one second is fine
-            await asyncio.sleep(1)
-        # if triton was not running, start it
-        # if triton crashed, restart it
-        # if we're already starting it don't start it again
-        # if the healthcheck is not ready, don't serve requests
+    # async def monitor_triton_health(self):
+    #     while True:
+    #         try:
+    #             response = await self.triton_healthcheck()
+    #             self.last_healthcheck = response and response.json()
+    #             self.ready = response and response.status_code == 200
+    #         except httpx.RequestError:
+    #             self.last_healthcheck = None
+    #         # http requests are more heavyweight than one syscall, one second is fine
+    #         await asyncio.sleep(1)
+    #     # if triton was not running, start it
+    #     # if triton crashed, restart it
+    #     # if we're already starting it don't start it again
+    #     # if the healthcheck is not ready, don't serve requests
 
-    def triton_is_running(self) -> bool:
-        return self.proc and self.proc.poll() is None and self.last_healthcheck
+    # def triton_is_running(self) -> bool:
+    #     return self.proc and self.proc.poll() is None and self.last_healthcheck
 
     async def predict(
         self,
@@ -121,10 +121,10 @@ class Predictor(BasePredictor):
                 "Your model directory is empty, so there's nothing to do. Remember, you can't run this like a normal model. You need to YOLO!"
             )
             return
-        if not self.ready:
-            raise Exception(
-                f"triton is not ready. last healthcheck was {self.last_healthcheck}. triton subprocess is {self.proc and self.proc.wait()}"
-            )
+        # if not self.ready:
+        #     raise Exception(
+        #         f"triton is not ready. last healthcheck was {self.last_healthcheck}. triton subprocess is {self.proc and self.proc.wait()}"
+        #     )
 
         formatted_prompt = self._format_prompt(
             prompt=prompt, system_prompt=system_prompt, prompt_template=prompt_template
@@ -183,13 +183,13 @@ class Predictor(BasePredictor):
             code = self.proc.poll()
             if code is not None:
                 print(f"triton exited with code {code}")
-                if not self.triton_is_starting:
-                    self.triton_is_starting = True
-                    self.start_triton()
+                # if not self.triton_is_starting:
+                #     self.triton_is_starting = True
+                #     self.start_triton()
                 # check if triton actually started...
                 raise Exception(
                     f"triton exited unexpectedly with code {code}, maybe restarted triton, please retry"
-                )
+                ) from e
             raise Exception(
                 "triton client http error, but triton is still running"
             ) from e
