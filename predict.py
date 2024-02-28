@@ -54,7 +54,8 @@ class Predictor(BasePredictor):
     ) -> Path:
 
         config = self.load_config(config)
-        self._login_to_hf_if_token_provided(config, hf_token)
+        if not config.model_tar_url:
+            self._login_to_hf_if_token_provided(config, hf_token)
         self.config_parser.print_config(config)
 
         local_model_dir = self.downloader.run(
