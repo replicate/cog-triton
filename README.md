@@ -60,13 +60,13 @@ git clone https://github.com/replicate/cog-triton
 ```
 
 2. Update submodules
-```
-export TENSORRTLLM_VERSION=0.7.1
+``` 
+export TENSORRTLLM_VERSION=0.8.0
 git lfs install
+git checkout tags/v${TENSORRTLLM_VERSION}
 git submodule update --init --recursive
-cd tensorrtllm_backend
-git checkout v${TENSORRTLLM_VERSION}
-git checkout tags/v0.7.1
+# currently, tensorrt_llm is at commit==5955b8a and cutlass==39c6a83f
+cd ..
 ```
 
 3. Build TensorRT-LLM Backend
@@ -169,3 +169,8 @@ curl -s -X POST \
   }' \
   http://localhost:5000/predictions
 ```
+
+
+curl -X POST localhost:8000/v2/models/ensemble/generate -d '{"text_input": "What is machine learning?", "max_tokens": 20, "bad_words": "", "stop_words": ""}'
+
+curl -X POST localhost:8000/v2/models/ensemble/generate -d '{"text_input": "Water + Fire = Steam\nEarth + Water = Plant\nHuman + Robe = Judge\nCow + Fire = Steak\nKing + Ocean = Poseidon\nComputer + Spy =", "max_tokens": 20, "bad_words": "", "stop_words": ""}'

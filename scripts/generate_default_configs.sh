@@ -3,7 +3,7 @@ if [ ! -d "./triton_model_repo" ]; then
     mkdir ./triton_model_repo
     mkdir -p ./triton_templates
     # Copy current templates from tensorrtllm_backend, we don't want ours to get stale
-    cp -r tensorrtllm_backend/all_models/inflight_batcher_llm ./triton_templates 
+    cp -r tensorrtllm_backend/all_models/inflight_batcher_llm/* ./triton_templates 
     # copy model components to our target model directory
     cp -r ./triton_templates/ensemble triton_model_repo/
     cp -r ./triton_templates/preprocessing triton_model_repo/
@@ -40,6 +40,6 @@ python3 scripts/triton_fill_template.py triton_templates/ensemble/config.pbtxt \
      > ./triton_model_repo/ensemble/config.pbtxt
 
 # Generate tensorrt_llm_bls config
-python3 scripts/triton_fill_template.py triton_templates/ensemble/config.pbtxt \
+python3 scripts/triton_fill_template.py triton_templates/tensorrt_llm_bls/config.pbtxt \
     "triton_max_batch_size:${MAX_BATCH_SIZE},decoupled_mode:True,bls_instance_count:${MAX_BATCH_SIZE},accumulate_tokens:true" \
-     > ./triton_model_repo/ensemble/config.pbtxt
+     > ./triton_model_repo/tensorrt_llm_bls/config.pbtxt

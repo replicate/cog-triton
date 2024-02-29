@@ -7,15 +7,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia
 ENV NVIDIA_DRIVER_CAPABILITIES=all
 ENV PATH="/usr/bin:$PATH"
 
-# # Install unnecessary packages
-# RUN --mount=type=cache,target=/var/cache/apt set -eux; \
-#     apt-get update -qq; \
-#     apt-get install -qqy --no-install-recommends curl make build-essential libssl-dev zlib1g-dev \
-#     libbz2-dev libreadline-dev libsqlite3-dev wget llvm libncurses5-dev libncursesw5-dev \
-#     xz-utils tk-dev libffi-dev liblzma-dev git ca-certificates; \
-#     rm -rf /var/lib/apt/lists/*
 
-# Install Tini
 RUN TINI_VERSION=v0.19.0; \
     TINI_ARCH="$(dpkg --print-architecture)"; \
     curl -sSL -o /sbin/tini "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TINI_ARCH}"; \
