@@ -47,7 +47,6 @@ EXPOSE 5000
 
 RUN pip install https://r2.drysys.workers.dev/tmp/cog-0.10.0a4.dev74+g8bbe583.d20240209-py3-none-any.whl
 RUN pip install ammo
-RUN ln -sf $(which echo) $(which pip)
 
 
 # Define entrypoint and command
@@ -55,4 +54,8 @@ ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["python", "-m", "cog.server.http"]
 
 COPY tensorrtllm_backend /src/tensorrtllm_backend
+RUN pip install --no-cache-dir --extra-index-url https://pypi.nvidia.com nvidia-ammo~=0.7.0
+RUN pip install --no-cache-dir cython
+RUN cd /src/tensorrtllm_backend/tensorrt_llm/examples/quantization/ && pip install -r requirements.txt
 COPY *.py *.yaml /src/
+RUN ln -sf $(which echo) $(which pip)
