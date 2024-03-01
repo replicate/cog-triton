@@ -325,7 +325,6 @@ class TritonPythonModel:
                     )
                 else:
                     ids = ids[1:]
-
                 if len(ids) == 0:
                     continue
 
