@@ -6,6 +6,7 @@
 **/.git
 **/.github
 **/.gitignore
+**/.gitkeep
 
 # Exclude Python cache files
 **/__pycache__
