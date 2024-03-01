@@ -19,6 +19,8 @@ class Predictor(BasePredictor):
             "ENGINE_DIR", "/src/triton_model_repo/tensorrt_llm/1/"
         )
 
+        world_size = os.environ.get("WORLD_SIZE", 1)
+
         if weights:
             print(f"Downloading model files from {weights}...")
             maybe_download_tarball_with_pget(
@@ -39,7 +41,7 @@ class Predictor(BasePredictor):
             [
                 "python3",
                 "/src/tensorrtllm_backend/scripts/launch_triton_server.py",
-                "--world_size=1",
+                f"--world_size={world_size}",
                 "--model_repo=/src/triton_model_repo",
             ]
         )
