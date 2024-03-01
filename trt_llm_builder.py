@@ -46,13 +46,24 @@ class TRTLLMBuilder:
         for step in ["convert_to_ft", "quantize", "build"]:
             if step in config:
                 step_config = getattr(config, step)
+                if os.path.exists(step_config.output_dir):
+                    print(f"Deleting existing {step_config.output_dir}...")
+                    subprocess.run(["rm", "-rf", step_config.output_dir])
                 BuildPrinter.print(model_id, step)
 
-                self._run_script(
-                    example_dir,
-                    step_config.script,
-                    step_config.args,
-                )
+                if step_config.executable == "trtllm-build":
+                    self._run_cmd(
+                        executable=step_config.executable,
+                        args=step_config.args,
+                    )
+
+                else:
+                    self._run_script(
+                        example_dir=example_dir,
+                        executable=step_config.executable,
+                        args=step_config.args,
+                        script=step_config.script,
+                    )
 
                 target_model_dir = step_config.output_dir
 
@@ -61,6 +72,62 @@ class TRTLLMBuilder:
         )
 
         return output
+
+    def _run_cmd(
+        self,
+        executable,
+        args,
+    ):
+        cmd = self._assemble_subprocess_cmd(executable, args)
+
+        print("Using the following command:\n")
+        print(" ".join(cmd))
+
+        subprocess.run(cmd, check=True)
+
+    def _run_script(
+        self,
+        example_dir,
+        executable,
+        args,
+        script,
+    ):
+        script = os.path.join(example_dir, script)
+        cmd = self._assemble_subprocess_cmd(executable, args, script)
+
+        assert os.path.isfile(script), (
+            f"Script `{script}` does not exist."
+            f"But, the following files do {os.listdir(example_dir)}!"
+        )
+
+        print("Using the following command:\n")
+        print(" ".join(cmd))
+
+        subprocess.run(cmd, check=True)
+
+    def _assemble_subprocess_cmd(self, executable, args, script=None):
+        if executable == "python":
+            cmd = [executable, script]
+        elif executable == "trtllm-build":
+            cmd = [executable]
+
+        for k, v in args.items():
+            cmd += ["--" + str(k)]
+            cmd += [str(v)] if v else []
+
+        return cmd
+
+    def _get_example_dir(
+        self,
+        example_name,
+    ):
+        base_example_dir = os.path.join(self.trtllm_dir, "examples")
+        example_dir = os.path.join(base_example_dir, example_name)
+        assert os.path.isdir(example_dir), (
+            f"Example `{example_name}` is not available. "
+            f"Must be one of {os.listdir(base_example_dir)}"
+        )
+        return example_dir
 
     def _try_to_load_tokenizer(self, local_model_dir, model_id):
         print(
@@ -89,44 +156,6 @@ class TRTLLMBuilder:
                 tokenizer = None
         return tokenizer
 
-    def _run_script(
-        self,
-        example_dir,
-        script,
-        args,
-    ):
-        script = os.path.join(example_dir, script)
-        cmd = self._assemble_subprocess_cmd(script, args)
-
-        assert os.path.isfile(script), (
-            f"Script `{script}` does not exist."
-            f"But, the following files do {os.listdir(example_dir)}!"
-        )
-
-        print("Using the following command:\n")
-        print(" ".join(cmd))
-
-        subprocess.run(cmd, check=True)
-
-    def _assemble_subprocess_cmd(self, conversion_script, args):
-        cmd = ["python", conversion_script]
-        for k, v in args.items():
-            cmd += ["--" + str(k)]
-            cmd += [str(v)] if v else []
-        return cmd
-
-    def _get_example_dir(
-        self,
-        example_name,
-    ):
-        base_example_dir = os.path.join(self.trtllm_dir, "examples")
-        example_dir = os.path.join(base_example_dir, example_name)
-        assert os.path.isdir(example_dir), (
-            f"Example `{example_name}` is not available. "
-            f"Must be one of {os.listdir(base_example_dir)}"
-        )
-        return example_dir
-
     def _prepare_model_artifacts_for_upload(
         self,
         target_model_dir,
@@ -137,6 +166,8 @@ class TRTLLMBuilder:
     ):
         # write config to target_model_dir
         print("Preparing model artifacts for upload...")
+        # delete target_model_dir if it exists
+
         print(f"Saving cog-trt-llm config to {cog_trt_llm_config_path}...")
         with open(os.path.join(target_model_dir, cog_trt_llm_config_path), "w") as f:
             f.write(OmegaConf.to_yaml(config))
