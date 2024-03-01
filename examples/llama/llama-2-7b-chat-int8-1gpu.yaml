@@ -1,0 +1,30 @@
+# this is an identifier for downloading the model. e.g.,
+# https://huggingface.co/<model_id>
+model_id: meta-llama/Llama-2-7b-chat-hf 
+example_name: llama
+weight_format: safetensors # or pt
+model_tar_url: https://weights.replicate.delivery/default/official-models/hf/meta-llama/Llama-2-7b-chat-hf/model.tar
+convert_to_ft:
+  executable: "python"
+  script: convert_checkpoint.py
+  output_dir: ./c-model/meta-llama/Llama-2-7b-chat-hf/int8/1-gpu
+  args:
+    model_dir: /src/models/meta-llama/Llama-2-7b-chat-hf
+    output_dir: /src/c-model/meta-llama/Llama-2-7b-chat-hf/int8/1-gpu
+    tp_size: 1
+    dtype: float16
+    use_weight_only:
+    weight_only_precision: int8
+build:
+  executable: trtllm-build
+  output_dir: ./engine_outputs/
+  args:
+    checkpoint_dir: /src/c-model/meta-llama/Llama-2-7b-chat-hf/int8/1-gpu
+    output_dir: ./engine_outputs/
+    remove_input_padding: enable
+    context_fmha: enable
+    gpt_attention_plugin: float16
+    gemm_plugin: float16
+    paged_kv_cache: enable
+    workers: 1
+    max_batch_size: 8
