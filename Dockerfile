@@ -35,9 +35,6 @@ RUN curl -o /usr/local/bin/pget -L "https://github.com/replicate/pget/releases/d
 # Set the working directory
 WORKDIR /src
 
-# Copy the examples
-COPY examples /src/examples
-
 # Expose the necessary port
 EXPOSE 5000
 
@@ -59,3 +56,6 @@ RUN pip install --no-cache-dir cython
 RUN cd /src/tensorrtllm_backend/tensorrt_llm/examples/quantization/ && pip install -r requirements.txt
 COPY *.py *.yaml /src/
 RUN ln -sf $(which echo) $(which pip)
+
+# Copy the examples
+COPY examples /src/examples
