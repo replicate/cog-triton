@@ -1,9 +1,13 @@
 # if ./triton_model_repo doesn't exist, create it and copy triton_templates to it
+if [ ! -d "./triton_templates" ]; then
+    mkdir -p ./triton_templates
+    cp -r tensorrtllm_backend/all_models/inflight_batcher_llm/* ./triton_templates 
+fi
+
+
 if [ ! -d "./triton_model_repo" ]; then
     mkdir ./triton_model_repo
-    mkdir -p ./triton_templates
     # Copy current templates from tensorrtllm_backend, we don't want ours to get stale
-    cp -r tensorrtllm_backend/all_models/inflight_batcher_llm/* ./triton_templates 
     # copy model components to our target model directory
     cp -r ./triton_templates/ensemble triton_model_repo/
     cp -r ./triton_templates/preprocessing triton_model_repo/
@@ -43,3 +47,7 @@ python3 scripts/triton_fill_template.py triton_templates/ensemble/config.pbtxt \
 python3 scripts/triton_fill_template.py triton_templates/tensorrt_llm_bls/config.pbtxt \
     "triton_max_batch_size:${MAX_BATCH_SIZE},decoupled_mode:True,bls_instance_count:${MAX_BATCH_SIZE},accumulate_tokens:true" \
      > ./triton_model_repo/tensorrt_llm_bls/config.pbtxt
+
+if [ -f "triton_model_repo/tensorrt_llm/1/.gitkeep" ]; then
+    rm triton_model_repo/tensorrt_llm/1/.gitkeep
+fi
