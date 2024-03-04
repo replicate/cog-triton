@@ -1,9 +1,10 @@
 import asyncio
-import requests
+import httpx
 import statistics as stats
 import argparse
 from datetime import datetime, timedelta
 import os
+import json
 
 # Environment variable for Replicate API token
 REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
@@ -13,6 +14,10 @@ times = []
 failures = 0
 sstps = []  # Single Stream Tokens Per Second
 start_end_times = []  # Store start and end times for each request
+client = httpx.AsyncClient()
+returned_requests = []
+n_requests = 0
+n_cog_already_running_prediction = 0
 
 
 def format_request_data(n_input_tokens, n_output_tokens, target):
@@ -50,7 +55,6 @@ def format_request_data(n_input_tokens, n_output_tokens, target):
 
 
 async def poll_replicate_request(response, headers):
-
     prediction = response.json()
     prediction_id = prediction["id"]
 
@@ -58,7 +62,7 @@ async def poll_replicate_request(response, headers):
     status = ""
     while status not in ["succeeded", "failed"]:
         await asyncio.sleep(1)  # Poll every 0.25 seconds
-        response = requests.get(
+        response = await client.get(
             f"https://api.replicate.com/v1/predictions/{prediction_id}", headers=headers
         )
         response = response.json()
@@ -76,16 +80,14 @@ def parse_cog_time(x):
 
 
 async def make_request(url, headers, data, target):
-    global failures, sstps, start_end_times
+    global failures, sstps, start_end_times, returned_requests, n_requests, n_cog_already_running_prediction
     start_time = datetime.now()
-    print(f"[REQUEST STARTED]: {start_time}")  # Log start time
+    # print(f"[REQUEST STARTED]: {start_time}")  # Log start time
 
     try:
-
         # For local cog-triton or triton requests
-        response = await asyncio.to_thread(
-            requests.post, url, headers=headers, json=data
-        )
+        n_requests += 1
+        response = await client.post(url, headers=headers, json=data)
 
         if target not in ["cog-triton", "triton"]:
             response = await poll_replicate_request(response, headers)
@@ -95,34 +97,49 @@ async def make_request(url, headers, data, target):
 
         else:
             end_time = datetime.now()
-        delta = (end_time - start_time).total_seconds()
+            delta = (end_time - start_time).total_seconds()
+
         times.append(delta)
         start_end_times.append((start_time, end_time))
 
         if not isinstance(response, dict) and not response.status_code == 200:
-            failures += 1
-            print(f"Request failed with status code: {response.status_code}")
-            return
+            if response.status_code == 409:
+                n_cog_already_running_prediction += 1
+            else:
+                failures += 1
 
-        elif isinstance(response, dict) and response["status"] == "failed":
+        if not isinstance(response, dict):
+            prefix = "data: "
+            if response.text.startswith(prefix):
+                json_str = response.text[len(prefix) :]
+            else:
+                json_str = response.text
+            response = json.loads(json_str)
+
+        returned_requests.append(response)
+
+        if (
+            isinstance(response, dict)
+            and "status" in response
+            and response["status"] == "failed"
+        ):
             failures += 1
             print(f"Request failed: {response['error']}")
             return
 
-        elif not isinstance(response, dict) and response.status_code == 200:
-            response = response.json()
-
-        if "text_output" in response or "output" in response:
+        if "text_output" in response and response["text_output"]:
+            sstps.append(data["max_tokens"] / delta)
+        elif "output" in response and response["output"]:
             sstps.append(data["input"]["max_new_tokens"] / delta)
         else:
             failures += 1
 
-        if target != "triton":
-            completed_at = response["completed_at"]
-            response_id = response["id"]
-            print(
-                f"{response_id}: start time {start_time}, end time {end_time}, delta {delta}, completed_at {completed_at}"
-            )
+        # if target != "triton":
+        #     completed_at = response["completed_at"]
+        #     response_id = response["id"]
+        #     print(
+        #         f"{response_id}: start time {start_time}, end time {end_time}, delta {delta}, completed_at {completed_at}"
+        #     )
 
     except Exception as e:
         failures += 1
@@ -205,6 +222,14 @@ async def main():
     parser.add_argument(
         "--n_output_tokens", type=int, required=True, help="Number of output tokens."
     )
+    parser.add_argument(
+        "--output_file",
+        default="returned_requests.txt",
+        type=str,
+        required=False,
+        help="Output file for failed responses.",
+    )
+
     args = parser.parse_args()
 
     url = (
@@ -282,12 +307,21 @@ async def main():
     print("Min response latency:", round(min(times), 3), "seconds")
     failure_rate = failures / total_requests if total_requests > 0 else 0
     print("---" * 10)
-    print(f"Total requests: {total_requests}")
+    print(f"Total requests made: {n_requests}")
+    if "cog" in args.target:
+        print(
+            f"Cog already running prediction errors: {n_cog_already_running_prediction}"
+        )
     print(f"Failure rate: {failure_rate:.3f}, Total failures: {failures}")
     print(
         f"Empty output count: {failures}, Non-empty output count: {total_requests - failures}"
     )
     print(f"E2E throughput: {total_requests / elapsed.total_seconds():.3f} rps")
+
+    with open(args.output_file, "w") as f:
+        for request in returned_requests:
+            f.write(json.dumps(request))
+            f.write("\n")
 
     # print(
     #     f"Throughput: {stats.mean(sstps) * args.n_output_tokens:.3f} tokens per second"
