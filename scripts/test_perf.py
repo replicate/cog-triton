@@ -1,5 +1,5 @@
 import asyncio
-import requests
+import httpx
 import statistics as stats
 import argparse
 from datetime import datetime, timedelta
@@ -13,6 +13,7 @@ times = []
 failures = 0
 sstps = []  # Single Stream Tokens Per Second
 start_end_times = []  # Store start and end times for each request
+client = httpx.AsyncClient()
 
 
 def format_request_data(n_input_tokens, n_output_tokens, target):
@@ -50,7 +51,6 @@ def format_request_data(n_input_tokens, n_output_tokens, target):
 
 
 async def poll_replicate_request(response, headers):
-
     prediction = response.json()
     prediction_id = prediction["id"]
 
@@ -58,7 +58,7 @@ async def poll_replicate_request(response, headers):
     status = ""
     while status not in ["succeeded", "failed"]:
         await asyncio.sleep(1)  # Poll every 0.25 seconds
-        response = requests.get(
+        response = await client.get(
             f"https://api.replicate.com/v1/predictions/{prediction_id}", headers=headers
         )
         response = response.json()
@@ -81,11 +81,8 @@ async def make_request(url, headers, data, target):
     print(f"[REQUEST STARTED]: {start_time}")  # Log start time
 
     try:
-
         # For local cog-triton or triton requests
-        response = await asyncio.to_thread(
-            requests.post, url, headers=headers, json=data
-        )
+        response = await client.post(url, headers=headers, json=data)
 
         if target not in ["cog-triton", "triton"]:
             response = await poll_replicate_request(response, headers)
