@@ -14,9 +14,12 @@ times = []
 failures = 0
 sstps = []  # Single Stream Tokens Per Second
 start_end_times = []  # Store start and end times for each request
+start_times = []
 client = httpx.AsyncClient()
 returned_requests = []
-n_requests = 0
+n_requests_made = 0
+n_requests_started = 0
+n_requests_completed = 0
 n_cog_already_running_prediction = 0
 
 
@@ -80,59 +83,82 @@ def parse_cog_time(x):
 
 
 async def make_request(url, headers, data, target):
-    global failures, sstps, start_end_times, returned_requests, n_requests, n_cog_already_running_prediction
+    global failures, sstps, start_end_times, returned_requests, n_requests_made, n_cog_already_running_prediction, start_times, n_requests_completed, n_requests_started
     start_time = datetime.now()
+    start_times.append(start_time)
     # print(f"[REQUEST STARTED]: {start_time}")  # Log start time
 
     try:
-        # For local cog-triton or triton requests
-        n_requests += 1
+        # Make the request
         response = await client.post(url, headers=headers, json=data)
+        n_requests_made += 1
 
-        if target not in ["cog-triton", "triton"]:
+        if target in ["cog-triton", "triton"]:
+            end_time = datetime.now()
+            returned_requests.append(response.text)
+
+        else:
             response = await poll_replicate_request(response, headers)
             completed_at = response["completed_at"]
             end_time = parse_cog_time(completed_at)
-            delta = (end_time - start_time).total_seconds()
+            returned_requests.append(response)
 
-        else:
-            end_time = datetime.now()
-            delta = (end_time - start_time).total_seconds()
-
-        times.append(delta)
-        start_end_times.append((start_time, end_time))
-
-        if not isinstance(response, dict) and not response.status_code == 200:
-            if response.status_code == 409:
+        # Handle "Already running a prediction" from cog-triton
+        if target == "cog-triton":
+            if (
+                "Already running a prediction" in response.text
+                and response.status_code == 409
+            ):
                 n_cog_already_running_prediction += 1
-            else:
-                failures += 1
+                return
 
-        if not isinstance(response, dict):
+        # Handle "Already running a prediction" from production
+        elif target != "triton":
+            if (
+                "detail" in response
+                and "Already running a prediction" in response["detail"]
+            ):
+                n_cog_already_running_prediction += 1
+                return
+
+        # if we get here, the request was at least picked up by cog, if we're using cog
+        n_requests_started += 1
+
+        request_completed = False
+        if target == "triton":
+            if response.status_code != 200:
+                failures += 1
             prefix = "data: "
-            if response.text.startswith(prefix):
-                json_str = response.text[len(prefix) :]
-            else:
-                json_str = response.text
+            json_str = response.text[len(prefix) :]
             response = json.loads(json_str)
 
-        returned_requests.append(response)
+            # If output is empty, count as failure
+            if not response["text_output"]:
+                failures += 1
+            else:
+                n_requests_completed += 1
+                request_completed = True
 
-        if (
-            isinstance(response, dict)
-            and "status" in response
-            and response["status"] == "failed"
-        ):
-            failures += 1
-            print(f"Request failed: {response['error']}")
-            return
-
-        if "text_output" in response and response["text_output"]:
-            sstps.append(data["max_tokens"] / delta)
-        elif "output" in response and response["output"]:
-            sstps.append(data["input"]["max_new_tokens"] / delta)
         else:
-            failures += 1
+            if target == "cog-triton":
+                response = response.json()
+            # print(response)
+            if response["status"] == "failed":
+                failures += 1
+                # print(f"Request failed: {response['error']}")
+            elif response["status"] == "succeeded":
+                n_requests_completed += 1
+                request_completed = True
+
+        if request_completed:
+            delta = (end_time - start_time).total_seconds()
+            times.append(delta)
+            start_end_times.append((start_time, end_time))
+            if target != "triton":
+                max_tokens = data["input"]["max_new_tokens"]
+            else:
+                max_tokens = data["max_tokens"]
+            sstps.append(max_tokens / delta)
 
         # if target != "triton":
         #     completed_at = response["completed_at"]
@@ -143,6 +169,7 @@ async def make_request(url, headers, data, target):
 
     except Exception as e:
         failures += 1
+        print(response)
         print(f"Request failed: {e}")
 
 
@@ -189,6 +216,21 @@ def calculate_concurrency(start_end_times, duration, start_time):
         concurrency_levels.append(concurrency)
 
     return concurrency_levels
+
+
+def estimate_rps(start_times):
+    # Ensure start_times is sorted
+    # Calculate intervals between consecutive requests in seconds
+    intervals = [
+        (start_times[i] - start_times[i - 1]).total_seconds()
+        for i in range(1, len(start_times))
+    ]
+
+    # Convert intervals to rates (requests per second)
+    # Avoid division by zero by filtering out zero intervals
+    rates = [1 / interval for interval in intervals if interval > 0]
+
+    return rates
 
 
 async def main():
@@ -283,18 +325,17 @@ async def main():
     print(f"Input tokens: {args.n_input_tokens}")
     print(f"Output tokens: {args.n_output_tokens}")
     print("---" * 10)
-    if args.unit == "rps":
-        print("Concurrency levels:")
-        concurrency_levels = calculate_concurrency(
-            start_end_times, args.duration, start_time
-        )
-        # mean, median, mode, max, min concurrency
-        print(f"Mode concurrency: {stats.mode(concurrency_levels)}")
-        print(f"Mean concurrency: {stats.mean(concurrency_levels)}")
-        print(f"Median concurrency: {stats.median(concurrency_levels)}")
-        print(f"Max concurrency: {max(concurrency_levels)}")
-        print(f"Min concurrency: {min(concurrency_levels)}")
-        print("---" * 10)
+    print("Concurrency levels:")
+    concurrency_levels = calculate_concurrency(
+        start_end_times, args.duration, start_time
+    )
+    # mean, median, mode, max, min concurrency
+    print(f"Mode concurrency: {stats.mode(concurrency_levels)}")
+    print(f"Mean concurrency: {stats.mean(concurrency_levels)}")
+    print(f"Median concurrency: {stats.median(concurrency_levels)}")
+    print(f"Max concurrency: {max(concurrency_levels)}")
+    print(f"Min concurrency: {min(concurrency_levels)}")
+    print("---" * 10)
     print("Statistics for completed predictions:")
     print("---" * 10)
     print("Response times (seconds):")
@@ -305,18 +346,23 @@ async def main():
     print("Mean response latency:", round(stats.mean(times), 3), "seconds")
     print("Max response latency:", round(max(times), 3), "seconds")
     print("Min response latency:", round(min(times), 3), "seconds")
-    failure_rate = failures / total_requests if total_requests > 0 else 0
+    failure_rate = failures / n_requests_started if n_requests_started > 0 else 0
     print("---" * 10)
-    print(f"Total requests made: {n_requests}")
+    print(f"Total requests made: {n_requests_made}")
+    print(f"Total requests started: {n_requests_started}")
+    print(f"Total requests completed: {n_requests_completed}")
+    # Calculate mean and median of the rates
+    if args.unit == "rps":
+        rates = estimate_rps(start_times)
+        mean_rps = stats.mean(rates) if rates else 0
+        median_rps = stats.median(rates) if rates else 0
+        print(f"Observed RPS: {mean_rps:.3f} (mean), {median_rps:.3f} (median)")
+    print(f"Failure rate: {failure_rate:.3f}, Total failures: {failures}")
     if "cog" in args.target:
         print(
             f"Cog already running prediction errors: {n_cog_already_running_prediction}"
         )
-    print(f"Failure rate: {failure_rate:.3f}, Total failures: {failures}")
-    print(
-        f"Empty output count: {failures}, Non-empty output count: {total_requests - failures}"
-    )
-    print(f"E2E throughput: {total_requests / elapsed.total_seconds():.3f} rps")
+    print(f"E2E throughput: {n_requests_completed / elapsed.total_seconds():.3f} rps")
 
     with open(args.output_file, "w") as f:
         for request in returned_requests:
