@@ -359,9 +359,7 @@ async def main():
         print(f"Observed RPS: {mean_rps:.3f} (mean), {median_rps:.3f} (median)")
     print(f"Failure rate: {failure_rate:.3f}, Total failures: {failures}")
     if "cog" in args.target:
-        print(
-            f"Cog already running prediction errors: {n_cog_already_running_prediction}"
-        )
+        print(f"Cog already running prediction: {n_cog_already_running_prediction}")
     print(f"E2E throughput: {n_requests_completed / elapsed.total_seconds():.3f} rps")
 
     with open(args.output_file, "w") as f:
