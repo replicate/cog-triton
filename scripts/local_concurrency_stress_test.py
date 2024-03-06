@@ -7,12 +7,14 @@ import sys
 from datetime import datetime as dt
 import argparse
 
+n_output_tokens = 20
 times = []
 failures = 0
 concurrent_requests_levels = []
 max_concurrency_errors = 0
 empty_output_count = 0
 non_empty_output_count = 0
+smtps = []
 
 
 async def curl_predict(response_file):
@@ -22,8 +24,8 @@ async def curl_predict(response_file):
     # curl -X POST localhost:8000/v2/models/ensemble/generate -d '{"text_input": "What is machine learning?", "max_tokens": 20, "bad_words": "", "stop_words": ""}'
     process = await asyncio.create_subprocess_shell(
         'curl -s -X POST -H "Content-Type: application/json" '
-        '-d \'{"input": {"prompt": "Water + Fire = Steam\\nEarth + Water = Plant\\nHuman + Robe = Judge\\nCow + Fire = Steak\\nKing + Ocean = Poseidon\\nComputer + Spy =", '
-        '"max_new_tokens":20, "stop_words": "\\n"}}\' http://localhost:5000/predictions',
+        '-d \'{"input": {"prompt": "a a a a a a a a a a a a a a a a a a a a", '
+        '"max_new_tokens":20, "min_length":20}}\' http://localhost:5000/predictions',
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
@@ -41,6 +43,7 @@ async def curl_predict(response_file):
     end_time = dt.now()
     delta = (end_time - start_time).total_seconds()
     times.append(delta)
+    smtps.append(n_output_tokens / delta)
 
     if process.returncode == 0 and stdout:
         try:
@@ -57,7 +60,9 @@ async def curl_predict(response_file):
             response = json.loads(json_str)
             print(json.dumps(response), file=response_file)
 
-            if "text_output" in response and response["text_output"]:
+            if ("text_output" in response and response["text_output"]) or (
+                "output" in response and response["output"]
+            ):
                 non_empty_output_count += 1
                 times.append(delta)
             else:
@@ -89,6 +94,7 @@ async def main():
     args = parser.parse_args()
     output_file = args.output_file
     total_requests_made = 0
+    start = time.time()
 
     if args.rps and args.duration:
         mode = "rps"
@@ -98,7 +104,6 @@ async def main():
             rps * duration
         )  # Define total_requests based on calculation
         tasks = []  # Collect tasks to ensure they are all completed
-        start = time.time()
         end_time = start + duration
         print(f"Mode: {mode}, {rps} requests per second for {duration} seconds")
 
@@ -117,7 +122,7 @@ async def main():
         mode = "cr"
         cr = args.cr
         bursts = args.bursts
-        total_requests_made = cr * bursts
+        total_requests = cr * bursts
         print(
             f"Mode: {mode}, {cr} concurrent requests per burst, {bursts} total bursts"
         )
@@ -142,6 +147,8 @@ async def main():
         f"Empty output count: {empty_output_count}, Non-empty output count: {non_empty_output_count}"
     )
     print(f"E2E throughput: {total_requests/elapsed:.3f}rps")
+    print(f"Average single-stream TPS: {stats.mean(smtps):.3f}")
+    print(f"Throughput: {stats.mean(smtps)*n_output_tokens:.3f}")
 
 
 asyncio.run(main())
