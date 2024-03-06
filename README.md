@@ -58,6 +58,76 @@ build:
     remove_input_padding: 
 ```
 
+# Run cog-trt-llm locally
+
+To run cog-trt-llm locally, you must either pull the cog-trt-llm Replicate image or build your own image.
+
+## Preparation to run cog-trt-llm locally with Replicate image
+
+### Pull and tag the cog-trt-llm image
+
+Go [here](https://replicate.com/replicate-internal/cog-trt-llm/versions) and pick the version you want to run locally. For our purposes, we'll set the version ID as an environment variable so that the code chunks below won't get stale.
+
+```
+export COG_TRT_LLM_VERSION=<version-id-here>
+```
+
+
+Then, click the version hash. We need to set our Replicate API Token and you can do that manually, or navigate to the HTTP tab in your browser and copy the export command.
+
+```
+export REPLICATE_API_TOKEN=<token-here>
+```
+
+Next, navigate to the `Docker` tab under Input. This will display a code chunk like with a `Docker run` command like:
+
+```
+docker run -d -p 5000:5000 --gpus=all r8.im/replicate-internal/cog-trt-llm@sha256:2db2b5c2e199975fef07ed9045608ed7adc7796744041fa54d3ae9d13db6c3cf
+```
+
+We'll use the image reference to write a pull command:
+
+```
+docker pull r8.im/replicate-internal/cog-trt-llm@sha256:${COG_TRT_LLM_VERSION}
+```
+
+After the image has been pulled, you should tag it so that all the docker commands in this README will work. First, find the `IMAGE ID` for the image you just pulled, e.g. via `docker images`. Then run the command below after replacing `<image id>` with your image id.
+
+```
+docker tag <image id> cog-trt-llm:latest
+```
+
+### Pull and initialize `tensorrtllm_backend` and it's submodules
+
+```
+git lfs install
+git submodule update --init --recursive
+```
+
+## Build with your local cog-trt-llm image
+
+1. Run a cog-trt-llm image and start the cog server
+``` 
+docker run --rm -it -p 5000:5000 --gpus=all --workdir /src  --net=host --volume $(pwd)/.:/src/. --ulimit memlock=-1 --shm-size=20g cog-trt-llm /bin/bash
+python -m cog.server.http
+```
+
+2. In a separate terminal instance, tmux session, etc, start a local HTTP server. We'll use this to expose local build configs so that the cog server can "download" them.
+
+```
+python3 -m http.server 8003 --bind 0.0.0.0
+```
+
+3. Build a TRT-LLM engine with cog-trt-llm
+
+```
+curl -s -X POST   -H "Content-Type: application/json"   -d $'{
+    "input": { 
+        "config":"http://localhost:8003/<local-path-to-config>"
+    }
+  }'   http://localhost:5000/predictions
+```
+
 # Development
 
 ## Running a dev environment
