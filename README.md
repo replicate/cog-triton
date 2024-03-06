@@ -12,7 +12,7 @@ sudo chmod +x /usr/local/bin/yolo
 
 Once you have yolo installed, follow these steps:
 
-1. **Compile a TensorRT engine with cog-trt-llm**
+1. **Compile a TensorRT engine with cog-triton**
 
 2. **If it doesn't exist already, you'll need to create the Replicate Model to which you'll push your cog-triton model**
 
@@ -45,7 +45,89 @@ yolo push \
 ```
 
 
-staging-gpt2-triton-trt-llm
+# Run cog-triton locally
+
+To run cog-triton locally, you must either pull the cog-triton Replicate image or build your own image.
+
+
+## Preparation to run cog-triton locally with Replicate image
+
+### Pull and tag the cog-triton image
+
+Go [here](https://replicate.com/replicate-internal/cog-triton/versions) and pick the version you want to run locally. For our purposes, we'll set the version ID as an environment variable so that the code chunks below won't get stale.
+
+```
+export COG_TRITON_VERSION=<version-id-here>
+```
+
+
+Then, click the version hash. We need to set our Replicate API Token and you can do that manually, or navigate to the HTTP tab in your browser and copy the export command.
+
+```
+export REPLICATE_API_TOKEN=<token-here>
+```
+
+Next, navigate to the `Docker` tab under Input. This will display a code chunk like with a `Docker run` command like:
+
+```
+docker run -d -p 5000:5000 --gpus=all r8.im/replicate-internal/cog-triton@sha256:2db2b5c2e199975fef07ed9045608ed7adc7796744041fa54d3ae9d13db6c3cf
+```
+
+We'll use the image reference to write a pull command:
+
+```
+docker pull r8.im/replicate-internal/cog-triton@sha256:${COG_TRITON_VERSION}
+```
+
+After the image has been pulled, you should tag it so that all the docker commands in this README will work. First, find the `IMAGE ID` for the image you just pulled, e.g. via `docker images`. Then run the command below after replacing `<image id>` with your image id.
+
+```
+docker tag <image id> cog-triton:latest
+```
+
+### Pull and initialize `tensorrtllm_backend` and it's submodules
+
+```
+git lfs install
+git submodule update --init --recursive
+```
+
+
+### Run an engine built with cog-trt-llm
+
+Copy all model artifacts from `cog-trt-llm/engine_outputs/` to `triton_model_repo/tensorrt_llm/1/`:
+
+```
+cp -r ../cog-trt-llm/engine_outputs/* triton_model_repo/tensorrt_llm/1/
+```
+
+Run the cog-triton image:
+
+```
+docker run --rm -it -p 5000:5000 --gpus=all --workdir /src  --net=host --volume $(pwd)/.:/src/. --ulimit memlock=-1 --shm-size=20g cog-triton /bin/bash
+python -m cog.server.http
+```
+
+
+Make a request:
+
+
+```
+curl -s -X POST \
+  -H "Content-Type: application/json" \
+  -d $'{
+    "input": {
+        "prompt": "What is machine learning?"
+    }
+  }' \
+  http://localhost:5000/predictions
+```
+
+# Performance tests with test_perf.py
+
+```
+time python3 scripts/test_perf.py --target cog-triton --rate 8 --unit rps --duration 30 --n_input_tokens 100 --n_output_tokens 100
+```
 
 # Development
 

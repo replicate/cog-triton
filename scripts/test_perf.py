@@ -15,7 +15,7 @@ failures = 0
 sstps = []  # Single Stream Tokens Per Second
 start_end_times = []  # Store start and end times for each request
 start_times = []
-client = httpx.AsyncClient()
+client = httpx.AsyncClient(timeout=300)
 returned_requests = []
 n_requests_made = 0
 n_requests_started = 0
