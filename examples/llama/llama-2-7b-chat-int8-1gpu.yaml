@@ -27,4 +27,4 @@ build:
     gemm_plugin: float16
     paged_kv_cache: enable
     workers: 1
-    max_batch_size: 8
+    max_batch_size: 64
