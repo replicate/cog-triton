@@ -1,5 +1,9 @@
 { pkgs, config, ... }:
-let deps = config.deps; in
+let
+  deps = config.deps;
+  py3Pkgs = pkgs.python310.pkgs;
+  cudaPkgs = pkgs.cudaPackages_12_2;
+in
 {
   cog.build = {
     python_version = "3.10";
@@ -81,8 +85,20 @@ let deps = config.deps; in
     rev = "93b6044fc106b69bce6751f27aa9fc198b02bddc"; # release/9.2 branch
     hash = "sha256-W3ytzwq0mm40w6HZ/hArT6G7ID3HSUwzoZ8ix0Q/F6E=";
   };
+  # todo: replace with lockfile
+  deps.pybind11-stubgen = let py3Pkgs = pkgs.python310.pkgs; in py3Pkgs.buildPythonPackage rec {
+    pname = "pybind11-stubgen";
+    version = "2.4.2";
+    src = pkgs.fetchPypi {
+      inherit pname version;
+      hash = "sha256-6b992wbUqpSobzkP5y+9P2awsGXbJGLaCJVVMElnSxw=";
+    };
+  };
     
-  deps.tensorrt_llm = pkgs.stdenv.mkDerivation rec {
+  deps.tensorrt_llm = pkgs.callPackage ({
+    stdenv, cmake, ninja,
+      cudaPackages, lib,
+      python, withPython ? true }: stdenv.mkDerivation rec {
     pname = "tensorrt_llm";
     version = "0.7.1";
     src = pkgs.fetchFromGitHub {
@@ -93,25 +109,77 @@ let deps = config.deps; in
       fetchLFS = true; # libtensorrt_llm_batch_manager_static.a
       hash = "sha256-CezACpWlUFmBGVOV6UDQ3EiejRLinoLFxXk2AOfKaec=";
     };
-    sourceRoot = "source/cpp";
-    nativeBuildInputs = [ pkgs.cmake pkgs.ninja pkgs.python3 ];
-    buildInputs = with pkgs; [
-      rapidjson # not sure?
-      # python bindings need torch
-      cudaPackages_12_1.cudatoolkit
-      cudaPackages_12_1.cudnn
-      cudaPackages_12_1.nccl
-      openmpi
+    outputs = if withPython then [ "python" "out" "dist" ] else [ "out" ];
+    setSourceRoot = "sourceRoot=$(echo */cpp)";
+    nativeBuildInputs = [
+      cmake
+      ninja
+      python
     ];
+    buildInputs = with pkgs; [
+      cudaPackages.cuda_nvcc
+      cudaPackages.cudnn
+      cudaPackages.nccl
+      # todo separate cublas and cuda_cudart
+      # cudaPackages.cuda_cudart
+      cudaPackages.cudatoolkit # should be just cublas, torch cmake hates it
+      # cudaPackages.cuda_nvcc.dev
+      # cudaPackages.cuda_cccl
+      openmpi
+    ] ++ (lib.optionals withPython [
+      python.pkgs.pybind11
+      python.pkgs.setuptools
+      python.pkgs.wheel
+      python.pkgs.pip
+      deps.pybind11-stubgen
+    ]);
+    propagatedBuildInputs = lib.optionals withPython (with config.python-env.pip.drvs; builtins.map (x: x.public or x) [
+      accelerate # 0.20.3
+      build
+      colored
+      torch
+      numpy
+      cuda-python # 12.2.0
+      diffusers # 0.15.0
+      lark
+      mpi4py
+      onnx # >= 1.12.0
+      polygraphy
+      tensorrt # = 9.2.0.post12.dev5
+      tensorrt-bindings # = 9.2.0.post12.dev5
+      tensorrt-libs # = 9.2.0.post12.dev5
+      sentencepiece # >=0.1.99
+      transformers # 4.33.1
+      wheel
+      optimum
+      evaluate
+    ]);
+
     cmakeFlags = [
-      "-DBUILD_PYT=OFF" # needs torch
-      "-DBUILD_PYBIND=OFF"
+      "-DBUILD_PYT=${if withPython then "ON" else "OFF"}"
+      "-DBUILD_PYBIND=${if withPython then "ON" else "OFF"}" # needs BUILD_PYT
       "-DBUILD_TESTS=OFF" # needs nvonnxparser.h
       # believe it or not, this is the actual binary distribution channel for tensorrt:
       "-DTRT_LIB_DIR=${config.python-env.pip.drvs.tensorrt-libs.public}/lib/python3.10/site-packages/tensorrt_libs"
       "-DTRT_INCLUDE_DIR=${deps.tensorrt_src}/include"
       "-DCMAKE_CUDA_ARCHITECTURES=86-real" # just a5000, a40, ain't got all day
+      # "-DCUDAToolkit_INCLUDE_DIR=${cudaPkgs.cuda_cudart}/include"
+      "-DCUDAToolkit_INCLUDE_DIR=${cudaPkgs.cudatoolkit}/include"
     ];
+    postBuild = lib.optionalString withPython ''
+      pushd ../../
+      chmod -R +w .
+      mkdir ./libs
+      cp -r cpp/build/tensorrt_llm/libtensorrt_llm.so ./libs
+      cp -r cpp/build/tensorrt_llm/thop/libth_common.so ./libs
+      cp -r cpp/build/tensorrt_llm/plugins/libnvinfer_plugin_tensorrt_llm.so* ./libs
+      cp -r cpp/build/tensorrt_llm/pybind/bindings.*.so .
+      python -m pybind11_stubgen -o . bindings
+      mv bindings libs bindings.*.so tensorrt_llm
+      python setup.py bdist_wheel
+      popd
+    '';
+    # todo pythonOutputDistHook
     installPhase = ''
       mkdir -p $out
       cp -r $src/cpp $out/
@@ -121,11 +189,26 @@ let deps = config.deps; in
       cp ./libtensorrt_llm.so $out/cpp/build/tensorrt_llm/
       cp ./libtensorrt_llm_static.a $out/cpp/build/tensorrt_llm/
       cp ./plugins/libnvinfer_plugin_tensorrt_llm.so* $out/cpp/build/tensorrt_llm/plugins/
+      popd
+    '' + (lib.optionalString withPython ''
+      mv ../../dist $dist
+      pushd $dist
+      python -m pip install ./*.whl --no-index --no-warn-script-location --prefix="$python" --no-cache
+      popd
+    '');
+    postFixup = lib.optionalString withPython ''
+      mv $out/nix-support $python/
     '';
+  }) {
+    python = pkgs.python310;
+    cudaPackages = cudaPkgs;
+    withPython = false;
   };
   deps.trtllm_backend = let
     trt_lib_dir = "${config.python-env.pip.drvs.tensorrt-libs.public}/lib/python3.10/site-packages/tensorrt_libs";
-  in pkgs.stdenv.mkDerivation rec {
+    # this package wants gcc12
+    oldGccStdenv = pkgs.stdenvAdapters.useLibsFrom pkgs.stdenv pkgs.gcc12Stdenv;
+  in oldGccStdenv.mkDerivation rec {
     pname = "tensorrtllm_backend";
     version = "0.7.1";
     src = pkgs.fetchFromGitHub {
@@ -134,8 +217,8 @@ let deps = config.deps; in
       rev = "v${version}";
       hash = "sha256-5+a/+YCl7FuwlQFwWMHgEzPArAr8npLH7qTJ+Sm5Cns=";
     };
-    nativeBuildInputs = [ pkgs.cmake pkgs.ninja pkgs.python3 ];
-    buildInputs = [ pkgs.rapidjson pkgs.cudaPackages_12_1.cudatoolkit pkgs.openmpi ];
+    nativeBuildInputs = [ pkgs.cmake pkgs.ninja pkgs.python310 ];
+    buildInputs = [ pkgs.rapidjson cudaPkgs.cudatoolkit pkgs.openmpi ];
     sourceRoot = "source/inflight_batcher_llm";
     cmakeFlags = [
       "-DFETCHCONTENT_SOURCE_DIR_REPO-COMMON=${deps.triton_repo_common}"
@@ -147,7 +230,7 @@ let deps = config.deps; in
       "-DTRT_INCLUDE_DIR=${deps.tensorrt_src}/include"
       "-DTRTLLM_DIR=${deps.tensorrt_llm}" # todo: not src
     ];
-    # buildInputs = [ pkgs.tensorrt-llm pkgs.inflight_batcher_llm ];
+    # buildInputs = [ pkgs.tensorrt-llm ];
     # linking to stubs/libtritonserver.so is maybe a bit shady
     postFixup = ''
       patchelf $out/backends/tensorrtllm/libtriton_tensorrtllm.so --add-rpath $out/lib/stubs:${trt_lib_dir}:${deps.tensorrt_llm}/cpp/build/tensorrt_llm/plugins

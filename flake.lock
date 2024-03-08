@@ -9,8 +9,6 @@
           "flake-parts"
         ],
         "nixpkgs": [
-          "cognix",
-          "dream2nix",
           "nixpkgs"
         ]
       },
@@ -190,6 +188,21 @@
         "type": "indirect"
       }
     },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1708475490,
+        "narHash": "sha256-g1v0TsWBQPX97ziznfJdWhgMyMGtoBFs102xSYO4syU=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "0e74ca98a74bc7270d28838369593635a5db3260",
+        "type": "github"
+      },
+      "original": {
+        "id": "nixpkgs",
+        "ref": "nixos-unstable",
+        "type": "indirect"
+      }
+    },
     "pre-commit-hooks": {
       "inputs": {
         "flake-utils": "flake-utils",
@@ -215,7 +228,8 @@
     },
     "root": {
       "inputs": {
-        "cognix": "cognix"
+        "cognix": "cognix",
+        "nixpkgs": "nixpkgs_2"
       }
     },
     "systems": {
