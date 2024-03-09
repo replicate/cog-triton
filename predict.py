@@ -3,6 +3,8 @@
 import os
 import subprocess
 import time
+import torch
+import uuid
 
 import httpx
 from cog import BasePredictor, ConcatenateIterator
@@ -58,7 +60,7 @@ class Predictor(BasePredictor):
                 pass
             time.sleep(1)
 
-        self.client = httpx.AsyncClient(timeout=10)
+        self.client = None
 
     async def predict(
         self,
@@ -73,6 +75,7 @@ class Predictor(BasePredictor):
         presence_penalty: float = 0.0,
         stop_words: str = None,
         prompt_template: str = os.getenv("PROMPT_TEMPLATE", None),
+        return_logits: bool = True
     ) -> ConcatenateIterator:
         if not self.model_exists:
             self.log(
@@ -94,46 +97,74 @@ class Predictor(BasePredictor):
             length_penalty=length_penalty,
             presence_penalty=presence_penalty,
             stop_words=stop_words,
+            return_logits=return_logits,
         )
+        
+        if return_logits:
+            # Logits don't work with streaming. TODO: See if it's python or nvidia triton. 
+            resp= httpx.post(
+                "http://localhost:8000/v2/models/ensemble/generate",
+                json=args,
+                timeout=10
+            )
+            event_json = resp.json()
+            for key,value in event_json.items():
+                if isinstance(value, list):
+                    print(key, len(value))
+                else:
+                    print(key, value)
+            logits = torch.tensor(event_json['generation_logits']).reshape((len(event_json['output_log_probs']), -1))
+           
+            # TODO Make this a default folder set by ENV Variables? 
+            logits_folder = os.path.join(os.path.expanduser("~"), "logits")
+            os.makedirs(logits_folder, exist_ok=True)
+            logits_filename = os.path.join(logits_folder, f"logits_{uuid.uuid4()}.pt")
+            
+            torch.save(logits, logits_filename)
+            print(f"Wrote logits to {logits_filename} of shape {logits.shape}")
+            yield str(logits_filename)    
+        
+        else:
+            if not self.client:
+                self.client = httpx.AsyncClient(timeout=10)
+            req = self.client.stream(
+                "POST",
+                "http://localhost:8000/v2/models/tensorrt_llm_bls/generate_stream",
+                json=args,
+            )
+                    
+            output = ""
+            generation_length = 0
+            stop_sequence_handler = StreamingTokenStopSequenceHandler(
+                stop_sequences=args["stop_words"]
+            )
+            
+            async with req as resp:
+                async for event in receive_sse(resp):
+                    # Output is the _entire_ sequence, from the beginning
+                    output = event.json()["text_output"]
+                    # Catches partial emojis, waits for them to finish
+                    output = output.replace("\N{Replacement Character}", "")
+                    # Remove the tokens that were already yielded
+                    current_output = output[generation_length:]
 
-        req = self.client.stream(
-            "POST",
-            "http://localhost:8000/v2/models/tensorrt_llm_bls/generate_stream",
-            json=args,
-        )
-
-        output = ""
-        generation_length = 0
-        stop_sequence_handler = StreamingTokenStopSequenceHandler(
-            stop_sequences=args["stop_words"]
-        )
-
-        async with req as resp:
-            async for event in receive_sse(resp):
-                # Output is the _entire_ sequence, from the beginning
-                output = event.json()["text_output"]
-                # Catches partial emojis, waits for them to finish
-                output = output.replace("\N{Replacement Character}", "")
-                # Remove the tokens that were already yielded
-                current_output = output[generation_length:]
-
-                if current_output:
-                    # Process the output for stop sequences
-                    current_output = stop_sequence_handler(current_output)
-                    # If we have a partial stop sequence match or a full match,
-                    # `current_output` will be `None` and we shouldn't yield
                     if current_output:
-                        yield current_output
+                        # Process the output for stop sequences
+                        current_output = stop_sequence_handler(current_output)
+                        # If we have a partial stop sequence match or a full match,
+                        # `current_output` will be `None` and we shouldn't yield
+                        if current_output:
+                            yield current_output
 
-                # Update generation length
-                generation_length = len(output)
+                    # Update generation length
+                    generation_length = len(output)
 
-            # Handles the case where the generation ends in the middle of a valid stop sequence
-            current_output = stop_sequence_handler.finalize()
-            if current_output:
-                yield current_output
+                # Handles the case where the generation ends in the middle of a valid stop sequence
+                current_output = stop_sequence_handler.finalize()
+                if current_output:
+                    yield current_output
 
-        self.log(f"Formatted prompt: `{formatted_prompt}`")
+            self.log(f"Formatted prompt: `{formatted_prompt}`")
 
     def _process_args(
         self,
@@ -149,6 +180,7 @@ class Predictor(BasePredictor):
         stream: bool = True,
         end_id: int = 2,
         pad_id: int = 2,
+        return_logits: bool = False,
     ):
         stop_words_list = stop_words.split(",") if stop_words else []
         min_length = 0 if min_length is None else min_length
@@ -167,7 +199,10 @@ class Predictor(BasePredictor):
             "pad_id": pad_id,
             "end_id": end_id,
         }
-
+        
+        if return_logits:
+            args["return_generation_logits"] = True
+            del args["stream"]
         return args
 
     def _format_prompt(
