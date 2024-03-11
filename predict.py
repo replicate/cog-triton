@@ -44,6 +44,7 @@ class Predictor(BasePredictor):
                 "python3",
                 "/src/tensorrtllm_backend/scripts/launch_triton_server.py",
                 f"--world_size={world_size}",
+                "--log",
                 "--model_repo=/src/triton_model_repo",
             ]
         )
