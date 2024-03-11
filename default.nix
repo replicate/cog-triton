@@ -7,6 +7,7 @@ in
 {
   cog.build = {
     python_version = "3.10";
+    cog_version = "0.8.6";
     cuda = "12.1";
     gpu = true;
     python_packages = [
@@ -30,6 +31,10 @@ in
     # circumvent by manually depending on tensorrt_libs, tensorrt_bindings
     # and setting this env variable
     tensorrt.env.NVIDIA_TENSORRT_DISABLE_INTERNAL_PIP = true;
+    tensorrt.mkDerivation.propagatedBuildInputs = with pyPkgs; [
+      tensorrt-libs.public
+      tensorrt-bindings.public
+    ];
     tensorrt-bindings.mkDerivation.propagatedBuildInputs = [ pyPkgs.tensorrt-libs.public ];
     # fixed in torch 2.2
     torch.mkDerivation.postFixup = ''
