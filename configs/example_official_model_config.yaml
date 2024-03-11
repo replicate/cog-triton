@@ -26,6 +26,9 @@ instantiate:
         batching_strategy: inflight_fused_batching
         batch_scheduler_policy: max_utilization
         max_queue_delay_microseconds: 100
+        max_attention_window_size: 4096
+        kv_cache_free_gpu_mem_fraction: 0.95
+
         
     postprocessing:
       args:

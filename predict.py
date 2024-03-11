@@ -8,6 +8,10 @@ import httpx
 from cog import BasePredictor, ConcatenateIterator
 
 from sse import receive_sse
+from triton_config_generator import generate_configs, load_yaml_config
+
+import numpy as np
+
 from utils import (
     maybe_download_tarball_with_pget,
     StreamingTokenStopSequenceHandler,
@@ -16,11 +20,26 @@ from utils import (
 
 class Predictor(BasePredictor):
     def setup(self, weights: str = None) -> None:
-        self.system_prompt_exists = os.getenv("SYSTEM_PROMPT", None)
+
+        COG_TRITON_CONFIG = os.getenv("COG_TRITON_CONFIG", "config.yaml")
+        if not os.path.exists(COG_TRITON_CONFIG):
+            print(f"Config file {COG_TRITON_CONFIG} not found. Defaults will be used.")
+        else:
+            print(f"Loading cog-triton config from {COG_TRITON_CONFIG}")
+            config = load_yaml_config(COG_TRITON_CONFIG)
+            print("----------------------")
+            print("cog-triton config:")
+            print(config)
+            print("----------------------")
+            generate_configs(config["instantiate"]["server"])
 
         engine_dir = os.environ.get(
             "ENGINE_DIR", "/src/triton_model_repo/tensorrt_llm/1/"
         )
+
+        self.system_prompt_exists = os.getenv("SYSTEM_PROMPT", None)
+        self.end_id = os.getenv("END_ID", 2)
+        self.pad_id = os.getenv("PAD_ID", 2)
 
         if weights:
             print(f"Downloading model files from {weights}...")
@@ -68,11 +87,12 @@ class Predictor(BasePredictor):
         max_new_tokens: int = 250,
         min_length: int = None,
         top_k: int = 0,
-        top_p: float = 0.0,
+        top_p: float = 1.0,
         temperature: float = 1.0,
         length_penalty: float = 1.0,
         presence_penalty: float = 0.0,
         stop_words: str = None,
+        seed: int = None,
         prompt_template: str = os.getenv("PROMPT_TEMPLATE", None),
     ) -> ConcatenateIterator:
         if not self.model_exists:
@@ -95,6 +115,7 @@ class Predictor(BasePredictor):
             length_penalty=length_penalty,
             presence_penalty=presence_penalty,
             stop_words=stop_words,
+            seed=seed,
         )
 
         req = self.client.stream(
@@ -134,6 +155,8 @@ class Predictor(BasePredictor):
             if current_output:
                 yield current_output
 
+        print("Random seed used:", args["random_seed"])
+        print("Note: Random seed will not impact output if greedy decoding is used.")
         print(f"Formatted prompt: `{formatted_prompt}`")
 
     def _process_args(
@@ -147,12 +170,17 @@ class Predictor(BasePredictor):
         length_penalty: float = 1.0,
         presence_penalty: float = 0.0,
         stop_words: str = None,
+        seed: int = None,
         stream: bool = True,
-        end_id: int = 2,
-        pad_id: int = 2,
     ):
         stop_words_list = stop_words.split(",") if stop_words else []
         min_length = 0 if min_length is None else min_length
+
+        pad_id = self.pad_id
+        end_id = self.end_id
+
+        if not seed:
+            seed = int(np.random.randint(0, 100000))
 
         args = {
             "text_input": prompt,
@@ -165,6 +193,7 @@ class Predictor(BasePredictor):
             "presence_penalty": presence_penalty,
             "stop_words": stop_words_list,
             "stream": stream,
+            "random_seed": seed,
             "pad_id": pad_id,
             "end_id": end_id,
         }

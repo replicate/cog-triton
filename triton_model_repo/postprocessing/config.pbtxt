@@ -99,7 +99,7 @@ parameters {
 parameters {
   key: "tokenizer_type"
   value: {
-    string_value: "auto"
+    string_value: "llama"
   }
 }
 
@@ -116,4 +116,3 @@ instance_group [
         kind: KIND_CPU
     }
 ]
-
