@@ -1,0 +1,34 @@
+preprocessing:
+  args:
+    tokenizer_dir: /src/triton_model_repo/tensorrt_llm/1/
+    tokenizer_type: llama
+    triton_max_batch_size: 64
+    tokenizer_type: auto
+    preprocessing_instance_count: 64
+
+tensorrt_llm:
+  args:
+    engine_dir: /src/triton_model_repo/tensorrt_llm/1/
+    triton_max_batch_size: 64 
+    decoupled_mode: True
+    batching_strategy: inflight_fused_batching
+    batch_scheduler_policy: max_utilization
+    max_queue_delay_microseconds: 100
+    
+postprocessing:
+  args:
+    tokenizer_dir: /src/triton_model_repo/tensorrt_llm/1/
+    tokenizer_type: llama
+    triton_max_batch_size: 64
+    postprocessing_instance_count: 64
+
+ensemble:
+  args:
+    triton_max_batch_size: 64
+
+tensorrt_llm_bls:
+  args:
+    triton_max_batch_size: 64
+    decoupled_mode: True
+    bls_instance_count: 64
+    accumulate_tokens: "true"

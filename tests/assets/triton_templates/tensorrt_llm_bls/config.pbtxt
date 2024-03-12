@@ -26,10 +26,10 @@
 
 name: "tensorrt_llm_bls"
 backend: "python"
-max_batch_size: 64
+max_batch_size: ${triton_max_batch_size}
 
 model_transaction_policy {
-  decoupled: True
+  decoupled: ${decoupled_mode}
 }
 
 input [
@@ -209,13 +209,13 @@ output [
 parameters: {
   key: "accumulate_tokens"
   value: {
-    string_value: "true"
+    string_value: "${accumulate_tokens}"
   }
 }
 
 instance_group [
   {
-    count: 64
+    count: ${bls_instance_count}
     kind : KIND_CPU
   }
 ]

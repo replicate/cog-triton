@@ -1,0 +1,30 @@
+preprocessing:
+  args:
+    triton_max_batch_size: 64
+    tokenizer_type: auto
+    preprocessing_instance_count: 64
+
+tensorrt_llm:
+  args:
+    triton_max_batch_size: 64 
+    decoupled_mode: True
+    batching_strategy: inflight_fused_batching
+    batch_scheduler_policy: max_utilization
+    max_queue_delay_microseconds: 100
+
+postprocessing:
+  args:
+    triton_max_batch_size: 64
+    tokenizer_type: auto
+    postprocessing_instance_count: 64
+
+ensemble:
+  args:
+    triton_max_batch_size: 64
+
+tensorrt_llm_bls:
+  args:
+    triton_max_batch_size: 64
+    decoupled_mode: True
+    bls_instance_count: 64
+    accumulate_tokens: "true"

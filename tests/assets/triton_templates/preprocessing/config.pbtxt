@@ -26,7 +26,7 @@
 
 name: "preprocessing"
 backend: "python"
-max_batch_size: 64
+max_batch_size: ${triton_max_batch_size}
 input [
     {
         name: "QUERY"
@@ -121,14 +121,14 @@ output [
 parameters {
   key: "tokenizer_dir"
   value: {
-    string_value: "/src/triton_model_repo/tensorrt_llm/1/"
+    string_value: "${tokenizer_dir}"
   }
 }
 
 parameters {
   key: "tokenizer_type"
   value: {
-    string_value: "auto"
+    string_value: "${tokenizer_type}"
   }
 }
 
@@ -141,7 +141,7 @@ parameters {
 
 instance_group [
     {
-        count: 64
+        count: ${preprocessing_instance_count}
         kind: KIND_CPU
     }
 ]

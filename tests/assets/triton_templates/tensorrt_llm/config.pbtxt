@@ -26,15 +26,15 @@
 
 name: "tensorrt_llm"
 backend: "tensorrtllm"
-max_batch_size: 64
+max_batch_size: ${triton_max_batch_size}
 
 model_transaction_policy {
-  decoupled: True
+  decoupled: ${decoupled_mode}
 }
 
 dynamic_batching {
-    preferred_batch_size: [ 64 ]
-    max_queue_delay_microseconds: 100
+    preferred_batch_size: [ ${triton_max_batch_size} ]
+    max_queue_delay_microseconds: ${max_queue_delay_microseconds}
 }
 
 input [
@@ -299,13 +299,13 @@ parameters: {
 parameters: {
   key: "gpt_model_type"
   value: {
-    string_value: "inflight_fused_batching"
+    string_value: "${batching_strategy}"
   }
 }
 parameters: {
   key: "gpt_model_path"
   value: {
-    string_value: "/src/triton_model_repo/tensorrt_llm/1/"
+    string_value: "${engine_dir}"
   }
 }
 parameters: {
@@ -317,19 +317,19 @@ parameters: {
 parameters: {
   key: "max_attention_window_size"
   value: {
-    string_value: "4096"
+    string_value: "${max_attention_window_size}"
   }
 }
 parameters: {
   key: "batch_scheduler_policy"
   value: {
-    string_value: "max_utilization"
+    string_value: "${batch_scheduler_policy}"
   }
 }
 parameters: {
   key: "kv_cache_free_gpu_mem_fraction"
   value: {
-    string_value: "0.95"
+    string_value: "${kv_cache_free_gpu_mem_fraction}"
   }
 }
 parameters: {

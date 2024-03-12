@@ -1,0 +1,49 @@
+build:
+  version: 1a40bd635581740eef0738964c9ce39ed3b0bbf85692dacfe027053d498b9eaf
+  config: models/mistral-7b-instruct-v0.2/build_config.yaml
+instantiate:
+  base_model: replicate-internal/cog-triton@sha256:4c42dea813621fa9cf14bd4481914f0218f72e30f6fdd81056bd9ae0d8214dcc
+  staging_dest: r8.im/replicate-internal/staging-mistral-triton
+  weights: https://replicate.delivery/pbxt/Q4QZNS1OlPqqM9qmpvZv6cXJ6GekWOQBqqL7faUHpAoq5uWSA/engine.tar
+  # abbreivated version of the llama prompt, not the mistral prompt, but probably better this way.
+  system_prompt: You are a very helpful, respectful and honest assistant.
+  # not 100% certain about <s> or the spaces
+  prompt_template: <s>[INST] {system_prompt} {prompt} [/INST]
+  server:
+    preprocessing:
+      args:
+        tokenizer_dir: /src/triton_model_repo/tensorrt_llm/1/
+        tokenizer_type: llama
+        triton_max_batch_size: 64
+        tokenizer_type: auto
+        preprocessing_instance_count: 64
+
+    tensorrt_llm:
+      args:
+        engine_dir: /src/triton_model_repo/tensorrt_llm/1/
+        triton_max_batch_size: 64 
+        decoupled_mode: True
+        batching_strategy: inflight_fused_batching
+        batch_scheduler_policy: max_utilization
+        max_queue_delay_microseconds: 100
+        max_attention_window_size: 4096
+        kv_cache_free_gpu_mem_fraction: 0.95
+
+        
+    postprocessing:
+      args:
+        tokenizer_dir: /src/triton_model_repo/tensorrt_llm/1/
+        tokenizer_type: llama
+        triton_max_batch_size: 64
+        postprocessing_instance_count: 64
+
+    ensemble:
+      args:
+        triton_max_batch_size: 64
+
+    tensorrt_llm_bls:
+      args:
+        triton_max_batch_size: 64
+        decoupled_mode: True
+        bls_instance_count: 64
+        accumulate_tokens: "true"
