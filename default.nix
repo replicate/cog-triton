@@ -3,6 +3,7 @@ let
   deps = config.deps;
   py3Pkgs = pkgs.python310.pkgs;
   cudaPkgs = pkgs.cudaPackages_12_2;
+  site = pkgs.python310.sitePackages;
 in
 {
   cog.build = {
@@ -39,14 +40,14 @@ in
     tensorrt-bindings.mkDerivation.propagatedBuildInputs = [ pyPkgs.tensorrt-libs.public ];
     # fixed in torch 2.2
     torch.mkDerivation.postFixup = ''
-      pushd $out/lib/python3.10/site-packages/torch/lib
+      pushd $out/${site}/torch/lib
       ln -s libcudart-*.so.12 libcudart.so.12
       ln -s libnvrtc-*.so.12 libnvrtc.so.12
       ln -s libnvToolsExt-*.so.1 libnvToolsExt.so.1
       popd
     '';
     tensorrt-libs.mkDerivation.postFixup = ''
-      pushd $out/lib/python3.10/site-packages/tensorrt_libs
+      pushd $out/${site}/tensorrt_libs
       ln -s libnvinfer.so.9 libnvinfer.so
       ln -s libnvonnxparser.so.9 libnvonnxparser.so
       popd
@@ -64,7 +65,7 @@ in
     tritonclient.mkDerivation.postInstall = "rm -r $out/bin";
     # todo put the python backend stub in the right location
     nvidia-pytriton.mkDerivation.postInstall = ''
-      rm $out/lib/python3.10/site-packages/pytriton/tritonserver/python_backend_stubs/3.{8,9,11}/triton_python_backend_stub
+      rm $out/${site}/pytriton/tritonserver/python_backend_stubs/3.{8,9,11}/triton_python_backend_stub
     '';
   };
   deps.triton_repo_common = pkgs.fetchFromGitHub {
@@ -172,7 +173,7 @@ in
       "-DBUILD_PYBIND=${if withPython then "ON" else "OFF"}" # needs BUILD_PYT
       "-DBUILD_TESTS=OFF" # needs nvonnxparser.h
       # believe it or not, this is the actual binary distribution channel for tensorrt:
-      "-DTRT_LIB_DIR=${config.python-env.pip.drvs.tensorrt-libs.public}/lib/python3.10/site-packages/tensorrt_libs"
+      "-DTRT_LIB_DIR=${config.python-env.pip.drvs.tensorrt-libs.public}/${site}/tensorrt_libs"
       "-DTRT_INCLUDE_DIR=${deps.tensorrt_src}/include"
       "-DCMAKE_CUDA_ARCHITECTURES=86-real" # just a5000, a40, ain't got all day
       # "-DCUDAToolkit_INCLUDE_DIR=${cudaPkgs.cuda_cudart}/include"
@@ -217,7 +218,7 @@ in
     withPython = false;
   };
   deps.trtllm_backend = let
-    trt_lib_dir = "${config.python-env.pip.drvs.tensorrt-libs.public}/lib/python3.10/site-packages/tensorrt_libs";
+    trt_lib_dir = "${config.python-env.pip.drvs.tensorrt-libs.public}/${site}/tensorrt_libs";
     # this package wants gcc12
     oldGccStdenv = pkgs.stdenvAdapters.useLibsFrom pkgs.stdenv pkgs.gcc12Stdenv;
   in oldGccStdenv.mkDerivation rec {
