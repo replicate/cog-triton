@@ -9,7 +9,7 @@ in
 {
   cog.build = {
     python_version = "3.10";
-    cog_version = "0.8.6";
+    cog_version = "0.10.0-alpha5";
     cuda = "12.1";
     gpu = true;
     python_packages = [
@@ -23,6 +23,7 @@ in
       # fixed in torch 2.2
       "nvidia-nccl-cu12"
       "nvidia-pytriton"
+      "httpx"
     ];
   };
   python-env.pip.drvs = let pyPkgs = config.python-env.pip.drvs; in {

@@ -68,10 +68,10 @@
         "version": "8.1.7"
       },
       "cog": {
-        "sha256": "a6ca8b26c898df0d598b56d7637c7375651b71fd53224bf11d1007bb663f54e3",
+        "sha256": "d87f9c35aab9b70118a38de2683ca70103bab405873ced3c69ea7f0718d0e121",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/a4/16/16069418df6989fe964d92494c821154244377fb9bb82b7897ba085b965d/cog-0.8.6-py3-none-any.whl",
-        "version": "0.8.6"
+        "url": "https://files.pythonhosted.org/packages/de/36/27d05d8248e5f4a528b37795f1c5b1326524515ae3f8962d59d5bebfd92c/cog-0.10.0a5-py3-none-any.whl",
+        "version": "0.10.0a5"
       },
       "colored": {
         "sha256": "a7069673bd90a35f46cb748d012c17284a0668d2f1c06bc7a51822a2d5ad2112",
@@ -181,11 +181,35 @@
         "url": "https://files.pythonhosted.org/packages/95/04/ff642e65ad6b90db43e668d70ffb6736436c7ce41fcc549f4e9472234127/h11-0.14.0-py3-none-any.whl",
         "version": "0.14.0"
       },
+      "h2": {
+        "sha256": "03a46bcf682256c95b5fd9e9a99c1323584c3eec6440d379b9903d709476bc6d",
+        "type": "url",
+        "url": "https://files.pythonhosted.org/packages/2a/e5/db6d438da759efbb488c4f3fbdab7764492ff3c3f953132efa6b9f0e9e53/h2-4.1.0-py3-none-any.whl",
+        "version": "4.1.0"
+      },
+      "hpack": {
+        "sha256": "84a076fad3dc9a9f8063ccb8041ef100867b1878b25ef0ee63847a5d53818a6c",
+        "type": "url",
+        "url": "https://files.pythonhosted.org/packages/d5/34/e8b383f35b77c402d28563d2b8f83159319b509bc5f760b15d60b0abf165/hpack-4.0.0-py3-none-any.whl",
+        "version": "4.0.0"
+      },
+      "httpcore": {
+        "sha256": "ac418c1db41bade2ad53ae2f3834a3a0f5ae76b56cf5aa497d2d033384fc7d73",
+        "type": "url",
+        "url": "https://files.pythonhosted.org/packages/2c/93/13f25f2f78646bab97aee7680821e30bd85b2ff0fc45d5fdf5393b79716d/httpcore-1.0.4-py3-none-any.whl",
+        "version": "1.0.4"
+      },
       "httptools": {
         "sha256": "e57997ac7fb7ee43140cc03664de5f268813a481dff6245e0075925adc6aa185",
         "type": "url",
         "url": "https://files.pythonhosted.org/packages/65/e7/dd5ba95c84047118a363f0755ad78e639e0529be92424bb020496578aa3b/httptools-0.6.1-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
         "version": "0.6.1"
+      },
+      "httpx": {
+        "sha256": "8915f5a3627c4d47b73e8202457cb28f1266982d1159bd5779d86a80c0eab1cd",
+        "type": "url",
+        "url": "https://files.pythonhosted.org/packages/39/9b/4937d841aee9c2c8102d9a4eeb800c7dad25386caabb4a1bf5010df81a57/httpx-0.26.0-py3-none-any.whl",
+        "version": "0.26.0"
       },
       "huggingface-hub": {
         "sha256": "df37c2c37fc6c82163cdd8a67ede261687d80d1e262526d6c0ce73b6b3630a7b",
@@ -198,6 +222,12 @@
         "type": "url",
         "url": "https://files.pythonhosted.org/packages/f0/0f/310fb31e39e2d734ccaa2c0fb981ee41f7bd5056ce9bc29b2248bd569169/humanfriendly-10.0-py2.py3-none-any.whl",
         "version": "10.0"
+      },
+      "hyperframe": {
+        "sha256": "0ec6bafd80d8ad2195c4f03aacba3a8265e57bc4cff261e802bf39970ed02a15",
+        "type": "url",
+        "url": "https://files.pythonhosted.org/packages/d7/de/85a784bcc4a3779d1753a7ec2dee5de90e18c7bcf402e71b51fcf150b129/hyperframe-6.0.1-py3-none-any.whl",
+        "version": "6.0.1"
       },
       "idna": {
         "sha256": "c05567e9c24a6b9faaa835c4821bad0590fbb9d5779e7caa6e1cc4978e7eb24f",
@@ -298,7 +328,7 @@
       "nvidia-nccl-cu12": {
         "sha256": "057f6bf9685f75215d0c53bf3ac4a10b3e6578351de307abad9e18a99182af56",
         "type": "url",
-        "url": "https://pypi.nvidia.com/nvidia-nccl-cu12/nvidia_nccl_cu12-2.20.5-py3-none-manylinux2014_x86_64.whl",
+        "url": "https://download.pytorch.org/whl/cu121/nvidia_nccl_cu12-2.20.5-py3-none-manylinux2014_x86_64.whl",
         "version": "2.20.5"
       },
       "nvidia-pytriton": {
@@ -476,10 +506,10 @@
         "version": "0.27.0"
       },
       "structlog": {
-        "sha256": "d6922a88ceabef5b13b9eda9c4043624924f60edbb00397f4d193bd754cde60a",
+        "sha256": "3f6efe7d25fab6e86f277713c218044669906537bb717c1807a09d46bca0714d",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/78/5d/8afc87f72e8ba11001c0122e62fc1e19f580f8607f9d1078012cf1492325/structlog-23.3.0-py3-none-any.whl",
-        "version": "23.3.0"
+        "url": "https://files.pythonhosted.org/packages/ae/5c/c22ca8b8715dd625bbdd6bc7ec87395e29940642d8dff213fad1aa8ce84d/structlog-24.1.0-py3-none-any.whl",
+        "version": "24.1.0"
       },
       "sympy": {
         "sha256": "c3588cd4295d0c0f603d0f2ae780587e64e2efeedb3521e46b9bb1d08d184fa5",
@@ -602,10 +632,10 @@
         "version": "12.0"
       },
       "wheel": {
-        "sha256": "177f9c9b0d45c47873b619f5b650346d632cdc35fb5e4d25058e09c9e581433d",
+        "sha256": "55c570405f142630c6b9f72fe09d9b67cf1477fcf543ae5b8dcb1f5b7377da81",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/c7/c3/55076fc728723ef927521abaa1955213d094933dc36d4a2008d5101e1af5/wheel-0.42.0-py3-none-any.whl",
-        "version": "0.42.0"
+        "url": "https://files.pythonhosted.org/packages/7d/cd/d7460c9a869b16c3dd4e1e403cce337df165368c71d6af229a74699622ce/wheel-0.43.0-py3-none-any.whl",
+        "version": "0.43.0"
       },
       "wrapt": {
         "sha256": "ac83a914ebaf589b69f7d0a1277602ff494e21f4c2f743313414378f8f50a4cf",
@@ -684,6 +714,7 @@
         "cog": [
           "attrs",
           "fastapi",
+          "httpx",
           "pydantic",
           "pyyaml",
           "requests",
@@ -762,7 +793,24 @@
         "greenlet": [],
         "grpcio": [],
         "h11": [],
+        "h2": [
+          "hpack",
+          "hyperframe"
+        ],
+        "hpack": [],
+        "httpcore": [
+          "certifi",
+          "h11"
+        ],
         "httptools": [],
+        "httpx": [
+          "anyio",
+          "certifi",
+          "h2",
+          "httpcore",
+          "idna",
+          "sniffio"
+        ],
         "huggingface-hub": [
           "filelock",
           "fsspec",
@@ -773,6 +821,7 @@
           "typing-extensions"
         ],
         "humanfriendly": [],
+        "hyperframe": [],
         "idna": [],
         "importlib-metadata": [
           "zipp"
@@ -981,5 +1030,5 @@
       }
     }
   },
-  "invalidationHash": "8d3bbd0bfb9fc44dccdb6dd11184c2f68c8458adfd08ba4680692f71e9518a90"
+  "invalidationHash": "b0c5d2f1db57bfb885576abb4e2d32156d1aca9c59e9b13022483d5724dd5135"
 }
