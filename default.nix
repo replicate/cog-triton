@@ -22,8 +22,11 @@ in
       "tensorrt_bindings==9.2.0.post12.dev5"
       # fixed in torch 2.2
       "nvidia-nccl-cu12"
-      "nvidia-pytriton"
+      "nvidia-pytriton==0.5.2" # corresponds to 2.42.0
       "httpx"
+      "nvidia-cublas-cu12<12.4"
+      "nvidia-cuda-nvrtc-cu12<12.4"
+      "nvidia-cuda-runtime-cu12<12.4"
     ];
   };
   python-env.pip.drvs = let pyPkgs = config.python-env.pip.drvs; in {
@@ -69,6 +72,7 @@ in
       pushd $out/${site}/pytriton/tritonserver
       mv python_backend_stubs/${py3.pythonVersion}/triton_python_backend_stub backends/python/
       rm -r python_backend_stubs/
+      ln -s ${deps.trtllm_backend}/backends/tensorrtllm backends/
       popd
     '';
   };
@@ -249,8 +253,10 @@ in
     ];
     # buildInputs = [ pkgs.tensorrt-llm ];
     # linking to stubs/libtritonserver.so is maybe a bit shady
+    # $out/lib/stubs
+    # todo fix that hash
     postFixup = ''
-      patchelf $out/backends/tensorrtllm/libtriton_tensorrtllm.so --add-rpath $out/lib/stubs:${trt_lib_dir}:${deps.tensorrt_llm}/cpp/build/tensorrt_llm/plugins
+      patchelf $out/backends/tensorrtllm/libtriton_tensorrtllm.so --add-rpath ${trt_lib_dir}:${deps.tensorrt_llm}/cpp/build/tensorrt_llm/plugins --replace-needed libtritonserver.so libtritonserver-90a4cf82.so
     '';
   };
 }

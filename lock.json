@@ -302,22 +302,22 @@
         "version": "1.26.4"
       },
       "nvidia-cublas-cu12": {
-        "sha256": "14c9ae3f7711225a4f9f8f46481947a30329f92b7533ae90f8ff22c61ae54a87",
+        "sha256": "9b25b27bd5a5be1cc7e83a7b8004258daa338800798e22986e5b67ee06f0859d",
         "type": "url",
-        "url": "https://pypi.nvidia.com/nvidia-cublas-cu12/nvidia_cublas_cu12-12.4.2.65-py3-none-manylinux2014_x86_64.whl",
-        "version": "12.4.2.65"
+        "url": "https://pypi.nvidia.com/nvidia-cublas-cu12/nvidia_cublas_cu12-12.3.4.1-py3-none-manylinux1_x86_64.whl",
+        "version": "12.3.4.1"
       },
       "nvidia-cuda-nvrtc-cu12": {
-        "sha256": "0f488eb03e10bd1551bae75bdc1ca8771218889a0b9746a00c97e5a2ec8bbd3e",
+        "sha256": "4db66788a37a234304a0b3203744f9a6c665f48bde65f69a096ae3b5799b5b1d",
         "type": "url",
-        "url": "https://pypi.nvidia.com/nvidia-cuda-nvrtc-cu12/nvidia_cuda_nvrtc_cu12-12.4.99-py3-none-manylinux2014_x86_64.whl",
-        "version": "12.4.99"
+        "url": "https://pypi.nvidia.com/nvidia-cuda-nvrtc-cu12/nvidia_cuda_nvrtc_cu12-12.3.107-py3-none-manylinux1_x86_64.whl",
+        "version": "12.3.107"
       },
       "nvidia-cuda-runtime-cu12": {
-        "sha256": "1454a7c101976d3a9ade86040d01c4e57e8f6396c35b13f7a42c787dab145bed",
+        "sha256": "04604679ddca6acb96c76a7a9306282cddc16981f92e148e2dfe227078883cda",
         "type": "url",
-        "url": "https://pypi.nvidia.com/nvidia-cuda-runtime-cu12/nvidia_cuda_runtime_cu12-12.4.99-py3-none-manylinux2014_x86_64.whl",
-        "version": "12.4.99"
+        "url": "https://pypi.nvidia.com/nvidia-cuda-runtime-cu12/nvidia_cuda_runtime_cu12-12.3.101-py3-none-manylinux1_x86_64.whl",
+        "version": "12.3.101"
       },
       "nvidia-cudnn-cu12": {
         "sha256": "adf4f59ed7a1341103822ed8df6e144f4d47ea8b10d9bf0ea0047ba738fd7b02",
@@ -332,10 +332,10 @@
         "version": "2.20.5"
       },
       "nvidia-pytriton": {
-        "sha256": "2530bbd0ce56b86cb59efa64493d62f3a0f4f203d1b94179759a55955fd5b5c8",
+        "sha256": "810531f752f7bdc4308b8821056ce2d5a456e6cb62966f2e07f65cff0053e42a",
         "type": "url",
-        "url": "https://pypi.nvidia.com/nvidia-pytriton/nvidia_pytriton-0.5.3-py3-none-manylinux_2_35_x86_64.whl",
-        "version": "0.5.3"
+        "url": "https://pypi.nvidia.com/nvidia-pytriton/nvidia_pytriton-0.5.2-py3-none-manylinux_2_35_x86_64.whl",
+        "version": "0.5.2"
       },
       "onnx": {
         "sha256": "96ed899fe6000edc05bb2828863d3841cfddd5a7cf04c1a771f112e94de75d9f",
@@ -440,10 +440,10 @@
         "version": "6.0.1"
       },
       "pyzmq": {
-        "sha256": "0ddd6d71d4ef17ba5a87becf7ddf01b371eaba553c603477679ae817a8d84d75",
+        "sha256": "7e0113d70b095339e99bb522fe7294f5ae6a7f3b2b8f52f659469a74b5cc7661",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/67/bf/6bc0977acd934b66eacab79cec303ecf08ae4a6150d57c628aa919615488/pyzmq-25.1.2-cp310-cp310-manylinux_2_28_x86_64.whl",
-        "version": "25.1.2"
+        "url": "https://files.pythonhosted.org/packages/b7/ac/18b75626cede66295a27e94d7cfe301d2d35120b200a6a46f205a171a20e/pyzmq-23.2.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "version": "23.2.1"
       },
       "regex": {
         "sha256": "a9cc99d6946d750eb75827cb53c4371b8b0fe89c733a94b1573c9dd16ea6c9e4",
@@ -482,10 +482,10 @@
         "version": "69.1.1"
       },
       "sh": {
-        "sha256": "ced8f2e081a858b66a46ace3703dec243779abbd5a1887ba7e3c34f34da70cd2",
+        "sha256": "e4045b6c732d9ce75d571c79f5ac2234edd9ae4f5fa9d59b09705082bdca18c7",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/53/08/9de3e477ad2fd432e78ce351341686d1bbec346976b22c7cc5f81f1ff15a/sh-2.0.6-py3-none-any.whl",
-        "version": "2.0.6"
+        "url": "https://files.pythonhosted.org/packages/b7/09/89c28aaf2a49f226fef8587c90c6386bd2cc03a0295bc4ff7fc6ee43c01d/sh-1.14.3.tar.gz",
+        "version": "1.14.3"
       },
       "six": {
         "sha256": "8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254",
@@ -590,10 +590,10 @@
         "version": "4.10.0"
       },
       "typing-inspect": {
-        "sha256": "9ee6fc59062311ef8547596ab6b955e1b8aa46242d854bfc78f4f6b0eff35f9f",
+        "sha256": "3b98390df4d999a28cf5b35d8b333425af5da2ece8a4ea9e98f71e7591347b4f",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/65/f3/107a22063bf27bdccf2024833d3445f4eea42b2e598abfbd46f6a63b6cb0/typing_inspect-0.9.0-py3-none-any.whl",
-        "version": "0.9.0"
+        "url": "https://files.pythonhosted.org/packages/42/1c/66402db44184904a2f14722d317a4da0b5c8c78acfc3faf74362566635c5/typing_inspect-0.6.0-py3-none-any.whl",
+        "version": "0.6.0"
       },
       "tzdata": {
         "sha256": "9068bc196136463f5245e51efda838afa15aaeca9903f49050dfa2679db4d252",
@@ -1030,5 +1030,5 @@
       }
     }
   },
-  "invalidationHash": "b0c5d2f1db57bfb885576abb4e2d32156d1aca9c59e9b13022483d5724dd5135"
+  "invalidationHash": "aa4cdcde84fd19f00ecf83907c57b38e3290d3d1d27a511348d1c12a8aabc2d2"
 }
