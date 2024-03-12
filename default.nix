@@ -1,9 +1,10 @@
 { pkgs, config, ... }:
 let
   deps = config.deps;
-  py3Pkgs = pkgs.python310.pkgs;
+  py3 = pkgs.python310;
+  py3Pkgs = py3.pkgs;
   cudaPkgs = pkgs.cudaPackages_12_2;
-  site = pkgs.python310.sitePackages;
+  site = py3.sitePackages;
 in
 {
   cog.build = {
@@ -63,9 +64,11 @@ in
     };
     # has some binaries that want cudart
     tritonclient.mkDerivation.postInstall = "rm -r $out/bin";
-    # todo put the python backend stub in the right location
     nvidia-pytriton.mkDerivation.postInstall = ''
-      rm $out/${site}/pytriton/tritonserver/python_backend_stubs/3.{8,9,11}/triton_python_backend_stub
+      pushd $out/${site}/pytriton/tritonserver
+      mv python_backend_stubs/${py3.pythonVersion}/triton_python_backend_stub backends/python/
+      rm -r python_backend_stubs/
+      popd
     '';
   };
   deps.triton_repo_common = pkgs.fetchFromGitHub {
@@ -99,7 +102,7 @@ in
     hash = "sha256-W3ytzwq0mm40w6HZ/hArT6G7ID3HSUwzoZ8ix0Q/F6E=";
   };
   # todo: replace with lockfile
-  deps.pybind11-stubgen = let py3Pkgs = pkgs.python310.pkgs; in py3Pkgs.buildPythonPackage rec {
+  deps.pybind11-stubgen = py3Pkgs.buildPythonPackage rec {
     pname = "pybind11-stubgen";
     version = "2.4.2";
     src = pkgs.fetchPypi {
