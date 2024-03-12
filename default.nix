@@ -13,13 +13,14 @@ in
     python_packages = [
       "--extra-index-url"
       "https://pypi.nvidia.com"
-      "tensorrt_llm"
+      "tensorrt_llm==0.7.1"
       "torch==2.1.2"
       # from tensorrt
       "tensorrt_libs==9.2.0.post12.dev5"
       "tensorrt_bindings==9.2.0.post12.dev5"
       # fixed in torch 2.2
       "nvidia-nccl-cu12"
+      "nvidia-pytriton"
     ];
   };
   python-env.pip.drvs = let pyPkgs = config.python-env.pip.drvs; in {
@@ -59,6 +60,12 @@ in
       env.appendRunpaths = [ "/usr/lib64" "$ORIGIN" ];
       env.autoPatchelfIgnoreMissingDeps = ["libcuda.so.1"];
     };
+    # has some binaries that want cudart
+    tritonclient.mkDerivation.postInstall = "rm -r $out/bin";
+    # todo put the python backend stub in the right location
+    nvidia-pytriton.mkDerivation.postInstall = ''
+      rm $out/lib/python3.10/site-packages/pytriton/tritonserver/python_backend_stubs/3.{8,9,11}/triton_python_backend_stub
+    '';
   };
   deps.triton_repo_common = pkgs.fetchFromGitHub {
     owner = "triton-inference-server";
