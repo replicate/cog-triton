@@ -45,7 +45,7 @@ class RTC:
         self, message: bytes | str
     ) -> AsyncIterator[bytes | str | dict]:
         if message[0] != "{":
-            log.info("received invalid message", message)
+            log.info(f"received invalid message {message}")
             return
         args = json.loads(message)  # works for bytes or str
         id = args.pop("id", 0)
@@ -71,11 +71,11 @@ class RTC:
 
         offer = RTCSessionDescription(sdp=params["sdp"], type=params["type"])
 
-        log.info("creating for", offer)
+        log.info(f"creating for {offer}")
         config = RTCConfiguration([RTCIceServer(**a) for a in ice_servers])
-        log.info("configured for", ice_servers)
+        log.info(f"configured for {ice_servers}")
         pc = RTCPeerConnection(configuration=config)
-        log.info("made peerconnection", pc)
+        log.info(f"made peerconnection {pc}")
 
         # five seconds to establish a connection and ping!
         self.done = ShutdownTimer()
@@ -83,7 +83,7 @@ class RTC:
 
         @pc.on("datachannel")
         def on_datachannel(channel: RTCDataChannel) -> None:
-            log.info(type(channel))
+            log.info(f"{type(channel)}")
 
             @channel.on("message")
             async def on_message(message: str | bytes) -> None:
@@ -101,7 +101,7 @@ class RTC:
 
         @pc.on("connectionstatechange")
         async def on_connectionstatechange() -> None:
-            log.info("Connection state is %s", pc.connectionState)
+            log.info(f"Connection state is {pc.connectionState}")
             if pc.connectionState == "failed":
                 await pc.close()
                 self.done.set()
@@ -112,7 +112,7 @@ class RTC:
 
         # send answer
         answer = await pc.createAnswer()
-        log.info("created answer", answer)
+        log.info(f"created answer {answer}")
         await pc.setLocalDescription(answer)
         log.info("set local description")
         data = {"sdp": pc.localDescription.sdp, "type": pc.localDescription.type}
