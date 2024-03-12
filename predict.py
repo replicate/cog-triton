@@ -78,7 +78,7 @@ class Predictor(BasePredictor):
                 pass
             time.sleep(1)
 
-        self.client = httpx.AsyncClient()
+        self.client = httpx.AsyncClient(timeout=10)
 
     async def predict(
         self,
@@ -96,7 +96,7 @@ class Predictor(BasePredictor):
         prompt_template: str = os.getenv("PROMPT_TEMPLATE", None),
     ) -> ConcatenateIterator:
         if not self.model_exists:
-            print(
+            self.log(
                 "Your model directory is empty, so there's nothing to do. Remember, you can't run this like a normal model. You need to YOLO!"
             )
             return
@@ -158,6 +158,7 @@ class Predictor(BasePredictor):
         print("Random seed used:", args["random_seed"])
         print("Note: Random seed will not impact output if greedy decoding is used.")
         print(f"Formatted prompt: `{formatted_prompt}`")
+        self.log(f"Formatted prompt: `{formatted_prompt}`")
 
     def _process_args(
         self,
