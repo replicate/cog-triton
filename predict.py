@@ -31,7 +31,8 @@ class Predictor(BasePredictor):
             print("cog-triton config:")
             print(config)
             print("----------------------")
-            generate_configs(config["instantiate"]["server"])
+            if "server" in config["instantiate"]:
+                generate_configs(config["instantiate"]["server"])
 
         engine_dir = os.environ.get(
             "ENGINE_DIR", "/src/triton_model_repo/tensorrt_llm/1/"
@@ -42,7 +43,7 @@ class Predictor(BasePredictor):
         self.pad_id = os.getenv("PAD_ID", 2)
 
         if weights:
-            print(f"Downloading model files from {weights}...")
+            self.log(f"Downloading model files from {weights}...")
             maybe_download_tarball_with_pget(
                 url=weights,
                 dest=engine_dir,
@@ -155,9 +156,8 @@ class Predictor(BasePredictor):
             if current_output:
                 yield current_output
 
-        print("Random seed used:", args["random_seed"])
-        print("Note: Random seed will not impact output if greedy decoding is used.")
-        print(f"Formatted prompt: `{formatted_prompt}`")
+        self.log(f"Random seed used: `{args['random_seed']}`")
+        self.log("Note: Random seed will not impact output if greedy decoding is used.")
         self.log(f"Formatted prompt: `{formatted_prompt}`")
 
     def _process_args(

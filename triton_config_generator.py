@@ -67,9 +67,6 @@ def generate_configs(config):
 
         filled_config = fill_template(template_file, substitutions)
         write_config(filled_config, output_file)
-    
-    print("Serving with config:")
-    print(config)
 
 def main(yaml_file):
     config = load_yaml_config(yaml_file)
