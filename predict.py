@@ -82,7 +82,9 @@ class Predictor(BasePredictor):
 
     async def predict(
         self,
-        prompt: str = Input("Prompt to send to the model."),
+        prompt: str = Input(
+            description="Prompt to send to the model."
+            ),
         system_prompt: str = Input(
             description="System prompt to send to the model. This is prepended to the prompt and helps guide system behavior.",
             default= os.getenv("SYSTEM_PROMPT", "")
