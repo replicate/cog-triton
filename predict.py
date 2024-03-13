@@ -3,9 +3,8 @@
 import os
 import subprocess
 import time
-
 import httpx
-from cog import BasePredictor, ConcatenateIterator
+from cog import BasePredictor, ConcatenateIterator, Input
 
 from sse import receive_sse
 from triton_config_generator import generate_configs, load_yaml_config
@@ -83,18 +82,60 @@ class Predictor(BasePredictor):
 
     async def predict(
         self,
-        prompt: str,
-        system_prompt: str = os.getenv("SYSTEM_PROMPT", None),
-        max_new_tokens: int = 250,
-        min_length: int = None,
-        top_k: int = 0,
-        top_p: float = 1.0,
-        temperature: float = 1.0,
-        length_penalty: float = 1.0,
-        presence_penalty: float = 0.0,
-        stop_words: str = None,
-        seed: int = None,
-        prompt_template: str = os.getenv("PROMPT_TEMPLATE", None),
+        prompt: str = Input("Prompt to send to the model."),
+        system_prompt: str = Input(
+            description="System prompt to send to the model. This is prepended to the prompt and helps guide system behavior.",
+            default= os.getenv("SYSTEM_PROMPT", None)
+        ),
+        max_new_tokens: int = Input(
+            description="Maximum number of tokens to generate. A word is generally 2-3 tokens",
+            ge=1,
+            default=128,
+        ),
+        min_new_tokens: int = Input(
+            description="Minimum number of tokens to generate. To disable, set to -1. A word is generally 2-3 tokens.",
+            ge=-1,
+            default=None,
+        ),
+        temperature: float = Input(
+            description="Adjusts randomness of outputs, greater than 1 is random and 0 is deterministic, 0.75 is a good starting value.",
+            ge=0.0,
+            le=5,
+            default=0.7,
+        ),
+        top_p: float = Input(
+            description="When decoding text, samples from the top p percentage of most likely tokens; lower to ignore less likely tokens",
+            ge=0.0,
+            le=1.0,
+            default=0.95,
+        ),
+        top_k: int = Input(
+            description="When decoding text, samples from the top k most likely tokens; lower to ignore less likely tokens",
+            ge=-1,
+            default=0,
+        ),
+        stop_sequences: str = Input(
+            description="A comma-separated list of sequences to stop generation at. For example, '<end>,<stop>' will stop generation at the first instance of 'end' or '<stop>'.",
+            default=None,
+        ),
+        length_penalty: float = Input(
+            description="A parameter that controls how long the outputs are. If < 1, the model will tend to generate shorter outputs, and > 1 will tend to generate longer outputs.",
+            ge=0.0,
+            le=5.0,
+            default=1.0,
+        ),
+        presence_penalty: float = Input(
+            description="A parameter that penalizes repeated tokens regardless of the number of appearances. As the value increases, the model will be less likely to repeat tokens in the output.",
+            default=0.0,
+        ),
+        seed: int = Input(
+            description="Random seed. Leave blank to randomize the seed",
+            default=None,
+        ),
+        prompt_template: str = Input(
+            description="Template for formatting the prompt. Can be an arbitrary string, but must contain the substring `{prompt}`.",
+            default=os.getenv("PROMPT_TEMPLATE", None),
+        ),
     ) -> ConcatenateIterator:
         if not self.model_exists:
             self.log(
@@ -109,13 +150,13 @@ class Predictor(BasePredictor):
         args = self._process_args(
             prompt=formatted_prompt,
             max_new_tokens=max_new_tokens,
-            min_length=min_length,
+            min_new_tokens=min_new_tokens,
             top_k=top_k,
             top_p=top_p,
             temperature=temperature,
             length_penalty=length_penalty,
             presence_penalty=presence_penalty,
-            stop_words=stop_words,
+            stop_words=stop_sequences,
             seed=seed,
         )
 
@@ -156,15 +197,15 @@ class Predictor(BasePredictor):
             if current_output:
                 yield current_output
 
-        self.log(f"Random seed used: `{args['random_seed']}`")
-        self.log("Note: Random seed will not impact output if greedy decoding is used.")
+        self.log(f"Random seed used: `{args['random_seed']}`\n")
+        self.log("Note: Random seed will not impact output if greedy decoding is used.\n")
         self.log(f"Formatted prompt: `{formatted_prompt}`")
 
     def _process_args(
         self,
         prompt: str,
         max_new_tokens: int = 250,
-        min_length: int = None,
+        min_new_tokens: int = None,
         top_k: int = 0,
         top_p: float = 0.0,
         temperature: float = 1.0,
@@ -175,10 +216,15 @@ class Predictor(BasePredictor):
         stream: bool = True,
     ):
         stop_words_list = stop_words.split(",") if stop_words else []
-        min_length = 0 if min_length is None else min_length
+        min_new_tokens = 0 if min_new_tokens is None else min_new_tokens
 
         pad_id = self.pad_id
         end_id = self.end_id
+
+        if top_k < 0:
+            top_k = 0
+        if min_new_tokens < 0:
+            min_new_tokens = 0
 
         if not seed:
             seed = int(np.random.randint(0, 100000))
@@ -186,7 +232,7 @@ class Predictor(BasePredictor):
         args = {
             "text_input": prompt,
             "max_tokens": max_new_tokens,
-            "min_length": min_length,
+            "min_length": min_new_tokens,
             "top_k": top_k,
             "temperature": temperature,
             "top_p": top_p,
