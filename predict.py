@@ -85,7 +85,7 @@ class Predictor(BasePredictor):
         prompt: str = Input("Prompt to send to the model."),
         system_prompt: str = Input(
             description="System prompt to send to the model. This is prepended to the prompt and helps guide system behavior.",
-            default= os.getenv("SYSTEM_PROMPT", None)
+            default= os.getenv("SYSTEM_PROMPT", "")
         ),
         max_new_tokens: int = Input(
             description="Maximum number of tokens to generate. A word is generally 2-3 tokens",
@@ -134,7 +134,7 @@ class Predictor(BasePredictor):
         ),
         prompt_template: str = Input(
             description="Template for formatting the prompt. Can be an arbitrary string, but must contain the substring `{prompt}`.",
-            default=os.getenv("PROMPT_TEMPLATE", None),
+            default=os.getenv("PROMPT_TEMPLATE", "{prompt}"),
         ),
     ) -> ConcatenateIterator:
         if not self.model_exists:
