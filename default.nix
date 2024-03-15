@@ -139,13 +139,15 @@ in
       cudaPackages.cuda_nvcc
       cudaPackages.cudnn
       cudaPackages.nccl
-      # todo separate cublas and cuda_cudart
-      # cudaPackages.cuda_cudart
-      cudaPackages.cudatoolkit # should be just cublas, torch cmake hates it
-      # cudaPackages.cuda_nvcc.dev
-      # cudaPackages.cuda_cccl
       openmpi
-    ] ++ (lib.optionals withPython [
+    ] ++ (lib.optionals (!withPython) [
+      # torch hates the split cuda, so only do it without torch
+      cudaPackages.cuda_cudart
+      cudaPackages.cuda_nvcc.dev
+      cudaPackages.cuda_cccl
+      cudaPackages.libcublas.lib
+    ]) ++ (lib.optionals withPython [
+      cudaPackages.cudatoolkit
       python.pkgs.pybind11
       python.pkgs.setuptools
       python.pkgs.wheel
