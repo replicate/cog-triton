@@ -34,10 +34,8 @@ COPY tensorrtllm_backend /src/tensorrtllm_backend
 # pip install requirements and prerelease cog
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install https://r2.drysys.workers.dev/tmp/cog-0.9.4.dev81+g11986a1-py3-none-any.whl -r /tmp/requirements.txt 
-COPY *.py *.yaml /src/
-COPY triton_model_repo /src/triton_model_repo
-COPY triton_templates /src/triton_templates
-
 # prevent replicate from downgrading cog
 RUN ln -sf $(which echo) $(which pip)
-COPY ./cog.yaml ./sse.py ./predict.py ./utils.py /src/
+COPY triton_model_repo /src/triton_model_repo
+COPY triton_templates /src/triton_templates
+COPY *.py *.yaml /src/
