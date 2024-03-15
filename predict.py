@@ -19,7 +19,6 @@ from utils import (
 
 class Predictor(BasePredictor):
     def setup(self, weights: str = None) -> None:
-
         COG_TRITON_CONFIG = os.getenv("COG_TRITON_CONFIG", "config.yaml")
         if not os.path.exists(COG_TRITON_CONFIG):
             print(f"Config file {COG_TRITON_CONFIG} not found. Defaults will be used.")
@@ -82,12 +81,10 @@ class Predictor(BasePredictor):
 
     async def predict(
         self,
-        prompt: str = Input(
-            description="Prompt to send to the model."
-            ),
+        prompt: str = Input(description="Prompt to send to the model."),
         system_prompt: str = Input(
             description="System prompt to send to the model. This is prepended to the prompt and helps guide system behavior.",
-            default= os.getenv("SYSTEM_PROMPT", "")
+            default=os.getenv("SYSTEM_PROMPT", ""),
         ),
         max_new_tokens: int = Input(
             description="Maximum number of tokens to generate. A word is generally 2-3 tokens",
@@ -177,7 +174,11 @@ class Predictor(BasePredictor):
         async with req as resp:
             async for event in receive_sse(resp):
                 # Output is the _entire_ sequence, from the beginning
-                output = event.json()["text_output"]
+                try:
+                    output = event.json()["text_output"]
+                # this check can be removed once we identify the cause of KeyError
+                except Exception as e:
+                    raise Exception(f"error with event {event}") from e
                 # Catches partial emojis, waits for them to finish
                 output = output.replace("\N{Replacement Character}", "")
                 # Remove the tokens that were already yielded
@@ -200,7 +201,9 @@ class Predictor(BasePredictor):
                 yield current_output
 
         self.log(f"Random seed used: `{args['random_seed']}`\n")
-        self.log("Note: Random seed will not impact output if greedy decoding is used.\n")
+        self.log(
+            "Note: Random seed will not impact output if greedy decoding is used.\n"
+        )
         self.log(f"Formatted prompt: `{formatted_prompt}`")
 
     def _process_args(
