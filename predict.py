@@ -63,14 +63,16 @@ class Predictor(BasePredictor):
         # # launch triton server
         # # python3 scripts/launch_triton_server.py --world_size=1 --model_repo=/src/tensorrtllm_backend/triton_model
         world_size = os.getenv("WORLD_SIZE", "1")
-        self.proc = subprocess.run(
+        print("Starting Triton")
+        self.proc = subprocess.Popen(
             [
                 "python3",
                 "/src/launch_triton_server.py",
                 f"--world_size={world_size}",
                 "--log",
                 "--model_repo=/src/triton_model_repo",
-            ]
+            ],
+            close_fds=False,
         )
         # Health check Triton until it is ready or for 3 minutes
         for i in range(180):
@@ -84,6 +86,7 @@ class Predictor(BasePredictor):
             except httpx.RequestError:
                 pass
             await asyncio.sleep(1)
+        print(f"Triton was not ready within 3 minutes (exit code: {self.proc.poll()})")
         self.proc.terminate()
         await asyncio.sleep(0.001)
         self.proc.kill()
