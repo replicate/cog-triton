@@ -18,8 +18,7 @@ from utils import (
 
 
 class Predictor(BasePredictor):
-    def setup(self, weights: str = None) -> None:
-
+    async def setup(self, weights: str = "") -> None:
         COG_TRITON_CONFIG = os.getenv("COG_TRITON_CONFIG", "config.yaml")
         if not os.path.exists(COG_TRITON_CONFIG):
             print(f"Config file {COG_TRITON_CONFIG} not found. Defaults will be used.")
@@ -53,41 +52,52 @@ class Predictor(BasePredictor):
             print("Engine directory is empty. Exiting.")
             self.model_exists = False
             return
-
         self.model_exists = True
-        world_size = os.getenv("WORLD_SIZE", "1")
+        self.client = httpx.AsyncClient(timeout=10)
+        for i in range(3):
+            if start_triton():
+                return
+        raise Exception(f"Couldn't start Triton (exit code {self.proc.poll()})")
+
+    async def start_triton(self) -> None:
         # # launch triton server
         # # python3 scripts/launch_triton_server.py --world_size=1 --model_repo=/src/tensorrtllm_backend/triton_model
-        subprocess.run(
+        world_size = os.getenv("WORLD_SIZE", "1")
+        print("Starting Triton")
+        self.proc = subprocess.Popen(
             [
                 "python3",
-                "/src/tensorrtllm_backend/scripts/launch_triton_server.py",
+                "/src/launch_triton_server.py",
                 f"--world_size={world_size}",
                 "--log",
                 "--model_repo=/src/triton_model_repo",
-            ]
+            ],
+            close_fds=False,
         )
-        # Health check Triton until it is ready
-        while True:
+        # Health check Triton until it is ready or for 3 minutes
+        for i in range(180):
             try:
-                response = httpx.get("http://localhost:8000/v2/health/ready")
+                response = await self.client.get(
+                    "http://localhost:8000/v2/health/ready"
+                )
                 if response.status_code == 200:
                     print("Triton is ready.")
-                    break
+                    return True
             except httpx.RequestError:
                 pass
-            time.sleep(1)
-
-        self.client = httpx.AsyncClient(timeout=10)
+            await asyncio.sleep(1)
+        print(f"Triton was not ready within 3 minutes (exit code: {self.proc.poll()})")
+        self.proc.terminate()
+        await asyncio.sleep(0.001)
+        self.proc.kill()
+        return False
 
     async def predict(
         self,
-        prompt: str = Input(
-            description="Prompt to send to the model."
-            ),
+        prompt: str = Input(description="Prompt to send to the model."),
         system_prompt: str = Input(
             description="System prompt to send to the model. This is prepended to the prompt and helps guide system behavior.",
-            default= os.getenv("SYSTEM_PROMPT", "")
+            default=os.getenv("SYSTEM_PROMPT", ""),
         ),
         max_new_tokens: int = Input(
             description="Maximum number of tokens to generate. A word is generally 2-3 tokens",
@@ -200,7 +210,9 @@ class Predictor(BasePredictor):
                 yield current_output
 
         self.log(f"Random seed used: `{args['random_seed']}`\n")
-        self.log("Note: Random seed will not impact output if greedy decoding is used.\n")
+        self.log(
+            "Note: Random seed will not impact output if greedy decoding is used.\n"
+        )
         self.log(f"Formatted prompt: `{formatted_prompt}`")
 
     def _process_args(
