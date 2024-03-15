@@ -12,16 +12,15 @@ in
     cog_version = "0.10.0-alpha5";
     cuda = "12.1";
     gpu = true;
+    # echo tensorrt_llm==0.8.0 | uv pip compile - --extra-index-url https://pypi.nvidia.com -p 3.10 --prerelease=allow --annotation-style=line
     python_packages = [
       "--extra-index-url"
       "https://pypi.nvidia.com"
-      "tensorrt_llm==0.7.1"
+      "tensorrt_llm==0.8.0"
       "torch==2.1.2"
-      # from tensorrt
-      "tensorrt_libs==9.2.0.post12.dev5"
-      "tensorrt_bindings==9.2.0.post12.dev5"
-      # fixed in torch 2.2
-      "nvidia-nccl-cu12"
+      "tensorrt==9.2.0.post12.dev5"
+      "tensorrt-bindings==9.2.0.post12.dev5"
+      "tensorrt-libs==9.2.0.post12.dev5"
       "nvidia-pytriton==0.5.2" # corresponds to 2.42.0
       "httpx"
       "nvidia-cublas-cu12<12.4"
@@ -58,10 +57,9 @@ in
       popd
     '';
     tensorrt-llm = {
+      mkDerivation.buildInputs = [ cudaPkgs.nccl ];
       mkDerivation.propagatedBuildInputs = with pyPkgs; [
         tensorrt-libs.public # libnvinfer, onnxparse
-        # fixed in torch 2.2
-        nvidia-nccl-cu12.public
       ];
       env.appendRunpaths = [ "/usr/lib64" "$ORIGIN" ];
       env.autoPatchelfIgnoreMissingDeps = ["libcuda.so.1"];
@@ -79,8 +77,8 @@ in
   deps.triton_repo_common = pkgs.fetchFromGitHub {
     owner = "triton-inference-server";
     repo = "common";
-    rev = "bf4b16304c9ba1baff3a0d0a4f7c2e1ce949f510";
-    hash = "sha256-ztvpjYeaRU7jAcRhLbJkjFVA6/SSa2Y+BphvOzaPfOM=";
+    rev = "00b3a71519e32e3bc954e9f0d067e155ef8f1a6c";
+    hash = "sha256-KyFicnB0716nIteSNo43RoiDzuVbj17KM4tIbmN6F+s=";
   };
   deps.triton_repo_backend = pkgs.fetchFromGitHub {
     owner = "triton-inference-server";
@@ -91,8 +89,8 @@ in
   deps.triton_repo_core = pkgs.fetchFromGitHub {
     owner = "triton-inference-server";
     repo = "core";
-    rev = "854bdcbe13fec20a695130f21811ca22cb4e1a13";
-    hash = "sha256-JWmvULKt3YkaFLYL0WqQ/T+psnjznys2YTMyeZO4CLg=";
+    rev = "5d4a99c285c729a349265ce8dd7a4535e59d29b1";
+    hash = "sha256-WP8bwplo98GmNulX+QA+IrQEc2+GMcTjV53K438vX1g=";
   };
   deps.googletest = pkgs.fetchFromGitHub {
     owner = "google";
@@ -109,10 +107,10 @@ in
   # todo: replace with lockfile
   deps.pybind11-stubgen = py3Pkgs.buildPythonPackage rec {
     pname = "pybind11-stubgen";
-    version = "2.4.2";
+    version = "2.5";
     src = pkgs.fetchPypi {
       inherit pname version;
-      hash = "sha256-6b992wbUqpSobzkP5y+9P2awsGXbJGLaCJVVMElnSxw=";
+      hash = "sha256-lqf+vKski/mKvUu3LMX3KbqHsjRCR0VMF1nmPN6f7zQ=";
     };
   };
     
@@ -121,14 +119,14 @@ in
       cudaPackages, lib,
       python, withPython ? true }: stdenv.mkDerivation rec {
     pname = "tensorrt_llm";
-    version = "0.7.1";
+    version = "0.8.0";
     src = pkgs.fetchFromGitHub {
       owner = "NVIDIA";
       repo = "TensorRT-LLM";
       rev = "v${version}";
       fetchSubmodules = true;
       fetchLFS = true; # libtensorrt_llm_batch_manager_static.a
-      hash = "sha256-CezACpWlUFmBGVOV6UDQ3EiejRLinoLFxXk2AOfKaec=";
+      hash = "sha256-10wSFhtMGqqCigG5kOBuegptQJymvpO7xCFtgmOOn+k=";
     };
     outputs = if withPython then [ "python" "out" "dist" ] else [ "out" ];
     setSourceRoot = "sourceRoot=$(echo */cpp)";
@@ -155,25 +153,30 @@ in
       deps.pybind11-stubgen
     ]);
     propagatedBuildInputs = lib.optionals withPython (with config.python-env.pip.drvs; builtins.map (x: x.public or x) [
-      accelerate # 0.20.3
+      accelerate #==0.25.0
       build
       colored
-      torch
-      numpy
-      cuda-python # 12.2.0
-      diffusers # 0.15.0
+      # concerning statement from trtllm's requirements.txt:
+      cuda-python # "Do not override the custom version of cuda-python installed in the NGC PyTorch image."
+      diffusers # ==0.15.0
       lark
       mpi4py
-      onnx # >= 1.12.0
+      numpy
+      onnx # >=1.12.0
       polygraphy
-      tensorrt # = 9.2.0.post12.dev5
-      tensorrt-bindings # = 9.2.0.post12.dev5
-      tensorrt-libs # = 9.2.0.post12.dev5
+      psutil
+      pynvml # >=11.5.0
       sentencepiece # >=0.1.99
-      transformers # 4.33.1
+      tensorrt # ==9.2.0.post12.dev5
+      tensorrt-bindings # missed transitive dep
+      tensorrt-libs
+      torch # <=2.2.0a
+      nvidia-ammo # ~=0.7.0; platform_machine=="x86_64"
+      transformers # ==4.36.1
       wheel
       optimum
       evaluate
+      janus
     ]);
 
     cmakeFlags = [
@@ -186,6 +189,7 @@ in
       "-DCMAKE_CUDA_ARCHITECTURES=86-real" # just a5000, a40, ain't got all day
       # "-DCUDAToolkit_INCLUDE_DIR=${cudaPkgs.cuda_cudart}/include"
       "-DCUDAToolkit_INCLUDE_DIR=${cudaPkgs.cudatoolkit}/include"
+      "-DCMAKE_SKIP_BUILD_RPATH=ON" # todo test without this, might fail /build check
     ];
     postBuild = lib.optionalString withPython ''
       pushd ../../
@@ -208,8 +212,10 @@ in
       mkdir -p $out/cpp/build/tensorrt_llm/plugins
       pushd tensorrt_llm
       cp ./libtensorrt_llm.so $out/cpp/build/tensorrt_llm/
-      cp ./libtensorrt_llm_static.a $out/cpp/build/tensorrt_llm/
       cp ./plugins/libnvinfer_plugin_tensorrt_llm.so* $out/cpp/build/tensorrt_llm/plugins/
+      for f in $out/cpp/build/tensorrt_llm/plugins/*.so*; do
+        patchelf --add-rpath '$ORIGIN/..' $f
+      done
       popd
     '' + (lib.optionalString withPython ''
       mv ../../dist $dist
@@ -231,12 +237,12 @@ in
     oldGccStdenv = pkgs.stdenvAdapters.useLibsFrom pkgs.stdenv pkgs.gcc12Stdenv;
   in oldGccStdenv.mkDerivation rec {
     pname = "tensorrtllm_backend";
-    version = "0.7.1";
+    version = "0.8.0";
     src = pkgs.fetchFromGitHub {
       owner = "triton-inference-server";
       repo = "tensorrtllm_backend";
       rev = "v${version}";
-      hash = "sha256-5+a/+YCl7FuwlQFwWMHgEzPArAr8npLH7qTJ+Sm5Cns=";
+      hash = "sha256-5t8ByQxzfF4Td4HfnOYioVxJfZxOX2TV8a5Qg6YDmSQ=";
     };
     nativeBuildInputs = [ pkgs.cmake pkgs.ninja pkgs.python310 ];
     buildInputs = [ pkgs.rapidjson cudaPkgs.cudatoolkit pkgs.openmpi ];
