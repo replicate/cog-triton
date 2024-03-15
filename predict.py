@@ -187,7 +187,11 @@ class Predictor(BasePredictor):
         async with req as resp:
             async for event in receive_sse(resp):
                 # Output is the _entire_ sequence, from the beginning
-                output = event.json()["text_output"]
+                try:
+                    output = event.json()["text_output"]
+                # this check can be removed once we identify the cause of KeyError
+                except Exception as e:
+                    raise Exception(f"error with event {event}") from e
                 # Catches partial emojis, waits for them to finish
                 output = output.replace("\N{Replacement Character}", "")
                 # Remove the tokens that were already yielded
