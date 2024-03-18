@@ -1,8 +1,7 @@
 # Prediction interface for Cog ⚙️
-# https://github.com/replicate/cog/blob/main/docs/python.md
+import asyncio
 import os
 import subprocess
-import time
 import httpx
 from cog import BasePredictor, ConcatenateIterator, Input
 
@@ -55,7 +54,7 @@ class Predictor(BasePredictor):
         self.model_exists = True
         self.client = httpx.AsyncClient(timeout=10)
         for i in range(3):
-            if start_triton():
+            if self.start_triton():
                 return
         raise Exception(f"Couldn't start Triton (exit code {self.proc.poll()})")
 
