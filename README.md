@@ -123,13 +123,30 @@ python3 -m http.server 8003 --bind 0.0.0.0
 
 3. Build a TRT-LLM engine with cog-trt-llm
 
-```
-curl -s -X POST   -H "Content-Type: application/json"   -d $'{
+```bash
+curl -s -X POST \
+  -H "Content-Type: application/json" \
+  -d $'{
     "input": { 
         "config":"http://localhost:8003/<local-path-to-config>"
     }
   }'   http://localhost:5000/predictions
 ```
+
+The `<local-path-to-config>` references the root of this repo, specifically the yaml file `[examples/](https://github.com/replicate/cog-trt-llm/tree/main/examples/)` folder. For example, if you want to compile the model defined in [examples/llama/llama-2-7b-chat-int8-1gpu.yaml](examples/llama/llama-2-7b-chat-int8-1gpu.yaml), the curl command will look like this:
+
+```bash
+curl -s -X POST \
+  -H "Content-Type: application/json" \
+  -d $'{
+    "input": { 
+        "config":"http://localhost:8003/examples/llama/llama-2-7b-chat-int8-1gpu.yaml"
+    }
+  }' \
+  http://localhost:5000/predictions
+```
+
+Once you run this `curl` command, you can go back to your running docker container and see the logs associated with the model compilation.
 
 # Development
 
