@@ -123,8 +123,10 @@ python3 -m http.server 8003 --bind 0.0.0.0
 
 3. Build a TRT-LLM engine with cog-trt-llm
 
-```
-curl -s -X POST   -H "Content-Type: application/json"   -d $'{
+```bash
+curl -s -X POST \
+  -H "Content-Type: application/json" \
+  -d $'{
     "input": { 
         "config":"http://localhost:8003/<local-path-to-config>"
     }
