@@ -97,7 +97,7 @@ After the image has been pulled, you should tag it so that all the docker comman
 docker tag <image id> cog-trt-llm:latest
 ```
 
-### Pull and initialize `tensorrtllm_backend` and it's submodules
+### Pull and initialize [`tensorrtllm_backend`](https://github.com/triton-inference-server/tensorrtllm_backend) and it's submodules
 
 ```
 git lfs install
