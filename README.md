@@ -99,7 +99,9 @@ docker tag <image id> cog-trt-llm:latest
 
 ### Pull and initialize [`tensorrtllm_backend`](https://github.com/triton-inference-server/tensorrtllm_backend) and it's submodules
 
-```
+```bash
+gh repo clone triton-inference-server/tensorrtllm_backend
+cd tensorrtllm_backend
 git lfs install
 git submodule update --init --recursive
 ```
