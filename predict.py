@@ -75,9 +75,18 @@ class GenerationRequest:
 
 class Predictor(BasePredictor):
     async def setup(self, weights: str = "") -> None:
+
         engine_dir = os.environ.get(
             "ENGINE_DIR", "/src/triton_model_repo/tensorrt_llm/1/"
         )
+        
+        if weights:
+            self.log(f"Downloading model files from {weights}...")
+            maybe_download_tarball_with_pget(
+                url=weights,
+                dest=engine_dir,
+        )
+
 
         if not os.listdir(engine_dir):
             print("Engine directory is empty. Exiting.")
