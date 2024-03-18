@@ -99,6 +99,8 @@ docker tag <image id> cog-trt-llm:latest
 
 ### Pull and initialize [`tensorrtllm_backend`](https://github.com/triton-inference-server/tensorrtllm_backend) and it's submodules
 
+From the root of this repo, run the following:
+
 ```bash
 sudo apt-get install git-lfs
 git lfs install
