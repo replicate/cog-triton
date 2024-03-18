@@ -1,5 +1,8 @@
 #syntax=docker/dockerfile:1.4
-FROM triton_trt_llm as deps
+FROM tensorrt-llm as deps
+
+RUN ln -sf /usr/bin/python3 /usr/bin/python
+
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
@@ -7,6 +10,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia
 ENV NVIDIA_DRIVER_CAPABILITIES=all
 ENV PATH="/usr/bin:$PATH"
 
+RUN apt-get update && apt-get install -y curl
 
 RUN TINI_VERSION=v0.19.0; \
     TINI_ARCH="$(dpkg --print-architecture)"; \
@@ -29,13 +33,13 @@ EXPOSE 5000
 ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["python", "-m", "cog.server.http"]
 
-COPY tensorrtllm_backend /src/tensorrtllm_backend
+# COPY tensorrtllm_backend /src/tensorrtllm_backend
 
 # pip install requirements and prerelease cog
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install https://r2.drysys.workers.dev/tmp/cog-0.9.4.dev81+g11986a1-py3-none-any.whl -r /tmp/requirements.txt 
 # prevent replicate from downgrading cog
 RUN ln -sf $(which echo) $(which pip)
-COPY triton_model_repo /src/triton_model_repo
-COPY triton_templates /src/triton_templates
+# COPY triton_model_repo /src/triton_model_repo
+# COPY triton_templates /src/triton_templates
 COPY *.py *.yaml /src/

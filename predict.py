@@ -73,7 +73,6 @@ class GenerationRequest:
         return ir
 
 
-
 class Predictor(BasePredictor):
     async def setup(self, weights: str = "") -> None:
         engine_dir = os.environ.get(
@@ -85,14 +84,6 @@ class Predictor(BasePredictor):
             self.model_exists = False
             return
         self.model_exists = True
-
-        COG_TRITON_CONFIG = os.getenv("COG_TRITON_CONFIG", "config.yaml")
-        if not os.path.exists(COG_TRITON_CONFIG):
-            print(f"Config file {COG_TRITON_CONFIG} not found. Defaults will be used.")
-        else:
-            print(f"Loading cog-triton config from {COG_TRITON_CONFIG}")
-            config = load_yaml_config(COG_TRITON_CONFIG)
-
 
 
         self.system_prompt_exists = os.getenv("SYSTEM_PROMPT", None)
@@ -108,14 +99,13 @@ class Predictor(BasePredictor):
 
         
         tokenizer_dir = engine_dir
-
         tokenizer = TransformersTokenizer.from_pretrained(
             tokenizer_dir,
             legacy=False,
             padding_side='left',
             truncation_side='left',
             trust_remote_code=True,
-            use_fast=True
+            use_fast=True, 
         )
 
         world_size=int(os.getenv("WORLD_SIZE", 1))
@@ -125,16 +115,20 @@ class Predictor(BasePredictor):
                 engine_dir=engine_dir, 
                 tokenizer=tokenizer,
                 max_beam_width=1,
+                kvcache_free_gpu_memory_fraction = 0.95
             )
+
         else:
+            executor_config = tllm.TrtGptModelOptionalParams()
+            executor_config.kv_cache_config.free_gpu_memory_fraction = 0.95
             self.executor = GenerationExecutor(
                 engine_dir=engine_dir, 
-                tokenizer=tokenizer
+                tokenizer=tokenizer,
+                executor_config = executor_config,
+                max_beam_width=1,
             )
 
-        
-
-        print("READY!")
+        print("Setup Complete.")
 
     async def predict(
         self,
@@ -217,7 +211,8 @@ class Predictor(BasePredictor):
         )
         
         # Args seem to be specified here: https://github.com/NVIDIA/TensorRT-LLM/blob/4bb65f216f2f1dbddb022f4fdd8925c2856baa58/docs/source/inference_request.md?plain=1#L16
-
+        # But, current official implementation of GenerationRequest doesn't support them all
+        # Re-implemented at the top of this module
         request = GenerationRequest(
             req_id=self.executor.get_next_request_id(),
             ids=args["input_ids"],
@@ -235,8 +230,30 @@ class Predictor(BasePredictor):
         
         promise = self.executor.submit(request)
 
+        token_cache = args["input_ids"].cpu().numpy().tolist()
+        prompt_length = len(token_cache)
+        output_tokens = []
+        output_text = formatted_prompt
+        prev_decoded_text = formatted_prompt
+
         async for output in promise:
-            yield output.text
+            token_cache.extend(output.token_ids)
+            decoded_text = self.executor.tokenizer.decode(token_cache[prompt_length:], add_special_tokens=False)
+            # Replace partial emojis with an empty string
+            decoded_text = decoded_text.replace("\N{Replacement Character}", "")
+            
+            # Remove the tokens that were already yielded
+            current_output = decoded_text[len(prev_decoded_text):]
+            
+            if current_output:
+
+                # If we have a partial stop sequence match or a full match,
+                # `current_output` will be `None` and we shouldn't yield
+                if current_output:
+                    yield current_output
+                    prev_decoded_text = decoded_text
+                    output_text += current_output
+
 
 
         self.log(f"Random seed used: `{args['random_seed']}`\n")
