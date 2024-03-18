@@ -54,7 +54,7 @@ class Predictor(BasePredictor):
         self.model_exists = True
         self.client = httpx.AsyncClient(timeout=10)
         for i in range(3):
-            if self.start_triton():
+            if await self.start_triton():
                 return
         raise Exception(f"Couldn't start Triton (exit code {self.proc.poll()})")
 
