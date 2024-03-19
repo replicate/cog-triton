@@ -5,6 +5,7 @@ let
   py3Pkgs = py3.pkgs;
   cudaPkgs = pkgs.cudaPackages_12_2;
   site = py3.sitePackages;
+  inherit (pkgs) lib;
 in
 {
   cog.build = {
@@ -27,7 +28,22 @@ in
       "nvidia-cuda-nvrtc-cu12<12.4"
       "nvidia-cuda-runtime-cu12<12.4"
     ];
+    system_packages = ["nix"];
   };
+  # todo things referenced in config.json
+  dockerTools.streamLayeredImage.extraCommands = ''
+    export NIX_REMOTE=local?root=$PWD
+    export USER=nobody
+    ${pkgs.buildPackages.nix}/bin/nix-store --load-db < ${pkgs.closureInfo {rootPaths = config.dockerTools.streamLayeredImage.contents;}}/registration
+    ${pkgs.buildPackages.sqlite}/bin/sqlite3 nix/var/nix/db/db.sqlite "UPDATE ValidPaths SET registrationTime = ''${SOURCE_DATE_EPOCH}"
+    mkdir -p nix/var/nix/gcroots/docker/
+    for i in ${lib.concatStringsSep " " config.dockerTools.streamLayeredImage.contents}; do
+    ln -s $i nix/var/nix/gcroots/docker/$(basename $i)
+    done;
+  '';
+  python-env.pip.rootDependencies = lib.mkForce (lib.genAttrs [
+    "cog" "nvidia-pytriton" "transformers"
+  ] (x: true));
   python-env.pip.drvs = let pyPkgs = config.python-env.pip.drvs; in {
     mpi4py.mkDerivation = {
       buildInputs = [ pkgs.openmpi ];
@@ -264,7 +280,7 @@ in
     # $out/lib/stubs
     # todo fix that hash
     postFixup = ''
-      patchelf $out/backends/tensorrtllm/libtriton_tensorrtllm.so --add-rpath ${trt_lib_dir}:${deps.tensorrt_llm}/cpp/build/tensorrt_llm/plugins --replace-needed libtritonserver.so libtritonserver-90a4cf82.so
+      patchelf $out/backends/tensorrtllm/libtriton_tensorrtllm.so --add-rpath ${trt_lib_dir}:${deps.tensorrt_llm}/cpp/build/tensorrt_llm:${deps.tensorrt_llm}/cpp/build/tensorrt_llm/plugins --replace-needed libtritonserver.so libtritonserver-90a4cf82.so
     '';
   };
 }
