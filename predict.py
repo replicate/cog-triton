@@ -75,7 +75,7 @@ class Predictor(BasePredictor):
             # that's right, this calls into predict recursively!
             # in principle you could create new/forwarded sessions from an existing connection?
             # resolve Input to the correct default values
-            stream = self.predict(**(self.defaults | args))
+            stream = self._predict(**(self.defaults | args))
             while True:
                 # while-next() seems to express timing more clearly than for-in here
                 tok_start = time.time()
@@ -97,9 +97,25 @@ class Predictor(BasePredictor):
             self.log(f"finished generating in {elapsed:.3f}, {tps:.2f} tok/s")
             yield {"status": "done", "tokens_per_second": round(tps, 3)}
 
-        return rtc.yield_output()
+        return rtc.answer()
+        # return rtc.yield_output()
 
     async def predict(
+        self,
+        webrtc_offer: str = Input(
+            description="instead of a single prediction, handle a WebRTC offer as json, optionally with an ice_server key of ICE servers to use for connecting",
+            default=None,
+        ),
+    ) -> str:
+        return await self.webrtc_helper(webrtc_offer)
+            # async for output in self.webrtc_helper(webrtc_offer):
+            #     if isinstance(output, dict): # this is very silly
+            #         yield output["text"]
+            #     else:
+            #         yield output
+            # return
+
+    async def _predict(
         self,
         prompt: str,
         system_prompt: str = os.getenv("SYSTEM_PROMPT", None),
@@ -112,24 +128,11 @@ class Predictor(BasePredictor):
         presence_penalty: float = 0.0,
         stop_words: str = None,
         prompt_template: str = os.getenv("PROMPT_TEMPLATE", None),
-        webrtc_offer: str = Input(
-            description="instead of a single prediction, handle a WebRTC offer as json, optionally with an ice_server key of ICE servers to use for connecting",
-            default=None,
-        ),
     ) -> ConcatenateIterator:
         if not self.model_exists:
             self.log(
                 "Your model directory is empty, so there's nothing to do. Remember, you can't run this like a normal model. You need to YOLO!"
             )
-            return
-
-
-        if webrtc_offer:
-            async for output in self.webrtc_helper(webrtc_offer):
-                if isinstance(output, dict): # this is very silly
-                    yield output["text"]
-                else:
-                    yield output
             return
 
         formatted_prompt = self._format_prompt(
@@ -236,10 +239,9 @@ class Predictor(BasePredictor):
         formatted_prompt = prompt_template.format(prompt=prompt)
         return formatted_prompt
 
-
     # resolve Input to the correct default values
     defaults = {
         key: param.default.default
-        for key, param in inspect.signature(predict).parameters.items()
+        for key, param in inspect.signature(_predict).parameters.items()
         if hasattr(param.default, "default")
     }
