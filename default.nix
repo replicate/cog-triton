@@ -89,6 +89,9 @@ in
       ln -s ${deps.trtllm_backend}/backends/tensorrtllm backends/
       popd
     '';
+    # TODO: upstream to cognix:
+    nvidia-cublas-cu12.env.appendRunpaths = [ "/usr/lib64" "$ORIGIN" ];
+    nvidia-cudnn-cu12.env.appendRunpaths = [ "/usr/lib64" "$ORIGIN" ];
   };
   deps.triton_repo_common = pkgs.fetchFromGitHub {
     owner = "triton-inference-server";
@@ -253,6 +256,8 @@ in
     trt_lib_dir = "${config.python-env.pip.drvs.tensorrt-libs.public}/${site}/tensorrt_libs";
     # this package wants gcc12
     oldGccStdenv = pkgs.stdenvAdapters.useLibsFrom pkgs.stdenv pkgs.gcc12Stdenv;
+    # todo don't mix this and cudaPkgs.cudnn:
+    cudnn = "${config.python-env.pip.drvs.nvidia-cudnn-cu12.public}/${site}/nvidia/cudnn";
   in oldGccStdenv.mkDerivation rec {
     pname = "tensorrtllm_backend";
     version = "0.8.0";
@@ -279,8 +284,9 @@ in
     # linking to stubs/libtritonserver.so is maybe a bit shady
     # $out/lib/stubs
     # todo fix that hash
+    # todo I think tensorrt_llm.so itself should have the cudnn dep
     postFixup = ''
-      patchelf $out/backends/tensorrtllm/libtriton_tensorrtllm.so --add-rpath ${trt_lib_dir}:${deps.tensorrt_llm}/cpp/build/tensorrt_llm:${deps.tensorrt_llm}/cpp/build/tensorrt_llm/plugins --replace-needed libtritonserver.so libtritonserver-90a4cf82.so
+      patchelf $out/backends/tensorrtllm/libtriton_tensorrtllm.so --add-rpath ${trt_lib_dir}:${deps.tensorrt_llm}/cpp/build/tensorrt_llm:${deps.tensorrt_llm}/cpp/build/tensorrt_llm/plugins:${cudnn}/lib --replace-needed libtritonserver.so libtritonserver-90a4cf82.so --add-needed libcudnn.so.8
     '';
   };
 }
