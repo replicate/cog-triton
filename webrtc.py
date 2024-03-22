@@ -14,6 +14,7 @@ from aiortc import (
 )
 
 log = logging.getLogger("webrtc")
+log.setLevel("DEBUG")
 
 
 class ShutdownTimer(asyncio.Event):
