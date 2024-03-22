@@ -8,6 +8,10 @@ from cog import BasePredictor, ConcatenateIterator, Input
 from sse import receive_sse
 from triton_config_generator import generate_configs, load_yaml_config
 
+import pytriton.utils.distribution
+
+TRITONSERVER_DIST_DIR = pytriton.utils.distribution.get_root_module_path() / "tritonserver"
+
 import numpy as np
 
 from utils import (
@@ -62,16 +66,16 @@ class Predictor(BasePredictor):
         # # launch triton server
         # # python3 scripts/launch_triton_server.py --world_size=1 --model_repo=/src/tensorrtllm_backend/triton_model
         world_size = os.getenv("WORLD_SIZE", "1")
+        # TODO different world sizes
+        assert(world_size == "1")
         print("Starting Triton")
         self.proc = subprocess.Popen(
             [
-                "python3",
-                "/src/launch_triton_server.py",
-                f"--world_size={world_size}",
-                "--log",
-                "--model_repo=/src/triton_model_repo",
-            ],
-            close_fds=False,
+                str(TRITONSERVER_DIST_DIR / "bin" / "tritonserver"),
+                "--backend-dir", str(TRITONSERVER_DIST_DIR / "backends"),
+                "--log-verbose=3", "--log-file=triton_log.txt",
+                "--model-repository", "/src/triton_model_repo",
+            ]
         )
         # Health check Triton until it is ready or for 3 minutes
         for i in range(180):
