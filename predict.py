@@ -73,7 +73,7 @@ class Predictor(BasePredictor):
             [
                 str(TRITONSERVER_DIST_DIR / "bin" / "tritonserver"),
                 "--backend-dir", str(TRITONSERVER_DIST_DIR / "backends"),
-                "--log-verbose=3", "--log-file=triton_log.txt",
+                #"--log-verbose=3", "--log-file=triton_log.txt",
                 "--model-repository", "/src/triton_model_repo",
             ]
         )
@@ -221,6 +221,10 @@ class Predictor(BasePredictor):
             "Note: Random seed will not impact output if greedy decoding is used.\n"
         )
         self.log(f"Formatted prompt: `{formatted_prompt}`")
+
+    def log(self, string):
+        # huh
+        print(string)
 
     def _process_args(
         self,

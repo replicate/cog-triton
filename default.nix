@@ -11,7 +11,7 @@ in
   cog.build = {
     python_version = "3.10";
     cog_version = "0.10.0-alpha5";
-    cuda = "12.1";
+    cuda = "12.1"; # todo: 12.2
     gpu = true;
     # echo tensorrt_llm==0.8.0 | uv pip compile - --extra-index-url https://pypi.nvidia.com -p 3.10 --prerelease=allow --annotation-style=line
     python_packages = [
@@ -28,19 +28,11 @@ in
       "nvidia-cuda-nvrtc-cu12<12.4"
       "nvidia-cuda-runtime-cu12<12.4"
     ];
-    system_packages = ["nix"];
+    # don't ask why it needs ssh
+    system_packages = [ "pget" "openssh" ];
   };
-  # todo things referenced in config.json
-  dockerTools.streamLayeredImage.extraCommands = ''
-    export NIX_REMOTE=local?root=$PWD
-    export USER=nobody
-    ${pkgs.buildPackages.nix}/bin/nix-store --load-db < ${pkgs.closureInfo {rootPaths = config.dockerTools.streamLayeredImage.contents;}}/registration
-    ${pkgs.buildPackages.sqlite}/bin/sqlite3 nix/var/nix/db/db.sqlite "UPDATE ValidPaths SET registrationTime = ''${SOURCE_DATE_EPOCH}"
-    mkdir -p nix/var/nix/gcroots/docker/
-    for i in ${lib.concatStringsSep " " config.dockerTools.streamLayeredImage.contents}; do
-    ln -s $i nix/var/nix/gcroots/docker/$(basename $i)
-    done;
-  '';
+  cognix.includeNix = true;
+  # limit to runner image
   python-env.pip.rootDependencies = lib.mkForce (lib.genAttrs [
     "cog" "nvidia-pytriton" "transformers"
   ] (x: true));
@@ -89,9 +81,6 @@ in
       ln -s ${deps.trtllm_backend}/backends/tensorrtllm backends/
       popd
     '';
-    # TODO: upstream to cognix:
-    nvidia-cublas-cu12.env.appendRunpaths = [ "/usr/lib64" "$ORIGIN" ];
-    nvidia-cudnn-cu12.env.appendRunpaths = [ "/usr/lib64" "$ORIGIN" ];
   };
   deps.triton_repo_common = pkgs.fetchFromGitHub {
     owner = "triton-inference-server";
@@ -288,5 +277,11 @@ in
     postFixup = ''
       patchelf $out/backends/tensorrtllm/libtriton_tensorrtllm.so --add-rpath ${trt_lib_dir}:${deps.tensorrt_llm}/cpp/build/tensorrt_llm:${deps.tensorrt_llm}/cpp/build/tensorrt_llm/plugins:${cudnn}/lib --replace-needed libtritonserver.so libtritonserver-90a4cf82.so --add-needed libcudnn.so.8
     '';
+  };
+  # temp: mistral A40
+  cognix.environment = {
+    COG_WEIGHTS = "https://replicate.delivery/pbxt/9yf58OhSA5VZCCiflRRmgfVSnxujfuLfXSk6P24Yyu54Db7TC/engine.tar";
+    SYSTEM_PROMPT = "You are a very helpful, respectful and honest assistant.";
+    PROMPT_TEMPLATE = "<s>[INST] {system_prompt} {prompt} [/INST]";
   };
 }

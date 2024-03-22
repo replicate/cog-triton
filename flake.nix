@@ -4,5 +4,5 @@
     cognix.url = "github:datakami/cognix";
   };
 
-  outputs = { self, cognix }@inputs: cognix.lib.singleCognixFlake inputs "cog-triton-nix";
+  outputs = { self, cognix }@inputs: cognix.lib.singleCognixFlake inputs "cog-triton-ci-mistral-86";
 }
