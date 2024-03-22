@@ -133,7 +133,7 @@ time python3 scripts/test_perf.py --target cog-triton --rate 8 --unit rps --dura
 
 ## End-to-end build process 
 
-Cog-triton is pre-release and not stable. This build process is not optimal and will change. However, here we document every step we took to generate a deployable cog-triton image.
+Cog-triton is pre-release and not stable. This build process currently requires `nix` to be installed (with the config setting `experimental-features = nix-command flakes`). We recommend the [DeterminateSystems Nix installer](https://github.com/DeterminateSystems/nix-installer).
 
 1. Clone the cog-triton image:
 
@@ -141,29 +141,10 @@ Cog-triton is pre-release and not stable. This build process is not optimal and 
 git clone https://github.com/replicate/cog-triton 
 ```
 
-2. Update submodules
-``` 
-export TENSORRTLLM_VERSION=0.8.0
-git lfs install
-git checkout tags/v${TENSORRTLLM_VERSION}
-git submodule update --init --recursive
-# currently, tensorrt_llm is at commit==5955b8a and cutlass==39c6a83f
-cd ..
-```
-
-3. Build TensorRT-LLM Backend
+2. Build cog-triton
 
 ```
-# Use the Dockerfile to build the backend in a container
-# For x86_64
-DOCKER_BUILDKIT=1 docker build -t triton_trt_llm -f ./dockerfile/Dockerfile.trt_llm_backend .
-```
-
-4. Build cog-triton
-
-```
-cd ..
-docker build -t cog-triton .
+nix build .#default.x86_64-linux && ./result | docker load
 ```
 
 ## (Optional) Build a TRT-LLM Model Locally
