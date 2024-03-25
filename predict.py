@@ -205,7 +205,6 @@ class Predictor(BasePredictor):
         formatted_prompt = self._format_prompt(
             prompt=prompt, system_prompt=system_prompt, prompt_template=prompt_template
         )
-
         args = self._process_args(
             prompt=formatted_prompt,
             max_new_tokens=max_new_tokens,
@@ -242,26 +241,22 @@ class Predictor(BasePredictor):
         token_cache = args["input_ids"].cpu().numpy().tolist()
         prompt_length = len(token_cache)
         output_tokens = []
-        output_text = formatted_prompt
-        prev_decoded_text = formatted_prompt
+        prev_decoded_text = ""
 
         async for output in promise:
             token_cache.extend(output.token_ids)
+            token = token_cache[prompt_length:]
             decoded_text = self.executor.tokenizer.decode(token_cache[prompt_length:], add_special_tokens=False)
+            
             # Replace partial emojis with an empty string
             decoded_text = decoded_text.replace("\N{Replacement Character}", "")
             
             # Remove the tokens that were already yielded
             current_output = decoded_text[len(prev_decoded_text):]
-            
-            if current_output:
 
-                # If we have a partial stop sequence match or a full match,
-                # `current_output` will be `None` and we shouldn't yield
-                if current_output:
-                    yield current_output
-                    prev_decoded_text = decoded_text
-                    output_text += current_output
+            if current_output:
+                yield current_output
+                prev_decoded_text = decoded_text
 
 
 
@@ -270,7 +265,6 @@ class Predictor(BasePredictor):
             "Note: Random seed will not impact output if greedy decoding is used.\n"
         )
         self.log(f"Formatted prompt: `{formatted_prompt}`")
-
     
 
     def _process_args(
@@ -287,6 +281,8 @@ class Predictor(BasePredictor):
         seed: int = None,
         stream: bool = True,
     ):
+
+
         min_new_tokens = 0 if min_new_tokens is None else min_new_tokens
 
         pad_id = 2
