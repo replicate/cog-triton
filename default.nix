@@ -1,4 +1,4 @@
-{ pkgs, config, ... }:
+{ pkgs, config, extendModules, ... }:
 let
   deps = config.deps;
   py3 = pkgs.python310;
@@ -6,8 +6,11 @@ let
   cudaPkgs = pkgs.cudaPackages_12_2;
   site = py3.sitePackages;
   inherit (pkgs) lib;
+  cfg = config.cog-triton; # defined in interface.nix
 in
 {
+  imports = [ ./interface.nix ];
+  public.extendModules = extendModules;
   cog.build = {
     python_version = "3.10";
     cog_version = "0.10.0-alpha5";
@@ -33,9 +36,9 @@ in
   };
   cognix.includeNix = true;
   # limit to runner image
-  python-env.pip.rootDependencies = lib.mkForce (lib.genAttrs [
+  python-env.pip.rootDependencies = lib.mkIf cfg.runnerOnly (lib.mkForce (lib.genAttrs [
     "cog" "nvidia-pytriton" "transformers"
-  ] (x: true));
+  ] (x: true)));
   python-env.pip.drvs = let pyPkgs = config.python-env.pip.drvs; in {
     mpi4py.mkDerivation = {
       buildInputs = [ pkgs.openmpi ];
@@ -196,7 +199,7 @@ in
       # believe it or not, this is the actual binary distribution channel for tensorrt:
       "-DTRT_LIB_DIR=${config.python-env.pip.drvs.tensorrt-libs.public}/${site}/tensorrt_libs"
       "-DTRT_INCLUDE_DIR=${deps.tensorrt_src}/include"
-      "-DCMAKE_CUDA_ARCHITECTURES=86-real" # just a5000, a40, ain't got all day
+      "-DCMAKE_CUDA_ARCHITECTURES=${builtins.concatStringsSep ";" cfg.architectures}"
       # "-DCUDAToolkit_INCLUDE_DIR=${cudaPkgs.cuda_cudart}/include"
       "-DCUDAToolkit_INCLUDE_DIR=${cudaPkgs.cudatoolkit}/include"
       "-DCMAKE_SKIP_BUILD_RPATH=ON" # todo test without this, might fail /build check
@@ -239,6 +242,7 @@ in
   }) {
     python = pkgs.python310;
     cudaPackages = cudaPkgs;
+    # TODO: turn into config option
     withPython = false;
   };
   deps.trtllm_backend = let
@@ -277,11 +281,5 @@ in
     postFixup = ''
       patchelf $out/backends/tensorrtllm/libtriton_tensorrtllm.so --add-rpath ${trt_lib_dir}:${deps.tensorrt_llm}/cpp/build/tensorrt_llm:${deps.tensorrt_llm}/cpp/build/tensorrt_llm/plugins:${cudnn}/lib --replace-needed libtritonserver.so libtritonserver-90a4cf82.so --add-needed libcudnn.so.8
     '';
-  };
-  # temp: mistral A40
-  cognix.environment = {
-    COG_WEIGHTS = "https://replicate.delivery/pbxt/9yf58OhSA5VZCCiflRRmgfVSnxujfuLfXSk6P24Yyu54Db7TC/engine.tar";
-    SYSTEM_PROMPT = "You are a very helpful, respectful and honest assistant.";
-    PROMPT_TEMPLATE = "<s>[INST] {system_prompt} {prompt} [/INST]";
   };
 }
