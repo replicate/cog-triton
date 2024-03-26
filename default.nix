@@ -30,6 +30,7 @@ in
       "nvidia-cublas-cu12<12.4"
       "nvidia-cuda-nvrtc-cu12<12.4"
       "nvidia-cuda-runtime-cu12<12.4"
+      "omegaconf"
     ];
     # don't ask why it needs ssh
     system_packages = [ "pget" "openssh" ];
@@ -67,6 +68,7 @@ in
       ln -s libnvonnxparser.so.9 libnvonnxparser.so
       popd
     '';
+    tensorrt-libs.env.appendRunpaths = [ "/usr/lib64" "$ORIGIN" ];
     tensorrt-llm = {
       mkDerivation.buildInputs = [ cudaPkgs.nccl ];
       mkDerivation.propagatedBuildInputs = with pyPkgs; [
@@ -84,6 +86,12 @@ in
       ln -s ${deps.trtllm_backend}/backends/tensorrtllm backends/
       popd
     '';
+  };
+  # TODO: open-source, switch to fetchFromGitHub
+  deps.cog-trt-llm = builtins.fetchGit {
+    url = "git@github.com:replicate/cog-trt-llm.git";
+    rev = "ee50f890461c4d39eb6e7937aa364abc814e9683";
+    ref = "yorickvp/flexibility";
   };
   deps.triton_repo_common = pkgs.fetchFromGitHub {
     owner = "triton-inference-server";
