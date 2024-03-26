@@ -268,12 +268,12 @@ class Predictor(BasePredictor):
 
         end_time = time.time()
         total_tokens_per_second = n_tokens / (end_time - start_time)
-        self.log("Serverside Metrics:")
-        self.log(f"Total tokens generated: {n_tokens}")
-        self.log(f"Generation Latency: {end_time - start_time:.2f} seconds")
-        self.log(f"Total tokens per second: {total_tokens_per_second:.2f}")
-        self.log(f"Time to first token: {time_to_first_token:.2f} seconds")
-        self.log(f"Tokens per second after first token: {(n_tokens - 1) / (end_time - first_token_time):.2f}")
+        self.log("Serverside Metrics:\n")
+        self.log(f"Total tokens generated: {n_tokens}\n")
+        self.log(f"Generation Latency: {end_time - start_time:.2f} seconds\n")
+        self.log(f"Total tokens per second: {total_tokens_per_second:.2f}\n")
+        self.log(f"Time to first token: {time_to_first_token:.2f} seconds\n")
+        self.log(f"Tokens per second after first token: {(n_tokens - 1) / (end_time - first_token_time):.2f}\n")
 
 
         self.log(f"Random seed used: `{args['random_seed']}`\n")
