@@ -39,8 +39,8 @@ CMD ["python", "-m", "cog.server.http"]
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt
 RUN apt-get update && apt-get install -y git
-RUN pip install https://r2.drysys.workers.dev/tmp/cog-0.9.4.dev81+g11986a1-py3-none-any.whl -r /tmp/requirements.txt 
-RUN pip install git+https://github.com/replicate/cog.git@syl/more-refactor # buildkit
+RUN pip install https://r2.drysys.workers.dev/tmp/cog-0.10.0a6-py3-none-any.whl -r /tmp/requirements.txt 
+# RUN pip install -e git+https://github.com/replicate/cog.git@syl/more-refactor # buildkit
 # prevent replicate from downgrading cog
 RUN ln -sf $(which echo) $(which pip)
 # COPY triton_model_repo /src/triton_model_repo
