@@ -19,7 +19,7 @@ from huggingface_hub._login import _login
 # Temporarily using the Triton w/ TRT-LLM backend image
 # Set: TRTLLM_DIR="/src/tensorrtllm_backend/TensorRT-LLM",
 # When we switch back to a TRT-LLM image
-TRTLLM_DIR = "/src/tensorrtllm_backend/tensorrt_llm/"
+TRTLLM_DIR = os.environ.get("TRTLLM_DIR", "/src/tensorrtllm_backend/tensorrt_llm/")
 if not os.path.isdir(TRTLLM_DIR):
     raise Exception(
         "TensorRT-LLM is not available. Please make sure the TensorRT-LLM repository is available at /src/TensorRT-LLM."
