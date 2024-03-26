@@ -243,7 +243,15 @@ class Predictor(BasePredictor):
         output_tokens = []
         prev_decoded_text = ""
 
+        first_token_generated = False
+        start_time = time.time()
+        n_tokens = 0
         async for output in promise:
+            n_tokens += 1
+            if not first_token_generated:
+                first_token_time = time.time()
+                time_to_first_token = first_token_time - start_time
+                first_token_generated = True
             token_cache.extend(output.token_ids)
             token = token_cache[prompt_length:]
             decoded_text = self.executor.tokenizer.decode(token_cache[prompt_length:], add_special_tokens=False)
@@ -258,6 +266,14 @@ class Predictor(BasePredictor):
                 yield current_output
                 prev_decoded_text = decoded_text
 
+        end_time = time.time()
+        total_tokens_per_second = n_tokens / (end_time - start_time)
+        self.log("Serverside Metrics:")
+        self.log(f"Total tokens generated: {n_tokens}")
+        self.log(f"Generation Latency: {end_time - start_time:.2f} seconds")
+        self.log(f"Total tokens per second: {total_tokens_per_second:.2f}")
+        self.log(f"Time to first token: {time_to_first_token:.2f} seconds")
+        self.log(f"Tokens per second after first token: {(n_tokens - 1) / (end_time - first_token_time):.2f}")
 
 
         self.log(f"Random seed used: `{args['random_seed']}`\n")
