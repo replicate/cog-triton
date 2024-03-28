@@ -87,6 +87,13 @@ in
       ln -s ${deps.trtllm_backend}/backends/tensorrtllm backends/
       popd
     '';
+    cog = {
+      version = lib.mkForce "0.10.0a6";
+      mkDerivation.src = pkgs.fetchurl {
+        url = "http://r2.drysys.workers.dev/tmp/cog-0.10.0a6-py3-none-any.whl";
+        hash = "sha256-LWntNtgfPB9mvusmEVg8bxFzUlQAuIeeMytGOZcNdz4=";
+      };
+    };
   };
   # TODO: open-source, switch to fetchFromGitHub
   deps.cog-trt-llm = builtins.fetchGit {
