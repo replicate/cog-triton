@@ -20,12 +20,12 @@
         cognix.environment = env;
       };
     in {
-      default = self.packages.x86_64-linux.cog-triton-ci-mistral-86;
+      default = self.packages.x86_64-linux.cog-triton-mistral-7b;
       cog-triton-builder = callCognix ({config, pkgs, ... }: {
         name = "cog-triton-builder";
         # only grab deps of cog, tensorrt-llm
         python-env.pip.rootDependencies = lib.mkForce (lib.genAttrs [
-          "cog" "tensorrt-llm" "omegaconf"
+          "cog" "tensorrt-llm" "omegaconf" "hf-transfer"
         ] (x: true));
         # override cog.yaml:
         cog = {

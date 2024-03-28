@@ -193,6 +193,12 @@
         "url": "https://files.pythonhosted.org/packages/2a/e5/db6d438da759efbb488c4f3fbdab7764492ff3c3f953132efa6b9f0e9e53/h2-4.1.0-py3-none-any.whl",
         "version": "4.1.0"
       },
+      "hf-transfer": {
+        "sha256": "2f42b89735f1cde22f2a795d1f0915741023235666be7de45879e533c7d6010c",
+        "type": "url",
+        "url": "https://files.pythonhosted.org/packages/ce/00/a3afdb1fee4a9c28228f9962ab2ae3f3fc74380fff195022d76818e9fdac/hf_transfer-0.1.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "version": "0.1.6"
+      },
       "hpack": {
         "sha256": "84a076fad3dc9a9f8063ccb8041ef100867b1878b25ef0ee63847a5d53818a6c",
         "type": "url",
@@ -846,6 +852,7 @@
           "hpack",
           "hyperframe"
         ],
+        "hf-transfer": [],
         "hpack": [],
         "httpcore": [
           "certifi",
@@ -1120,5 +1127,5 @@
       }
     }
   },
-  "invalidationHash": "868a2af2f95bf80830b08777ad48e39d0cf20171416c1ed56a0157a0a0aa9082"
+  "invalidationHash": "1a76e971f0c49c9cd63fb6ea4da5568ffb284ddd763e62793316595c8a82eab6"
 }

@@ -31,6 +31,7 @@ in
       "nvidia-cuda-nvrtc-cu12<12.4"
       "nvidia-cuda-runtime-cu12<12.4"
       "omegaconf"
+      "hf-transfer"
     ];
     # don't ask why it needs ssh
     system_packages = [ "pget" "openssh" ];
