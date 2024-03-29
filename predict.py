@@ -65,18 +65,22 @@ class Predictor(BasePredictor):
     async def start_triton(self) -> None:
         # # launch triton server
         # # python3 scripts/launch_triton_server.py --world_size=1 --model_repo=/src/tensorrtllm_backend/triton_model
-        world_size = os.getenv("WORLD_SIZE", "1")
-        # TODO different world sizes
-        assert(world_size == "1")
+        world_size = int(os.getenv("WORLD_SIZE", "1"))
         print("Starting Triton")
-        self.proc = subprocess.Popen(
-            [
+        cmd = ['mpirun', '--allow-run-as-root']
+        for i in range(world_size):
+            cmd += [
+                "-n", "1",
                 str(TRITONSERVER_DIST_DIR / "bin" / "tritonserver"),
                 "--backend-dir", str(TRITONSERVER_DIST_DIR / "backends"),
                 #"--log-verbose=3", "--log-file=triton_log.txt",
                 "--model-repository", "/src/triton_model_repo",
+                f"--backend-config=python,shm-region-prefix-name=prefix{i}_"
             ]
-        )
+            if i != 0:
+                cmd += [ "--model-control-mode=explicit", "--load-model=tensorrt_llm" ]
+            cmd += [ ":" ]
+        self.proc = subprocess.Popen(cmd)
         # Health check Triton until it is ready or for 3 minutes
         for i in range(180):
             try:

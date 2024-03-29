@@ -34,7 +34,7 @@ in
       "hf-transfer"
     ];
     # don't ask why it needs ssh
-    system_packages = [ "pget" "openssh" ];
+    system_packages = [ "pget" "openssh" "openmpi" ];
   };
   cognix.includeNix = true;
   # limit to runner image
