@@ -27,6 +27,7 @@ RUN TINI_VERSION=v0.19.0; \
 
 
 # pip install requirements
+RUN apt install python3.10-venv -y
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt cog==0.10.0a5
 
@@ -34,6 +35,8 @@ RUN curl -o /usr/local/bin/pget -L "https://github.com/replicate/pget/releases/d
 
 # Set the working directory
 WORKDIR /src
+# this directory is needed for the build
+RUN mkdir -p .cog/ 
 
 # Expose the necessary port
 EXPOSE 5000

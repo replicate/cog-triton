@@ -166,17 +166,24 @@ git submodule update --init --recursive
 2. Set TRT-LLM Version.
 Note: This _must_ match the version used in the Triton server. 
 
-```
+```bash
+#replace this version with the one you want
 export TRT_LLM_VERSION=0.7.1
-cd TensorRT-LLM
+cd tensorrtllm_backend
 git checkout v${TRT_LLM_VERSION}
 ```
 
 3. Build TRT-LLM 
 
+Refer to the [tensortllm_backend/README.md](tensorrtllm_backend/README.md) as the build process frequently changes.
+
+>[!Warning]
+> Building TRT-LLM can take a really long time, in the order of 1-2 hours.
+
+```bash
+DOCKER_BUILDKIT=1 docker build -t triton_trt_llm -f dockerfile/Dockerfile.trt_llm_backend .
 ```
-make -C docker release_build
-```
+
 1. Build the image
 
 ```
