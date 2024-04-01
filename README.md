@@ -211,13 +211,16 @@ Note: You can also just call the following to run the image and start the server
 docker run --rm -it -p 5000:5000 --gpus=all --workdir /src  --net=host --volume $(pwd)/.:/src/. cog-trt-llm bash -c "python -m cog.server.http"
 ```
 
-4. Expose configs via HTTP so they can be "downloaded" by cog
+4. Currently cog needs to download build config files from a URL. Therefore, we start a local HTTP server from the root of this repo. Example configs are in the [examples/](examples/) folder.  
 
-```
+```bash
+# start a webserver so you can reference the config files in examples/
 python3 -m http.server 8003 --bind 0.0.0.0
 ``` 
 
 5. Make a request
+
+Notice how we reference the build script located at `examples/gpt/config.yaml` below. 
 
 ```
 curl -s -X POST \
