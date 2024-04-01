@@ -220,19 +220,26 @@ python3 -m http.server 8003 --bind 0.0.0.0
 
 5. Make a request
 
-Notice how we reference the build script located at `examples/gpt/config.yaml` below. 
+Notice how we reference the build script located at [examples/gpt/gpt-medium-build-config.yaml](examples/gpt/gpt-medium-build-config.yaml) below. 
+
+> [!Note]
+> Even though we are making a request to the "prediction" endpoint of the cog server below, we are not making a prediction.  Instead, we are abusing the machinery of cog that allows us to run arbitrary code in [predict.py](predict.py) to build/compile a model with TRT-LLM. 
 
 ```
 curl -s -X POST \
   -H "Content-Type: application/json" \
   -d $'{
     "input": { 
-        "config":"http://localhost:8003/examples/gpt/config.yaml"
+        "config":"http://localhost:8003/examples/gpt/gpt-medium-build-config.yaml"
     }
   }' \
   http://localhost:5000/predictions
 
 ```
+
+> [!Tip]
+> The bulk of the code for building models is located in [trt_llm_builder.TRTLLMBuilder](trt_llm_builder.py)
+
 
 ## Tests 
 
