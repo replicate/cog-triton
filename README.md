@@ -240,6 +240,15 @@ curl -s -X POST \
 > [!Tip]
 > The bulk of the code for building models is located in [trt_llm_builder.TRTLLMBuilder](trt_llm_builder.py)
 
+6. Inspect Artifacts
+
+If the request to the cog server successfully completes, you will see model artifacts located at this location in the config:
+
+```yaml
+build:
+  output_dir: ./engine_outputs/ # this could be different in your config
+```
+
 
 ## Tests 
 
