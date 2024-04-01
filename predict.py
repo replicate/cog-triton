@@ -9,12 +9,14 @@ from sse import receive_sse
 from triton_config_generator import generate_configs, load_yaml_config
 
 import numpy as np
-
+import time
 from utils import (
     maybe_download_tarball_with_pget,
     StreamingTokenStopSequenceHandler,
 )
 
+from transformers import AutoTokenizer
+import time
 
 class Predictor(BasePredictor):
     async def setup(self, weights: str = "") -> None:
@@ -34,6 +36,9 @@ class Predictor(BasePredictor):
         engine_dir = os.environ.get(
             "ENGINE_DIR", "/src/triton_model_repo/tensorrt_llm/1/"
         )
+
+        self.tokenizer = AutoTokenizer.from_pretrained(engine_dir)
+
 
         self.system_prompt_exists = os.getenv("SYSTEM_PROMPT", None)
         self.end_id = os.getenv("END_ID", 2)
@@ -57,6 +62,7 @@ class Predictor(BasePredictor):
             if await self.start_triton():
                 return
         raise Exception(f"Couldn't start Triton (exit code {self.proc.poll()})")
+    
 
     async def start_triton(self) -> None:
         # # launch triton server
@@ -173,7 +179,7 @@ class Predictor(BasePredictor):
 
         req = self.client.stream(
             "POST",
-            "http://localhost:8000/v2/models/tensorrt_llm_bls/generate_stream",
+            "http://localhost:8000/v2/models/ensemble/generate_stream",
             json=args,
         )
 
@@ -183,14 +189,21 @@ class Predictor(BasePredictor):
             stop_sequences=args["stop_words"]
         )
 
+        start_time = time.time()
+        n_tokens = 0
+        tokens = np.array([], dtype=np.int32)
+        
         async with req as resp:
             async for event in receive_sse(resp):
                 # Output is the _entire_ sequence, from the beginning
                 try:
-                    output = event.json()["text_output"]
+                    token = event.json()["output_ids"]
                 # this check can be removed once we identify the cause of KeyError
                 except Exception as e:
                     raise Exception(f"error with event {event}") from e
+                
+                tokens = np.append(tokens, token)
+                output = self.tokenizer.decode(tokens, skip_special_tokens=True)
                 # Catches partial emojis, waits for them to finish
                 output = output.replace("\N{Replacement Character}", "")
                 # Remove the tokens that were already yielded
@@ -211,7 +224,10 @@ class Predictor(BasePredictor):
             current_output = stop_sequence_handler.finalize()
             if current_output:
                 yield current_output
-
+        stop_time = time.time()
+        self.log(f"Total tokens generated: {n_tokens}")
+        self.log(f"Generation took {stop_time - start_time:.2f} seconds.")
+        self.log(f"Tokens per second: {n_tokens / (stop_time - start_time):.2f}")
         self.log(f"Random seed used: `{args['random_seed']}`\n")
         self.log(
             "Note: Random seed will not impact output if greedy decoding is used.\n"

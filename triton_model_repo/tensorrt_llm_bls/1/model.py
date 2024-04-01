@@ -26,14 +26,16 @@
 
 import json
 import traceback
-
+import time
 import numpy as np
 import triton_python_backend_utils as pb_utils
-
+from transformers import LlamaTokenizerFast, GPT2TokenizerFast
 
 class TritonPythonModel:
 
     def initialize(self, args):
+
+        self.output_dtype = pb_utils.triton_string_to_numpy("TYPE_STRING")
 
         # Parse model configs
         model_config = json.loads(args['model_config'])
@@ -245,9 +247,32 @@ class TritonPythonModel:
                                 postproc_output_tensor.as_numpy()))
 
         return bls_output_tensors
+    
+    def _postprocessing(self, tokens_batch, sequence_lengths):
+        start = time.time()
+        outputs = []
+        for batch_idx, beam_tokens in enumerate(tokens_batch):
+            for beam_idx, tokens in enumerate(beam_tokens):
+                inner_loop_time = time.time()
+                seq_len = sequence_lengths[batch_idx][beam_idx]
+                tokens_to_decode = tokens[:seq_len]
+                tokenizer_start_time = time.time()
+                output = self.tokenizer.decode(
+                    tokens_to_decode,
+                    skip_special_tokens=True)
+                tokenizer_output_time = time.time()
+                outputs.append(output.encode('utf8'))
+                end_inner_loop = time.time()
+        
+        end = time.time()
+        # print(f"Total time: {end - start}")
+        # print(f"Tokenizer time: {tokenizer_output_time - tokenizer_start_time}")
+        # print(f"Inner loop time: {end_inner_loop - inner_loop_time}")
+        # print("n tokens to decode", len(tokens[:seq_len]))
+        return outputs
 
     def execute(self, requests):
-
+        bls_start_time = time.time()
         responses = []
         bls_response_sender = None
 
@@ -283,7 +308,9 @@ class TritonPythonModel:
                         self.preproc_output_to_trtllm_input_map.keys()))
 
                 #Execute preprocessor
+                bls_preproc_start_time = time.time()
                 preproc_response = preproc_request.exec()
+                print(f"Preprocessing Execution Time: {time.time() - bls_preproc_start_time}")
 
                 if preproc_response.has_error():
                     raise pb_utils.TritonModelException(
@@ -307,6 +334,7 @@ class TritonPythonModel:
                     trtllm_responses = [trtllm_responses]
 
                 tokens = None
+                
 
                 #Loop over the trtllm responses
                 for trtllm_response in trtllm_responses:
@@ -319,26 +347,54 @@ class TritonPythonModel:
 
                     tokens, postproc_input_tensors = self._get_postproc_input_tensors(
                         tokens, trtllm_output_tensors)
+                    
+                    sequence_lengths = np.array([[tokens.shape[2]]],
+                                             dtype=np.int32)
+                    
+                    
+                    # sequence_lengths = pb_utils.get_input_tensor_by_name(
+                    #     request, 'SEQUENCE_LENGTH').as_numpy()
+                    
+                    # sequence_lengths = postproc_input_tensors[1].as_numpy()
+                    outputs = self._postprocessing(tokens, sequence_lengths)
 
-                    postproc_request = pb_utils.InferenceRequest(
-                        model_name="postprocessing",
-                        inputs=postproc_input_tensors,
-                        requested_output_names=list(
-                            self.postproc_output_to_bls_output_map.keys()))
+                    # print(f"Tokens type: {type(tokens)}")
 
-                    #Execute postprocessor
-                    postproc_response = postproc_request.exec()
+                    # postproc_request = pb_utils.InferenceRequest(
+                    #     model_name="postprocessing",
+                    #     inputs=postproc_input_tensors,
+                    #     requested_output_names=list(
+                    #         self.postproc_output_to_bls_output_map.keys()))
 
-                    if postproc_response.has_error():
-                        raise pb_utils.TritonModelException(
-                            postproc_response.error().message())
+                    # #Execute postprocessor
+                    # start_time = time.time()
+                    # postproc_response = postproc_request.exec()
+                    # print(f"BLS Execution Time: {time.time() - start_time}")
+                    # if postproc_response.has_error():
+                    #     raise pb_utils.TritonModelException(
+                    #         postproc_response.error().message())
 
                     # Create the BLS response
-                    bls_output_tensors = self._get_bls_output_tensors(
-                        postproc_response.output_tensors())
+                    # bls_output_tensors = self._get_bls_output_tensors(
+                    #     postproc_response.output_tensors())
 
-                    bls_response = pb_utils.InferenceResponse(
-                        output_tensors=bls_output_tensors)
+                    # bls_response = pb_utils.InferenceResponse(
+                    #     output_tensors=bls_output_tensors)
+
+                    responses = []
+
+                    outputs = np.array(outputs).astype(self.output_dtype)
+
+                    output_tensor = pb_utils.Tensor(
+                        'text_output',
+                        outputs)
+                    
+                    
+                    bls_response = pb_utils.InferenceResponse(output_tensors=[
+                        output_tensor, #out_cum_log_probs, out_output_log_probs,
+                        #out_context_logits, out_generation_logits
+                    ])
+                    responses.append(bls_response)
 
                     if self.decoupled:
                         bls_response_sender.send(bls_response)
@@ -349,6 +405,8 @@ class TritonPythonModel:
                 if self.decoupled:
                     bls_response_sender.send(
                         flags=pb_utils.TRITONSERVER_RESPONSE_COMPLETE_FINAL)
+                
+                print(f"BLS Execution Time: {time.time() - bls_start_time}")
 
             except Exception:
 
