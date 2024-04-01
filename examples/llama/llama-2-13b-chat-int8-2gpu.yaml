@@ -7,10 +7,10 @@ model_tar_url: https://weights.replicate.delivery/default/official-models/hf/met
 convert_to_ft:
   executable: "python"
   script: convert_checkpoint.py
-  output_dir: ./c-model/meta-llama/Llama-2-13b-chat-hf/int8/1-gpu
+  output_dir: ./c-model/meta-llama/Llama-2-13b-chat-hf/int8/2-gpu
   args:
     model_dir: /src/models/meta-llama/Llama-2-13b-chat-hf
-    output_dir: /src/c-model/meta-llama/Llama-2-13b-chat-hf/int8/1-gpu
+    output_dir: /src/c-model/meta-llama/Llama-2-13b-chat-hf/int8/2-gpu
     tp_size: 2
     dtype: float16
     use_weight_only:
@@ -19,7 +19,7 @@ build:
   executable: trtllm-build
   output_dir: ./engine_outputs/
   args:
-    checkpoint_dir: /src/c-model/meta-llama/Llama-2-13b-chat-hf/int8/1-gpu
+    checkpoint_dir: /src/c-model/meta-llama/Llama-2-13b-chat-hf/int8/2-gpu
     output_dir: ./engine_outputs/
     remove_input_padding: enable
     context_fmha: enable
