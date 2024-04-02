@@ -67,31 +67,3 @@ ENV LD_LIBRARY_PATH="/opt/hpcx/ompi/lib:/usr/local/nvidia/lib64:/usr/local/nvidi
 
 # Now set CFLAGS to point to the include directory found in /opt/hpcx/ompi
 ENV CFLAGS="-I/opt/hpcx/ompi/include"
-
-# Install mpi4py using pip
-# RUN pip3 install mpi4py
-
-# # Download mpi4py and extract it
-# RUN wget https://github.com/mpi4py/mpi4py/releases/download/3.1.3/mpi4py-3.1.3.tar.gz \
-#     && tar -zxf mpi4py-3.1.3.tar.gz \
-#     && rm mpi4py-3.1.3.tar.gz
-
-# # Set environment variable for MPI compiler to include the non-standard header location
-# ENV CFLAGS="-I/usr/lib/x86_64-linux-gnu/openmpi/include"
-
-# RUN apt-get remove -y --purge libopenmpi-dev openmpi-bin && apt-get install -y libopenmpi-dev openmpi-bin
-
-# # Before building mpi4py, set environment variables for MPI compilers to include the non-standard header location
-# ENV MPI_INCLUDE_PATH=/usr/lib/x86_64-linux-gnu/openmpi/include
-# ENV MPI_LIB_PATH=/usr/lib/x86_64-linux-gnu/openmpi/lib
-# ENV MPI_BIN_PATH=/usr/lib/x86_64-linux-gnu/openmpi/bin
-
-# # Build and install mpi4py, specifying the custom include path for MPI headers
-# RUN cd mpi4py-3.1.3 \
-#     && python setup.py build --mpicc="/usr/bin/mpicc -I$MPI_INCLUDE_PATH" \
-#     && python setup.py install
-
-# Clean up the mpi4py source directory if you wish
-# RUN rm -rf mpi4py-3.1.3
-
-# RUN bash /tmp/install_mpi4py.sh && rm /tmp/install_mpi4py.sh
