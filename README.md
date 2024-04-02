@@ -168,7 +168,7 @@ Note: This _must_ match the version used in the Triton server.
 
 ```bash
 #replace this version with the one you want
-export TRT_LLM_VERSION=0.7.1
+export TRT_LLM_VERSION=0.8.0
 cd tensorrtllm_backend
 git checkout v${TRT_LLM_VERSION}
 ```
