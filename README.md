@@ -104,7 +104,7 @@ cp -r ../cog-trt-llm/engine_outputs/* triton_model_repo/tensorrt_llm/1/
 Run the cog-triton image:
 
 ```
-docker run --rm -it -p 5000:5000 --gpus=all --workdir /src  --net=host --volume $(pwd)/.:/src/. --ulimit memlock=-1 --shm-size=20g cog-triton /bin/bash
+docker run --rm -it -p 5000:5000 --gpus=all --workdir /src --volume $(pwd)/.:/src/. --ulimit memlock=-1 --shm-size=20g cog-triton /bin/bash
 python -m cog.server.http
 ```
 
@@ -135,7 +135,7 @@ time python3 scripts/test_perf.py --target cog-triton --rate 8 --unit rps --dura
 
 Cog-triton is pre-release and not stable. This build process is not optimal and will change. However, here we document every step we took to generate a deployable cog-triton image.
 
-1. Clone the cog-triton image:
+1. Clone the cog-triton repo:
 
 ```
 git clone https://github.com/replicate/cog-triton 
@@ -151,15 +151,7 @@ git submodule update --init --recursive
 cd ..
 ```
 
-3. Build TensorRT-LLM Backend
-
-```
-# Use the Dockerfile to build the backend in a container
-# For x86_64
-DOCKER_BUILDKIT=1 docker build -t triton_trt_llm -f ./dockerfile/Dockerfile.trt_llm_backend .
-```
-
-4. Build cog-triton
+3. Build cog-triton image
 
 ```
 cd ..
@@ -256,3 +248,25 @@ curl -s -X POST \
 curl -X POST localhost:8000/v2/models/ensemble/generate -d '{"text_input": "What is machine learning?", "max_tokens": 20, "bad_words": "", "stop_words": ""}'
 
 curl -X POST localhost:8000/v2/models/ensemble/generate -d '{"text_input": "Water + Fire = Steam\nEarth + Water = Plant\nHuman + Robe = Judge\nCow + Fire = Steak\nKing + Ocean = Poseidon\nComputer + Spy =", "max_tokens": 20, "bad_words": "", "stop_words": ""}'
+
+
+
+curl -s -X POST \
+  -H "Content-Type: application/json" \
+  -d $'{
+    "input": {
+        "prompt": "Water + Fire = Steam\nEarth + Water = Plant\nHuman + Robe = Judge\nCow + Fire = Steak\nKing + Ocean = Poseidon\nComputer + Spy ="
+    }
+  }' \
+  http://localhost:5000/predictions
+
+  curl -s -X POST \
+  -H "Content-Type: application/json" \
+  -d $'{
+    "input": {
+        "prompt": "Water + Fire = Steam\nEarth + Water = Plant\nHuman + Robe = Judge\nCow + Fire = Steak\nKing + Ocean = Poseidon\nComputer + Spy ="
+    }
+  }' \
+  http://localhost:5000/predictions
+
+  # Dev Install TRT-LLM with pip
