@@ -1,5 +1,22 @@
 #syntax=docker/dockerfile:1.4
-FROM triton_trt_llm as deps
+# Use the CUDA 12.1.0 devel base image
+FROM nvcr.io/nvidia/tritonserver:24.03-py3
+
+# Install required dependencies
+RUN apt-get update && apt-get -y install \
+    python3.10 \
+    python3-pip \
+    openmpi-bin \
+    libopenmpi-dev
+
+# Install the latest preview version of TensorRT-LLM
+# RUN pip3 install tensorrt_llm -U --pre --extra-index-url https://pypi.nvidia.com
+
+# Install the latest stable version (corresponding to the release branch) of TensorRT-LLM.
+RUN pip3 install tensorrt_llm==0.8.0 --extra-index-url https://pypi.nvidia.com
+
+RUN ln -sf /usr/bin/python3 /usr/bin/python
+
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
