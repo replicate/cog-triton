@@ -166,17 +166,24 @@ git submodule update --init --recursive
 2. Set TRT-LLM Version.
 Note: This _must_ match the version used in the Triton server. 
 
-```
-export TRT_LLM_VERSION=0.7.1
-cd TensorRT-LLM
+```bash
+#replace this version with the one you want
+export TRT_LLM_VERSION=0.8.0
+cd tensorrtllm_backend
 git checkout v${TRT_LLM_VERSION}
 ```
 
 3. Build TRT-LLM 
 
+Refer to the [tensortllm_backend/README.md](tensorrtllm_backend/README.md) as the build process frequently changes.
+
+>[!Warning]
+> Building TRT-LLM can take a really long time, in the order of 1-2 hours.
+
+```bash
+DOCKER_BUILDKIT=1 docker build -t triton_trt_llm -f dockerfile/Dockerfile.trt_llm_backend .
 ```
-make -C docker release_build
-```
+
 1. Build the image
 
 ```
@@ -204,25 +211,44 @@ Note: You can also just call the following to run the image and start the server
 docker run --rm -it -p 5000:5000 --gpus=all --workdir /src  --net=host --volume $(pwd)/.:/src/. cog-trt-llm bash -c "python -m cog.server.http"
 ```
 
-4. Expose configs via HTTP so they can be "downloaded" by cog
+4. Currently cog needs to download build config files from a URL. Therefore, we start a local HTTP server from the root of this repo. Example configs are in the [examples/](examples/) folder.  
 
-```
+```bash
+# start a webserver so you can reference the config files in examples/
 python3 -m http.server 8003 --bind 0.0.0.0
 ``` 
 
 5. Make a request
+
+Notice how we reference the build script located at [examples/gpt/gpt-medium-build-config.yaml](examples/gpt/gpt-medium-build-config.yaml) below. 
+
+> [!Note]
+> Even though we are making a request to the "prediction" endpoint of the cog server below, we are not making a _model prediction_.  Instead, we are abusing the machinery of cog that allows us to run arbitrary code in [predict.py](predict.py) to build/compile a model with TRT-LLM. The input to this prediction is the config file that specifies how we want the compiled engine to be built, and the output is the compiled engine's files.
 
 ```
 curl -s -X POST \
   -H "Content-Type: application/json" \
   -d $'{
     "input": { 
-        "config":"http://localhost:8003/examples/gpt/config.yaml"
+        "config":"http://localhost:8003/examples/gpt/gpt-medium-build-config.yaml"
     }
   }' \
   http://localhost:5000/predictions
 
 ```
+
+> [!Tip]
+> The bulk of the code for building models is located in [trt_llm_builder.TRTLLMBuilder](trt_llm_builder.py)
+
+6. Inspect Artifacts
+
+If the request to the cog server successfully completes, you will see model artifacts located at this location in the config:
+
+```yaml
+build:
+  output_dir: ./engine_outputs/ # this could be different in your config
+```
+
 
 ## Tests 
 
