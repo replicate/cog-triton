@@ -223,7 +223,7 @@ python3 -m http.server 8003 --bind 0.0.0.0
 Notice how we reference the build script located at [examples/gpt/gpt-medium-build-config.yaml](examples/gpt/gpt-medium-build-config.yaml) below. 
 
 > [!Note]
-> Even though we are making a request to the "prediction" endpoint of the cog server below, we are not making a prediction.  Instead, we are abusing the machinery of cog that allows us to run arbitrary code in [predict.py](predict.py) to build/compile a model with TRT-LLM. 
+> Even though we are making a request to the "prediction" endpoint of the cog server below, we are not making a _model prediction_.  Instead, we are abusing the machinery of cog that allows us to run arbitrary code in [predict.py](predict.py) to build/compile a model with TRT-LLM. The input to this prediction is the config file that specifies how we want the compiled engine to be built, and the output is the compiled engine's files.
 
 ```
 curl -s -X POST \
