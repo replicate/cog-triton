@@ -22,6 +22,9 @@
           inherit architectures;
         };
         cognix.environment = env;
+        dockerTools.streamLayeredImage.config = lib.mkIf (self.sourceInfo ? rev || self.sourceInfo ? dirtyRev) {
+          Labels."org.opencontainers.image.revision" = self.sourceInfo.rev or self.sourceInfo.dirtyRev;
+        };
       };
     in {
       default = self.packages.x86_64-linux.cog-triton-mistral-7b;
