@@ -85,14 +85,6 @@ After the image has been pulled, you should tag it so that all the docker comman
 docker tag <image id> cog-triton:latest
 ```
 
-### Pull and initialize `tensorrtllm_backend` and it's submodules
-
-```
-git lfs install
-git submodule update --init --recursive
-```
-
-
 ### Run an engine built with cog-trt-llm
 
 Copy all model artifacts from `cog-trt-llm/engine_outputs/` to `triton_model_repo/tensorrt_llm/1/`:
@@ -131,97 +123,89 @@ time python3 scripts/test_perf.py --target cog-triton --rate 8 --unit rps --dura
 
 # Development
 
+
+This repository builds 4 different images:
+
+- `cog-triton-builder`, which builds TRT-LLM engines.
+- `cog-triton-runner-80`, suitable to run engines built on, and for, [nvidia A100's](https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/#ampere-cuda-11-1-and-later.)
+- `cog-triton-runner-86`, suitable for A40
+- `cog-triton-runner-90`, suitable for H100 and H200.
+
+[Here's a full GPU compatibility list](https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/#ampere-cuda-11-1-and-later.).
+
+
 ## End-to-end build process 
 
-Cog-triton is pre-release and not stable. This build process currently requires `nix` to be installed (with the config setting `experimental-features = nix-command flakes`). We recommend the [DeterminateSystems Nix installer](https://github.com/DeterminateSystems/nix-installer).
+Cog-triton is pre-release and not stable. This build process currently requires `nix` to be installed (with the config setting `experimental-features = nix-command flakes`). We recommend the [DeterminateSystems Nix installer](https://github.com/DeterminateSystems/nix-installer), which will set this setting for you.
 
-1. Clone the cog-triton image:
-
-```
-git clone https://github.com/replicate/cog-triton 
-```
-
-2. Build cog-triton
-
-```
-nix build .#default.x86_64-linux && ./result | docker load
+1. Install nix:
+```console
+$ curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --extra-conf "trusted-users = $USER"
 ```
 
-## (Optional) Build a TRT-LLM Model Locally
+2. Clone the cog-triton repo:
 
-1. Generate the default `triton_model` directory, which is where triton artifacts and configs will be stored, and generate default configs. Alternatively, you can provide your own config.
-
-```
-chmod +x ./scripts/generate_default_configs.sh
-./scripts/generate_default_configs.sh
-```
-
-2. 
-
-```
-docker run --rm --gpus=all --workdir /src --volume $(pwd):/src cog-triton \
-  bash -c "rm -rf gpt2 && git clone https://huggingface.co/gpt2-medium gpt2 && \
-  pushd gpt2 && rm -f pytorch_model.bin model.safetensors && wget -q https://huggingface.co/gpt2-medium/resolve/main/pytorch_model.bin && popd"
+```console
+$ git clone https://github.com/replicate/cog-triton
+$ cd cog-triton
+$ git checkout yorickvp/ci
 ```
 
-3. Convert the model from HF Transformers to FT
+3. Build cog-triton-builder (builder)
 
-```
-docker run --rm --gpus=all --workdir /src --volume $(pwd):/src cog-triton \
-  bash -c "python /src/tensorrtllm_backend/tensorrt_llm/examples/gpt/hf_gpt_convert.py \
-  -p 8 \
-  -i /src/gpt2 \
-  -o ./c-model/gpt2 \
-  --tensor-parallelism 1 \
-  --storage-type float16"
-```
 
-4. Build TensorRT engine
-
+```console
+$ nix build .#packages.x86_64-linux.cog-triton-builder && ./result | docker load
+[...]
+Loaded image: cog-triton-builder:1hz2v478b382h6qqwdgxivqqb2bm1kad
 ```
-docker run --rm --gpus=all \
-  --workdir /src \
-  --volume $(pwd):/src cog-triton \
-  bash -c "python3 /src/tensorrtllm_backend/tensorrt_llm/examples/gpt/build.py \
-  --model_dir=/src/c-model/gpt2/1-gpu/ \
-  --world_size=1 \
-  --dtype float16 \
-  --use_inflight_batching \
-  --use_gpt_attention_plugin float16 \
-  --paged_kv_cache \
-  --use_gemm_plugin float16 \
-  --remove_input_padding \
-  --use_layernorm_plugin float16 \
-  --hidden_act gelu \
-  --parallel_build \
-  --output_dir=/src/engines/fp16/1-gpu"
+This command will eventually output the image id loaded into the local docker daemon.
+
+4. Build cog-triton-runner-86 (runner)
+
+```console
+$ nix build .#packages.x86_64-linux.cog-triton-runner-86 && ./result | docker load
+[..]
+Loaded image: cog-triton-runner-86:zknc2pj8kx9kmmicmjmswd2yj343lpd1
 ```
 
-5. Copy TensorRT engine to triton model
+## Build a TRT-LLM Model
 
-```
-cp ./engines/fp16/1-gpu/* triton_model_repo/tensorrt_llm/1
+The cog-triton-builder image takes in a [cog-trt-llm](https://github.com/replicate/cog-trt-llm) build configs and outputs an engine.tar suitable to run on the same hardware it's running on. In this example, we grab one from official-language-models. Open [mistral-7b-instruct-v0.2/build_config.yaml raw](https://github.com/replicate/official-language-models/raw/main/models/mistral-7b-instruct-v0.2/build_config.yaml) in your browser and copy-paste the URL with the token.
+
+```console
+$ docker run -d -p 5000:5000 --gpus=all cog-triton-builder:1hz2v478b382h6qqwdgxivqqb2bm1kad
+$ curl -s -X POST \
+  -H "Content-Type: application/json" \
+  -d $'{
+    "input": { 
+        "config":"https://raw.githubusercontent.com/replicate/official-language-models/main/models/mistral-7b-instruct-v0.2/build_config.yaml?token=<example-token-see-instructions>"
+    }
+  }' http://localhost:5000/predictions
+$ docker container cp <container name>:/src/engine.tar ./engine.tar
 ```
 
-6. 
+## Run a TRT-LLM Model
 
-```
-docker run --rm -it -p 5000:5000 -p 8000:8000 --gpus=all --workdir /src  --net=host --volume $(pwd)/.:/src/. cog-triton \
-  bash -c "python -m cog.server.http"
+When you have this engine, you can use it with the cog-triton-runner images.
+
+1. Extract the `engine.tar`
+```console
+$ rm -rf triton_model_repo/tensorrt_llm/1/
+$ mkdir -p triton_model_repo/tensorrt_llm/1/
+$ tar xvf ./engine.tar -C triton_model_repo/tensorrt_llm/1/
 ```
 
+2. Run the image
+This runs the cog-triton-runner-86 image that's been built in the previous steps. Adjust accordingly for your GPU and image tag.
+
+```console
+$ docker run --rm -it -p 5000:5000 -p 8000:8000 --gpus=all --ulimit memlock=-1 --shm-size=20g --volume $(pwd)/triton_model_repo/tensorrt_llm/1/:/src/triton_model_repo/tensorrt_llm/1/ cog-triton-runner-86:zknc2pj8kx9kmmicmjmswd2yj343lpd1
+$ 
+```
 7. Curl a request
 
 You can curl directly to the Triton server:
-```
-curl -X POST localhost:8000/v2/models/ensemble/generate -d '{"text_input": "What is machine learning?", "max_tokens": 20, "bad_words": "", "stop_words": ""}'
-```
-
-python3 inflight_batcher_llm/client/inflight_batcher_llm_client.py --request-output-len 200 --tokenizer-dir /src/gpt2 
-
-
-or to cog
-
 ```
 curl -s -X POST \
   -H "Content-Type: application/json" \
@@ -233,7 +217,3 @@ curl -s -X POST \
   http://localhost:5000/predictions
 ```
 
-
-curl -X POST localhost:8000/v2/models/ensemble/generate -d '{"text_input": "What is machine learning?", "max_tokens": 20, "bad_words": "", "stop_words": ""}'
-
-curl -X POST localhost:8000/v2/models/ensemble/generate -d '{"text_input": "Water + Fire = Steam\nEarth + Water = Plant\nHuman + Robe = Judge\nCow + Fire = Steak\nKing + Ocean = Poseidon\nComputer + Spy =", "max_tokens": 20, "bad_words": "", "stop_words": ""}'
