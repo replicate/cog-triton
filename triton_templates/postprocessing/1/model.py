@@ -28,7 +28,9 @@ import json
 
 import numpy as np
 import triton_python_backend_utils as pb_utils
-from transformers import AutoTokenizer, LlamaTokenizer, T5Tokenizer
+from transformers import AutoTokenizer, LlamaTokenizerFast, T5Tokenizer
+
+import time
 
 
 class TritonPythonModel:
@@ -51,6 +53,8 @@ class TritonPythonModel:
           * model_version: Model version
           * model_name: Model name
         """
+
+
         # Parse model configs
         model_config = json.loads(args['model_config'])
         tokenizer_dir = model_config['parameters']['tokenizer_dir'][
@@ -70,7 +74,7 @@ class TritonPythonModel:
             self.tokenizer = AutoTokenizer.from_pretrained(
                 tokenizer_dir, padding_side='left', trust_remote_code=True)
         elif tokenizer_type == 'llama':
-            self.tokenizer = LlamaTokenizer.from_pretrained(
+            self.tokenizer = LlamaTokenizerFast.from_pretrained(
                 tokenizer_dir, legacy=False, padding_side='left')
         else:
             raise AttributeError(
@@ -84,6 +88,7 @@ class TritonPythonModel:
         # Convert Triton types to numpy types
         self.output_dtype = pb_utils.triton_string_to_numpy(
             output_config['data_type'])
+        
 
     def execute(self, requests):
         """`execute` must be implemented in every Python model. `execute`
@@ -104,7 +109,6 @@ class TritonPythonModel:
           A list of pb_utils.InferenceResponse. The length of this list must
           be the same as `requests`
         """
-
         responses = []
 
         # Every Python backend must iterate over everyone of the requests
@@ -143,9 +147,13 @@ class TritonPythonModel:
 
             # Create output tensors. You need pb_utils.Tensor
             # objects to create pb_utils.InferenceResponse.
+            # output_tensor = pb_utils.Tensor(
+            #     'OUTPUT',
+            #     np.array(outputs).astype(self.output_dtype))
+            
             output_tensor = pb_utils.Tensor(
                 'OUTPUT',
-                np.array(outputs).astype(self.output_dtype))
+                tokens_batch)
 
             out_cum_log_probs = pb_utils.Tensor('OUT_CUM_LOG_PROBS',
                                                 cum_log_probs)
@@ -174,6 +182,7 @@ class TritonPythonModel:
 
         # You should return a list of pb_utils.InferenceResponse. Length
         # of this list must match the length of `requests` list.
+            
         return responses
 
     def finalize(self):
@@ -184,12 +193,17 @@ class TritonPythonModel:
         print('Cleaning up...')
 
     def _postprocessing(self, tokens_batch, sequence_lengths):
+        start = time.time()
         outputs = []
         for batch_idx, beam_tokens in enumerate(tokens_batch):
             for beam_idx, tokens in enumerate(beam_tokens):
+                inner_loop_time = time.time()
                 seq_len = sequence_lengths[batch_idx][beam_idx]
+                tokens_to_decode = tokens[:seq_len]
+                tokenizer_start_time = time.time()
                 output = self.tokenizer.decode(
-                    tokens[:seq_len],
+                    tokens_to_decode,
                     skip_special_tokens=self.skip_special_tokens)
+                tokenizer_output_time = time.time()
                 outputs.append(output.encode('utf8'))
-        return outputs
+                end_inner_loop = time.time()
