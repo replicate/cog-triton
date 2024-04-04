@@ -371,9 +371,6 @@ async def main():
             f.write(json.dumps(request))
             f.write("\n")
 
-    # print(
-    #     f"Throughput: {stats.mean(sstps) * args.n_output_tokens:.3f} tokens per second"
-    # )
 
 
 if __name__ == "__main__":
