@@ -317,13 +317,13 @@ parameters: {
 parameters: {
   key: "max_attention_window_size"
   value: {
-    string_value: "4096"
+    string_value: "2560"
   }
 }
 parameters: {
   key: "batch_scheduler_policy"
   value: {
-    string_value: "max_utilization"
+    string_value: "guaranteed_no_evict"
   }
 }
 parameters: {
