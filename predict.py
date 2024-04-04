@@ -44,8 +44,6 @@ class Predictor(BasePredictor):
             "ENGINE_DIR", "/src/triton_model_repo/tensorrt_llm/1/"
         )
         
-        self.tokenizer = AutoTokenizer.from_pretrained(engine_dir)
-
 
         self.system_prompt_exists = os.getenv("SYSTEM_PROMPT", None)
         self.end_id = os.getenv("END_ID", 2)
@@ -57,6 +55,8 @@ class Predictor(BasePredictor):
                 url=weights,
                 dest=engine_dir,
             )
+
+        self.tokenizer = AutoTokenizer.from_pretrained(engine_dir)
 
         # if engine_dir is empty, stop here
         if not os.listdir(engine_dir):
