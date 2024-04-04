@@ -29,6 +29,38 @@ n_cog_already_running_prediction = 0
 
 tokenizer = AutoTokenizer.from_pretrained("triton_model_repo/tensorrt_llm/1/")
 
+
+
+server_side_expected_tps = []
+server_side_actual_tps = []
+server_side_expected_execution_time = []
+server_side_actual_execution_time = []
+server_side_expected_time_to_first_token = []
+server_side_actual_time_to_first_token = []
+
+def parse_request_logs(logs_string):
+    global server_side_actual_tps
+    global server_side_actual_execution_time
+    global server_side_actual_time_to_first_token
+        # Split the logs string into lines
+    log_lines = logs_string.split("\n")
+
+    # Iterate over each log line and extract the relevant metrics
+    for line in log_lines:
+        if ":" in line:
+            key, value = line.split(":", 1)
+            key = key.strip().lower().replace(" ", "_")
+            value = value.strip()
+
+            # Convert numeric values to float or int and append to the corresponding global list
+
+            if key == "serverside_tokens_per_second":
+                server_side_actual_tps.append(float(value))
+            elif key == "serverside_execution_time":
+                server_side_actual_execution_time.append(float(value.split(" ")[0]))
+            elif key == "serverside_time_to_first_token":
+                server_side_actual_time_to_first_token.append(float(value.split(" ")[0]))
+
 def count_output_tokens(text):
     return len(tokenizer.tokenize(text))
 
@@ -191,17 +223,8 @@ async def make_request(url, headers, data, target):
             max_tokens = data["max_tokens"]
         sstps.append(max_tokens / delta)
 
-        # if target != "triton":
-        #     completed_at = response["completed_at"]
-        #     response_id = response["id"]
-        #     print(
-        #         f"{response_id}: start time {start_time}, end time {end_time}, delta {delta}, completed_at {completed_at}"
-        #     )
-
-    # except Exception as e:
-    #     failures += 1
-    #     # print(response)
-    #     print(f"Request failed: {e}")
+        if "logs" in response:
+            parse_request_logs(response["logs"])
 
 
 async def perform_requests(rate, duration, url, headers, data, mode, target):
@@ -393,6 +416,41 @@ async def main(run_dir, args):
         print(f"Response Latency - Std: {stats.stdev(times):.3f} seconds")
     print("Max response latency:", round(max(times), 3), "seconds")
     print("Min response latency:", round(min(times), 3), "seconds")
+
+    print("---" * 10)
+    print("Server-side metrics:")
+    print("---" * 10)
+    if len(server_side_actual_tps) > 0:
+        if len(server_side_actual_tps) > 1:
+            print("Server-side TPS")
+            print(f"--Actual mean: {stats.mean(server_side_actual_tps):.3f}")
+            print(f"--Actual std: {stats.stdev(server_side_actual_tps):.3f}")
+            print(f"--Actual median: {stats.median(server_side_actual_tps):.3f}")
+            print(f"--Actual min: {min(server_side_actual_tps):.3f}")
+            print(f"--Actual max: {max(server_side_actual_tps):.3f}")
+        else:
+            print("Server-side TPS")
+            print(f"--Actual mean: {stats.mean(server_side_actual_tps):.3f}")
+            print("--Actual std: N/A")
+            print(f"--Actual median: {stats.median(server_side_actual_tps):.3f}")
+            print(f"--Actual min: {min(server_side_actual_tps):.3f}")
+            print(f"--Actual max: {max(server_side_actual_tps):.3f}")
+
+        if len(server_side_actual_execution_time) > 1:
+            print("Response Latency")
+            print(f"--Actual mean: {stats.mean(server_side_actual_execution_time):.3f}")
+            print(f"--Actual std: {stats.stdev(server_side_actual_execution_time):.3f}")
+            print(f"--Actual median: {stats.median(server_side_actual_execution_time):.3f}")
+            print(f"--Actual min: {min(server_side_actual_execution_time):.3f}")
+            print(f"--Actual max: {max(server_side_actual_execution_time):.3f}")
+        else:
+            print("Response Latency")
+            print(f"--Actual mean: {stats.mean(server_side_actual_execution_time):.3f}")
+            print("--Actual std: N/A")
+            print(f"--Actual median: {stats.median(server_side_actual_execution_time):.3f}")
+            print(f"--Actual min: {min(server_side_actual_execution_time):.3f}")
+            print(f"--Actual max: {max(server_side_actual_execution_time):.3f}")
+
     failure_rate = failures / n_requests_started if n_requests_started > 0 else 0
     print("---" * 10)
     print(f"Total requests made: {n_requests_made}")
