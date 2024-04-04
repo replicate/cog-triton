@@ -64,7 +64,7 @@ input [
 output [
   {
     name: "OUTPUT"
-    data_type: TYPE_STRING
+    data_type: TYPE_INT32
     dims: [ -1 ]
   },
   {
