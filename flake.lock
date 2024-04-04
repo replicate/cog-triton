@@ -11,11 +11,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1712068365,
-        "narHash": "sha256-lrXrFmlub9jDZLJO/7FebtclHxkfrHPLGkflLkAR9JU=",
+        "lastModified": 1712225761,
+        "narHash": "sha256-xZVwhJyGfwdNS56/cyjmnWy/T3ujrLW7+9k3/2qfpY4=",
         "owner": "datakami",
         "repo": "cognix",
-        "rev": "bbe5832a12674d9c407d123f9bde1f1f20f5ebb2",
+        "rev": "be26c1e666fe4be5c7eec95ee4ae4710d5e9733a",
         "type": "github"
       },
       "original": {

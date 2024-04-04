@@ -10,7 +10,6 @@ let
 in
 {
   imports = [ ./interface.nix ];
-  public.extendModules = extendModules;
   cog.build = {
     python_version = "3.10";
     cog_version = "0.10.0-alpha5";
@@ -42,10 +41,6 @@ in
     "cog" "nvidia-pytriton" "transformers"
   ] (x: true)));
   python-env.pip.drvs = let pyPkgs = config.python-env.pip.drvs; in {
-    mpi4py.mkDerivation = {
-      buildInputs = [ pkgs.openmpi ];
-      nativeBuildInputs = [ pkgs.openmpi ];
-    };
     # tensorrt likes doing a pip invocation from it's setup.py
     # circumvent by manually depending on tensorrt_libs, tensorrt_bindings
     # and setting this env variable
@@ -98,8 +93,8 @@ in
   # TODO: open-source, switch to fetchFromGitHub
   deps.cog-trt-llm = builtins.fetchGit {
     url = "git@github.com:replicate/cog-trt-llm.git";
-    rev = "ee50f890461c4d39eb6e7937aa364abc814e9683";
-    ref = "yorickvp/flexibility";
+    rev = "1f092d891b3cefeea5e0b4d39eb4406ebc60d99a";
+    ref = "main";
   };
   deps.triton_repo_common = pkgs.fetchFromGitHub {
     owner = "triton-inference-server";
