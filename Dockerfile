@@ -1,5 +1,22 @@
 #syntax=docker/dockerfile:1.4
-FROM triton_trt_llm as deps
+# Use the CUDA 12.1.0 devel base image
+FROM nvcr.io/nvidia/tritonserver:24.03-trtllm-python-py3
+
+# Install required dependencies
+RUN apt-get update && apt-get -y install \
+    python3.10 \
+    python3-pip \
+    openmpi-bin \
+    libopenmpi-dev
+
+# Install the latest preview version of TensorRT-LLM
+# RUN pip3 install tensorrt_llm -U --pre --extra-index-url https://pypi.nvidia.com
+
+# Install the latest stable version (corresponding to the release branch) of TensorRT-LLM.
+RUN pip3 install tensorrt_llm==0.8.0 --extra-index-url https://pypi.nvidia.com
+
+RUN ln -sf /usr/bin/python3 /usr/bin/python
+
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
@@ -33,9 +50,20 @@ COPY tensorrtllm_backend /src/tensorrtllm_backend
 
 # pip install requirements and prerelease cog
 COPY requirements.txt /tmp/requirements.txt
-RUN pip install https://r2.drysys.workers.dev/tmp/cog-0.9.4.dev81+g11986a1-py3-none-any.whl -r /tmp/requirements.txt 
+RUN pip install https://r2.drysys.workers.dev/tmp/cog-0.10.0a6-py3-none-any.whl -r /tmp/requirements.txt 
 # prevent replicate from downgrading cog
 RUN ln -sf $(which echo) $(which pip)
 COPY triton_model_repo /src/triton_model_repo
 COPY triton_templates /src/triton_templates
 COPY *.py *.yaml /src/
+
+ENV MPICC=/usr/bin/mpicc
+
+COPY tensorrtllm_backend/tensorrt_llm/docker/common/install_mpi4py.sh /tmp/
+
+# Update PATH and LD_LIBRARY_PATH to include the Open MPI installation
+ENV PATH="/opt/hpcx/ompi/bin:$PATH"
+ENV LD_LIBRARY_PATH="/opt/hpcx/ompi/lib:/usr/local/nvidia/lib64:/usr/local/nvidia/bin:/usr/local/tensorrt/targets/x86_64-linux-gnu/lib/:$LD_LIBRARY_PATH"
+
+# Now set CFLAGS to point to the include directory found in /opt/hpcx/ompi
+ENV CFLAGS="-I/opt/hpcx/ompi/include"

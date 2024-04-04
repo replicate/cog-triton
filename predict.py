@@ -165,6 +165,8 @@ class Predictor(BasePredictor):
         formatted_prompt = self._format_prompt(
             prompt=prompt, system_prompt=system_prompt, prompt_template=prompt_template
         )
+        if formatted_prompt == "":
+            raise Exception("A prompt is required, but your formatted prompt is blank")
 
         args = self._process_args(
             prompt=formatted_prompt,

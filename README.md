@@ -148,7 +148,6 @@ $ curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/ni
 ```console
 $ git clone https://github.com/replicate/cog-triton
 $ cd cog-triton
-$ git checkout yorickvp/ci
 ```
 
 3. Build cog-triton-builder (builder)
@@ -217,3 +216,114 @@ curl -s -X POST \
   http://localhost:5000/predictions
 ```
 
+```
+curl -X POST localhost:8000/v2/models/ensemble/generate -d '{"text_input": "What is machine learning?", "max_tokens": 20, "bad_words": "", "stop_words": ""}'
+```
+
+```
+curl -X POST localhost:8000/v2/models/ensemble/generate -d '{"text_input": "Water + Fire = Steam\nEarth + Water = Plant\nHuman + Robe = Judge\nCow + Fire = Steak\nKing + Ocean = Poseidon\nComputer + Spy =", "max_tokens": 20, "bad_words": "", "stop_words": ""}'
+```
+
+```
+curl -s -X POST \
+  -H "Content-Type: application/json" \
+  -d $'{
+    "input": {
+        "prompt": "Water + Fire = Steam\nEarth + Water = Plant\nHuman + Robe = Judge\nCow + Fire = Steak\nKing + Ocean = Poseidon\nComputer + Spy ="
+    }
+  }' \
+  http://localhost:5000/predictions
+```
+
+```
+  curl -s -X POST \
+  -H "Content-Type: application/json" \
+  -d $'{
+    "input": {
+        "prompt": "Water + Fire = Steam\nEarth + Water = Plant\nHuman + Robe = Judge\nCow + Fire = Steak\nKing + Ocean = Poseidon\nComputer + Spy ="
+    }
+  }' \
+  http://localhost:5000/predictions
+```
+
+# Local Testing
+
+## Test cog performance
+
+The `mock_cog_triton` directory provides a mocked `cog-triton` server that emits tokens at a fixed rate. It also includes a performance test script that reports client side and server-side performance metrics.
+
+This should eventually be integrated into a test suite, but to maintain some visibility into performance continuity, we can run it manually and eyeball.
+
+To do this, start the `mock_cog_triton` cog server:
+```
+docker run --rm -it -p 5000:5000  --workdir /src  --net=host --volume $(pwd)/.:/src/. cog-triton bash -c "cd mock_cog_triton && python -m cog.server.http"
+```
+
+and execute the performance script:
+
+```
+python3 mock_cog_triton/test_perf.py  --unit batch --duration 10 --tps 100 --n_output_tokens 128 --output_method yield --rate 24
+```
+
+Expected output with these input parameters is shown below. Note that Single-stream TPS metrics are quite close to the server-side metrics.
+
+```
+------------------------------
+Test Configuration:
+------------------------------
+Output Method: yield
+Mode: batch
+Rate: 24.0 batch
+Duration: 60 seconds
+Output tokens: 128
+------------------------------
+Concurrency levels:
+Mode concurrency: 24
+Mean concurrency: 13.8055
+Median concurrency: 24.0
+Max concurrency: 24
+Min concurrency: 0
+------------------------------
+Statistics for completed predictions:
+------------------------------
+Single-stream TPS:
+SSTPS - Std: 1.498
+SSTPS - Median: 93.177
+SSTPS - Mean: 93.082
+SSTPS - Max: 96.346
+SSTPS - Min: 87.296
+------------------------------
+Latency - Std: 0.023 seconds
+Median response latency: 1.374 seconds
+Mean response latency: 1.375 seconds
+Max response latency: 1.466 seconds
+Min response latency: 1.329 seconds
+------------------------------
+Server-side metrics:
+------------------------------
+Server-side TPS
+--Expected mean: 100.000, Actual mean: 95.557
+--Expected std: 0.000, Actual std: 1.198
+--Expected median: 100.000, Actual median: 95.535
+--Expected min: 100.000, Actual min: 90.650
+--Expected max: 100.000, Actual max: 97.710
+Response Latency
+--Expected mean: 1.280, Actual mean: 1.340
+--Expected std: 0.000, Actual std: 0.018
+--Expected median: 1.280, Actual median: 1.340
+--Expected min: 1.280, Actual min: 1.310
+--Expected max: 1.280, Actual max: 1.410
+Time to First Token
+--Expected mean: 0.010, Actual mean: 0.010
+--Expected std: 0.000, Actual std: 0.000
+--Expected median: 0.010, Actual median: 0.010
+--Expected min: 0.010, Actual min: 0.010
+--Expected max: 0.010, Actual max: 0.010
+------------------------------
+Total requests made: 600
+Total requests started: 600
+Total requests completed: 600
+Failure rate: 0.000, Total failures: 0
+Cog already running prediction: 0
+E2E throughput: 9.988 rps
+```
