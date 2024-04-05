@@ -43,7 +43,8 @@ stdenv.mkDerivation (o: {
   buildInputs =
     [
       cudaPackages.cuda_nvcc
-      cudaPackages.cudnn
+      cudaPackages.cudnn.lib
+      cudaPackages.cudnn.dev
       cudaPackages.nccl
       openmpi
     ]
@@ -100,9 +101,11 @@ stdenv.mkDerivation (o: {
     "-DTRT_LIB_DIR=${pythonDrvs.tensorrt-libs.public}/${python3.sitePackages}/tensorrt_libs"
     "-DTRT_INCLUDE_DIR=${tensorrt-src}/include"
     "-DCMAKE_CUDA_ARCHITECTURES=${builtins.concatStringsSep ";" architectures}"
-    # "-DCUDAToolkit_INCLUDE_DIR=${cudaPackages.cuda_cudart}/include"
+    # todo: merge include paths for cuda_cudart, cublas manually
+    # otherwise the build pulls in Qt
     "-DCUDAToolkit_INCLUDE_DIR=${cudaPackages.cudatoolkit}/include"
-    "-DCMAKE_SKIP_BUILD_RPATH=ON" # todo test without this, might fail /build check
+    #  "-DCUDAToolkit_INCLUDE_DIR=${cudaPackages.cuda_cudart}/include"
+    # "-DFAST_BUILD=ON"
   ];
   postBuild = lib.optionalString withPython ''
     pushd ../../
@@ -118,17 +121,26 @@ stdenv.mkDerivation (o: {
     popd
   '';
   # todo pythonOutputDistHook
+  # Install isn't well-defined, -backend just expects the build directory to exist somewhere.
+  # Since we just copy build outputs, cmake doesn't get a chance to relink with the correct rpath.
+  # sed the rpath in place manually
+  # Also, libtensorrt_llm.so _sometimes_ wants libcudnn, so --add-needed to prevent it from being shrunk out
   installPhase =
     ''
       mkdir -p $out
       cp -r $src/cpp $out/
+      # rm -rf $out/cpp/tensorrt_llm/kernels
       chmod -R u+w $out/cpp
       mkdir -p $out/cpp/build/tensorrt_llm/plugins
       pushd tensorrt_llm
       cp ./libtensorrt_llm.so $out/cpp/build/tensorrt_llm/
+      patchelf --add-needed 'libcudnn.so.8' $out/cpp/build/tensorrt_llm/libtensorrt_llm.so
       cp ./plugins/libnvinfer_plugin_tensorrt_llm.so* $out/cpp/build/tensorrt_llm/plugins/
       for f in $out/cpp/build/tensorrt_llm/plugins/*.so*; do
-        patchelf --add-rpath '$ORIGIN/..' $f
+        if [ ! -L "$f" ]; then
+          new_path=$(patchelf --print-rpath "$f" | sed 's#/build/source/cpp/build/tensorrt_llm#$ORIGIN/..#')
+          patchelf --set-rpath "$new_path" "$f"
+        fi
       done
       popd
     ''

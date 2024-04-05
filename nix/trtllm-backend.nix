@@ -45,8 +45,6 @@ let
   trt_lib_dir = "${pythonDrvs.tensorrt-libs.public}/${sitePackages}/tensorrt_libs";
   # this package wants gcc12
   oldGccStdenv = stdenvAdapters.useLibsFrom stdenv gcc12Stdenv;
-  # todo don't mix this and cudaPkgs.cudnn:
-  cudnn = "${pythonDrvs.nvidia-cudnn-cu12.public}/${sitePackages}/nvidia/cudnn";
 in
 oldGccStdenv.mkDerivation rec {
   pname = "tensorrtllm_backend";
@@ -85,10 +83,8 @@ oldGccStdenv.mkDerivation rec {
     "-DCUDAToolkit_INCLUDE_DIR=${cudaPackages.cuda_cudart}/include"
   ];
   # buildInputs = [ tensorrt-llm ];
-  # todo I think tensorrt_llm.so itself should have the cudnn dep
   postFixup = ''
     patchelf $out/backends/tensorrtllm/libtriton_tensorrtllm.so \
-      --add-rpath ${trt_lib_dir}:${tensorrt-llm}/cpp/build/tensorrt_llm:${tensorrt-llm}/cpp/build/tensorrt_llm/plugins:${cudnn}/lib \
-      --add-needed libcudnn.so.8
+      --add-rpath ${trt_lib_dir}:${tensorrt-llm}/cpp/build/tensorrt_llm:${tensorrt-llm}/cpp/build/tensorrt_llm/plugins
   '';
 }

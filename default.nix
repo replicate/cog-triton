@@ -91,6 +91,24 @@ in
         hash = "sha256-LWntNtgfPB9mvusmEVg8bxFzUlQAuIeeMytGOZcNdz4=";
       };
     };
+    nvidia-cublas-cu12.mkDerivation.postInstall = ''
+      pushd $out/${python3.sitePackages}/nvidia/cublas/lib
+      for f in ./*.so.12; do
+        chmod +w "$f"
+        rm $f
+        ln -s ${cudaPackages.libcublas.lib}/lib/$f ./$f
+      done
+      popd
+    '';
+    nvidia-cudnn-cu12.mkDerivation.postInstall = ''
+      pushd $out/${python3.sitePackages}/nvidia/cudnn/lib
+      for f in ./*.so.8; do
+        chmod +w "$f"
+        rm $f
+        ln -s ${cudaPackages.cudnn.lib}/lib/$f ./$f
+      done
+      popd
+    '';
   };
   # TODO: open-source, switch to fetchFromGitHub
   deps.cog-trt-llm = builtins.fetchGit {
