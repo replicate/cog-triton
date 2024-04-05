@@ -36,10 +36,9 @@ in
     system_packages = [ "pget" "openssh" "openmpi" ];
   };
   cognix.includeNix = true;
-  # limit to runner image
-  python-env.pip.rootDependencies = lib.mkIf cfg.runnerOnly (lib.mkForce (lib.genAttrs [
-    "cog" "nvidia-pytriton" "transformers"
-  ] (x: true)));
+  # allow taking subsets of the above python_packages
+  python-env.pip.rootDependencies = lib.mkIf (config.cog-triton.rootDependencies != null)
+    (lib.mkForce (lib.genAttrs ([ "cog" ] ++ cfg.rootDependencies) (x: true)));
   python-env.pip.drvs = {
     # tensorrt likes doing a pip invocation from it's setup.py
     # circumvent by manually depending on tensorrt_libs, tensorrt_bindings

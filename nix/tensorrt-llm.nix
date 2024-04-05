@@ -2,6 +2,7 @@
   stdenv,
   cmake,
   ninja,
+  runCommand,
   cudaPackages,
   lib,
   fetchFromGitHub,
@@ -13,13 +14,13 @@
   pybind11-stubgen ? null,
   withPython ? true,
 }:
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (o: {
   pname = "tensorrt_llm";
   version = "0.8.0";
   src = fetchFromGitHub {
     owner = "NVIDIA";
     repo = "TensorRT-LLM";
-    rev = "v${version}";
+    rev = "v${o.version}";
     fetchSubmodules = true;
     fetchLFS = true; # libtensorrt_llm_batch_manager_static.a
     hash = "sha256-10wSFhtMGqqCigG5kOBuegptQJymvpO7xCFtgmOOn+k=";
@@ -140,4 +141,8 @@ stdenv.mkDerivation rec {
   postFixup = lib.optionalString withPython ''
     mv $out/nix-support $python/
   '';
-}
+  passthru.examples = runCommand "trt-examples" {} ''
+    mkdir $out
+    cp -r ${o.src}/examples $out/examples
+  '';
+})
