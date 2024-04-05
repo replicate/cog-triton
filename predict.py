@@ -5,6 +5,7 @@ import subprocess
 import httpx
 from cog import BasePredictor, ConcatenateIterator, Input
 import time
+import json
 
 from sse import receive_sse
 from triton_config_generator import generate_configs, load_yaml_config
@@ -57,6 +58,19 @@ class Predictor(BasePredictor):
             )
 
         self.tokenizer = AutoTokenizer.from_pretrained(engine_dir)
+
+        with open(f"{engine_dir}/config.json", "r") as f:
+            self.trt_llm_config = config = json.load(f)
+            print(f"tensorrt_llm config: {config}")
+
+        if os.getenv("MAX_SEQUENCE_LENGTH", None):
+            self.max_sequence_length = int(os.getenv("MAX_SEQUENCE_LENGTH"))
+        else:
+            try:
+                self.max_sequence_length = self.trt_llm_config["pretrained_config"]["max_position_embeddings"]
+            except KeyError:
+                self.log("`max_seq_len` not found in ENV and not found in `config.json. Not enforcing `max_seq_len`.")
+        
 
         # if engine_dir is empty, stop here
         if not os.listdir(engine_dir):
@@ -291,6 +305,13 @@ class Predictor(BasePredictor):
         if not seed:
             seed = int(np.random.randint(0, 100000))
 
+        n_prompt_tokens = self._get_n_tokens(prompt)
+
+        if self.max_sequence_length:
+            token_budget = self.max_sequence_length - n_prompt_tokens
+            max_new_tokens = min(max_new_tokens, token_budget)
+            min_new_tokens = min(min_new_tokens, token_budget)
+
         args = {
             "text_input": prompt,
             "max_tokens": max_new_tokens,
@@ -322,3 +343,6 @@ class Predictor(BasePredictor):
             return formatted_prompt
         formatted_prompt = prompt_template.format(prompt=prompt)
         return formatted_prompt
+
+    def _get_n_tokens(self, text: str) -> int:
+        return len(self.tokenizer(text)["input_ids"])
