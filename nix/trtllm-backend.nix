@@ -64,8 +64,13 @@ oldGccStdenv.mkDerivation rec {
   ];
   buildInputs = [
     rapidjson
-    cudaPackages.cudatoolkit
     openmpi
+
+    # if this stops working, replace with cudaPackages.cudaToolkit
+    cudaPackages.cuda_nvcc
+    cudaPackages.cuda_cudart
+    cudaPackages.cuda_cccl
+    cudaPackages.libcublas
   ];
   sourceRoot = "source/inflight_batcher_llm";
   cmakeFlags = [
@@ -77,13 +82,13 @@ oldGccStdenv.mkDerivation rec {
     "-DTRT_LIB_DIR=${trt_lib_dir}"
     "-DTRT_INCLUDE_DIR=${tensorrt-src}/include"
     "-DTRTLLM_DIR=${tensorrt-llm}"
+    "-DCUDAToolkit_INCLUDE_DIR=${cudaPackages.cuda_cudart}/include"
   ];
   # buildInputs = [ tensorrt-llm ];
-  # linking to stubs/libtritonserver.so is maybe a bit shady
-  # $out/lib/stubs
-  # todo fix that hash
   # todo I think tensorrt_llm.so itself should have the cudnn dep
   postFixup = ''
-    patchelf $out/backends/tensorrtllm/libtriton_tensorrtllm.so --add-rpath ${trt_lib_dir}:${tensorrt-llm}/cpp/build/tensorrt_llm:${tensorrt-llm}/cpp/build/tensorrt_llm/plugins:${cudnn}/lib --replace-needed libtritonserver.so libtritonserver-90a4cf82.so --add-needed libcudnn.so.8
+    patchelf $out/backends/tensorrtllm/libtriton_tensorrtllm.so \
+      --add-rpath ${trt_lib_dir}:${tensorrt-llm}/cpp/build/tensorrt_llm:${tensorrt-llm}/cpp/build/tensorrt_llm/plugins:${cudnn}/lib \
+      --add-needed libcudnn.so.8
   '';
 }

@@ -75,6 +75,9 @@ in
     # has some binaries that want cudart
     tritonclient.mkDerivation.postInstall = "rm -r $out/bin";
     nvidia-pytriton.mkDerivation.postInstall = ''
+      pushd $out/${site}/nvidia_pytriton.libs
+      ln -s libtritonserver-*.so libtritonserver.so
+      popd
       pushd $out/${site}/pytriton/tritonserver
       mv python_backend_stubs/${python3.pythonVersion}/triton_python_backend_stub backends/python/
       rm -r python_backend_stubs/
