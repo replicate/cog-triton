@@ -59,16 +59,16 @@ oldGccStdenv.mkDerivation rec {
     cmake
     ninja
     python3
+    cudaPackages.cuda_nvcc
   ];
   buildInputs = [
     rapidjson
     openmpi
 
-    # if this stops working, replace with cudaPackages.cudaToolkit
-    cudaPackages.cuda_nvcc
     cudaPackages.cuda_cudart
     cudaPackages.cuda_cccl
-    cudaPackages.libcublas
+    cudaPackages.libcublas.lib
+    cudaPackages.libcublas.dev
   ];
   sourceRoot = "source/inflight_batcher_llm";
   cmakeFlags = [
@@ -80,7 +80,6 @@ oldGccStdenv.mkDerivation rec {
     "-DTRT_LIB_DIR=${trt_lib_dir}"
     "-DTRT_INCLUDE_DIR=${tensorrt-src}/include"
     "-DTRTLLM_DIR=${tensorrt-llm}"
-    "-DCUDAToolkit_INCLUDE_DIR=${cudaPackages.cuda_cudart}/include"
   ];
   # buildInputs = [ tensorrt-llm ];
   postFixup = ''

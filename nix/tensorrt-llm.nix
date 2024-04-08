@@ -39,10 +39,10 @@ stdenv.mkDerivation (o: {
     cmake
     ninja
     python3
+    cudaPackages.cuda_nvcc
   ];
   buildInputs =
     [
-      cudaPackages.cuda_nvcc
       cudaPackages.cudnn.lib
       cudaPackages.cudnn.dev
       cudaPackages.nccl
@@ -54,6 +54,9 @@ stdenv.mkDerivation (o: {
       cudaPackages.cuda_nvcc.dev
       cudaPackages.cuda_cccl
       cudaPackages.libcublas.lib
+      cudaPackages.libcublas.dev
+      cudaPackages.libcurand.dev
+      cudaPackages.cuda_profiler_api
     ])
     ++ (lib.optionals withPython [
       cudaPackages.cudatoolkit
@@ -101,10 +104,6 @@ stdenv.mkDerivation (o: {
     "-DTRT_LIB_DIR=${pythonDrvs.tensorrt-libs.public}/${python3.sitePackages}/tensorrt_libs"
     "-DTRT_INCLUDE_DIR=${tensorrt-src}/include"
     "-DCMAKE_CUDA_ARCHITECTURES=${builtins.concatStringsSep ";" architectures}"
-    # todo: merge include paths for cuda_cudart, cublas manually
-    # otherwise the build pulls in Qt
-    "-DCUDAToolkit_INCLUDE_DIR=${cudaPackages.cudatoolkit}/include"
-    #  "-DCUDAToolkit_INCLUDE_DIR=${cudaPackages.cuda_cudart}/include"
     # "-DFAST_BUILD=ON"
   ];
   postBuild = lib.optionalString withPython ''
