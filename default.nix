@@ -74,9 +74,12 @@ in
     };
     # has some binaries that want cudart
     tritonclient.mkDerivation.postInstall = "rm -r $out/bin";
+    # replace libtritonserver-90a4cf82.so with libtritonserver.so
+    # so backends don't have to know about the hash
     nvidia-pytriton.mkDerivation.postInstall = ''
       pushd $out/${site}/nvidia_pytriton.libs
       ln -s libtritonserver-*.so libtritonserver.so
+      patchelf --replace-needed libtritonserver-*.so libtritonserver.so $out/${python3.sitePackages}/pytriton/tritonserver/bin/tritonserver
       popd
       pushd $out/${site}/pytriton/tritonserver
       mv python_backend_stubs/${python3.pythonVersion}/triton_python_backend_stub backends/python/
