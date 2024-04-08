@@ -13,6 +13,7 @@
   pythonDrvs,
   pybind11-stubgen ? null,
   withPython ? true,
+  rsync,
 }:
 stdenv.mkDerivation (o: {
   pname = "tensorrt_llm";
@@ -127,8 +128,7 @@ stdenv.mkDerivation (o: {
   installPhase =
     ''
       mkdir -p $out
-      cp -r $src/cpp $out/
-      # rm -rf $out/cpp/tensorrt_llm/kernels
+      ${rsync}/bin/rsync -a --exclude "tensorrt_llm/kernels" $src/cpp $out/
       chmod -R u+w $out/cpp
       mkdir -p $out/cpp/build/tensorrt_llm/plugins
       pushd tensorrt_llm
