@@ -4,9 +4,15 @@ import os
 import subprocess
 import httpx
 from cog import BasePredictor, ConcatenateIterator, Input
+import time
+import json
 
 from sse import receive_sse
 from triton_config_generator import generate_configs, load_yaml_config
+
+import pytriton.utils.distribution
+
+TRITONSERVER_DIST_DIR = pytriton.utils.distribution.get_root_module_path() / "tritonserver"
 
 import numpy as np
 
@@ -15,9 +21,13 @@ from utils import (
     StreamingTokenStopSequenceHandler,
 )
 
+from transformers import AutoTokenizer
 
 class Predictor(BasePredictor):
     async def setup(self, weights: str = "") -> None:
+        self.log_performance_metrics = bool(os.getenv("LOG_PERFORMANCE_METRICS", False))
+
+        
         COG_TRITON_CONFIG = os.getenv("COG_TRITON_CONFIG", "config.yaml")
         if not os.path.exists(COG_TRITON_CONFIG):
             print(f"Config file {COG_TRITON_CONFIG} not found. Defaults will be used.")
@@ -34,6 +44,7 @@ class Predictor(BasePredictor):
         engine_dir = os.environ.get(
             "ENGINE_DIR", "/src/triton_model_repo/tensorrt_llm/1/"
         )
+        
 
         self.system_prompt_exists = os.getenv("SYSTEM_PROMPT", None)
         self.end_id = os.getenv("END_ID", 2)
@@ -45,6 +56,21 @@ class Predictor(BasePredictor):
                 url=weights,
                 dest=engine_dir,
             )
+
+        self.tokenizer = AutoTokenizer.from_pretrained(engine_dir)
+
+        with open(f"{engine_dir}/config.json", "r") as f:
+            self.trt_llm_config = config = json.load(f)
+            print(f"tensorrt_llm config: {config}")
+
+        if os.getenv("MAX_SEQUENCE_LENGTH", None):
+            self.max_sequence_length = int(os.getenv("MAX_SEQUENCE_LENGTH"))
+        else:
+            try:
+                self.max_sequence_length = self.trt_llm_config["pretrained_config"]["max_position_embeddings"]
+            except KeyError:
+                self.log("`max_seq_len` not found in ENV and not found in `config.json. Not enforcing `max_seq_len`.")
+        
 
         # if engine_dir is empty, stop here
         if not os.listdir(engine_dir):
@@ -61,18 +87,22 @@ class Predictor(BasePredictor):
     async def start_triton(self) -> None:
         # # launch triton server
         # # python3 scripts/launch_triton_server.py --world_size=1 --model_repo=/src/tensorrtllm_backend/triton_model
-        world_size = os.getenv("WORLD_SIZE", "1")
+        world_size = int(os.getenv("WORLD_SIZE", "1"))
         print("Starting Triton")
-        self.proc = subprocess.Popen(
-            [
-                "python3",
-                "/src/launch_triton_server.py",
-                f"--world_size={world_size}",
-                "--log",
-                "--model_repo=/src/triton_model_repo",
-            ],
-            close_fds=False,
-        )
+        cmd = ['mpirun', '--allow-run-as-root']
+        for i in range(world_size):
+            cmd += [
+                "-n", "1",
+                str(TRITONSERVER_DIST_DIR / "bin" / "tritonserver"),
+                "--backend-dir", str(TRITONSERVER_DIST_DIR / "backends"),
+                #"--log-verbose=3", "--log-file=triton_log.txt",
+                "--model-repository", "/src/triton_model_repo",
+                f"--backend-config=python,shm-region-prefix-name=prefix{i}_"
+            ]
+            if i != 0:
+                cmd += [ "--model-control-mode=explicit", "--load-model=tensorrt_llm" ]
+            cmd += [ ":" ]
+        self.proc = subprocess.Popen(cmd)
         # Health check Triton until it is ready or for 3 minutes
         for i in range(180):
             try:
@@ -175,7 +205,7 @@ class Predictor(BasePredictor):
 
         req = self.client.stream(
             "POST",
-            "http://localhost:8000/v2/models/tensorrt_llm_bls/generate_stream",
+            "http://localhost:8000/v2/models/ensemble/generate_stream",
             json=args,
         )
 
@@ -185,14 +215,25 @@ class Predictor(BasePredictor):
             stop_sequences=args["stop_words"]
         )
 
+        start_time = time.time()
+        n_tokens = 0
+        tokens = np.array([], dtype=np.int32)
+
         async with req as resp:
             async for event in receive_sse(resp):
                 # Output is the _entire_ sequence, from the beginning
                 try:
-                    output = event.json()["text_output"]
+                    token = event.json()["output_ids"]
                 # this check can be removed once we identify the cause of KeyError
                 except Exception as e:
                     raise Exception(f"error with event {event}") from e
+                
+                n_tokens += 1
+                if n_tokens == 1:
+                    first_token_time = time.time()
+                
+                tokens = np.append(tokens, token)
+                output = self.tokenizer.decode(tokens, skip_special_tokens=True)
                 # Catches partial emojis, waits for them to finish
                 output = output.replace("\N{Replacement Character}", "")
                 # Remove the tokens that were already yielded
@@ -213,6 +254,22 @@ class Predictor(BasePredictor):
             current_output = stop_sequence_handler.finalize()
             if current_output:
                 yield current_output
+        
+        end_time = time.time()
+        if self.log_performance_metrics:
+            latency = end_time - start_time
+            actual_tps = n_tokens / latency
+            time_to_first_token = first_token_time - start_time
+            self.log(f"Tokens processed: {n_tokens}\n")
+            self.log(f"Serverside tokens per second: {round(actual_tps, 2)}\n")
+            self.log(f"Serverside execution time: {round(latency, 2)} seconds\n")
+            self.log(f"Serverside time to first token: {round(time_to_first_token, 2)} seconds\n")
+
+        self.log(f"Random seed used: `{args['random_seed']}`\n")
+        self.log(
+            "Note: Random seed will not impact output if greedy decoding is used.\n"
+        )
+        self.log(f"Formatted prompt: `{formatted_prompt}`")
 
         self.log(f"Random seed used: `{args['random_seed']}`\n")
         self.log(
@@ -248,6 +305,13 @@ class Predictor(BasePredictor):
         if not seed:
             seed = int(np.random.randint(0, 100000))
 
+        n_prompt_tokens = self._get_n_tokens(prompt)
+
+        if self.max_sequence_length:
+            token_budget = self.max_sequence_length - n_prompt_tokens
+            max_new_tokens = min(max_new_tokens, token_budget)
+            min_new_tokens = min(min_new_tokens, token_budget)
+
         args = {
             "text_input": prompt,
             "max_tokens": max_new_tokens,
@@ -279,3 +343,6 @@ class Predictor(BasePredictor):
             return formatted_prompt
         formatted_prompt = prompt_template.format(prompt=prompt)
         return formatted_prompt
+
+    def _get_n_tokens(self, text: str) -> int:
+        return len(self.tokenizer(text)["input_ids"])
