@@ -1,0 +1,20 @@
+name: "CI build"
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest-8-cores
+    steps:
+    - uses: actions/checkout@v4
+    - uses: DeterminateSystems/nix-installer-action@v10
+    - name: Setup Attic cache
+      uses: ryanccn/attic-action@v0
+      with:
+        endpoint: ${{ secrets.ATTIC_ENDPOINT }}
+        cache: ${{ secrets.ATTIC_CACHE }}
+        token: ${{ secrets.ATTIC_TOKEN }}
+    - run: nix build --accept-flake-config .#cog-triton-builder -o cog-triton-builder
+    - run: nix build --accept-flake-config .#cog-triton-runner-86 -o cog-triton-runner-86
+    - run: nix build --accept-flake-config .#cog-triton-runner-80 -o cog-triton-runner-80
+    - run: nix build --accept-flake-config .#cog-triton-runner-90 -o cog-triton-runner-90
