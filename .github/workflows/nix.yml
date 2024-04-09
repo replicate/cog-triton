@@ -14,7 +14,14 @@ jobs:
         endpoint: ${{ secrets.ATTIC_ENDPOINT }}
         cache: replicate
         token: ${{ secrets.ATTIC_TOKEN }}
-    # - run: nix build --accept-flake-config .#cog-triton-builder -o cog-triton-builder
+    - name: Get ssh key from secret
+      env:
+        GIT_SSH_KEY: ${{ secrets.GIT_SSH_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        cat > ~/.ssh/id_ed25519 <<< "$GIT_SSH_KEY"
+        chmod 0600 ~/.ssh/id_ed25519
+    - run: nix build --accept-flake-config .#cog-triton-builder -o cog-triton-builder
     - run: nix build --accept-flake-config .#cog-triton-runner-86 -o cog-triton-runner-86
     - run: nix build --accept-flake-config .#cog-triton-runner-80 -o cog-triton-runner-80
     - run: nix build --accept-flake-config .#cog-triton-runner-90 -o cog-triton-runner-90
