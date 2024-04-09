@@ -12,9 +12,9 @@ jobs:
       uses: ryanccn/attic-action@v0
       with:
         endpoint: ${{ secrets.ATTIC_ENDPOINT }}
-        cache: ${{ secrets.ATTIC_CACHE }}
+        cache: replicate
         token: ${{ secrets.ATTIC_TOKEN }}
-    - run: nix build --accept-flake-config .#cog-triton-builder -o cog-triton-builder
+    # - run: nix build --accept-flake-config .#cog-triton-builder -o cog-triton-builder
     - run: nix build --accept-flake-config .#cog-triton-runner-86 -o cog-triton-runner-86
     - run: nix build --accept-flake-config .#cog-triton-runner-80 -o cog-triton-runner-80
     - run: nix build --accept-flake-config .#cog-triton-runner-90 -o cog-triton-runner-90
