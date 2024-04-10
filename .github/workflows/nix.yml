@@ -34,3 +34,4 @@ jobs:
     - run: nix build --accept-flake-config .#cog-triton-runner-86 -o cog-triton-runner-86
     - run: nix build --accept-flake-config .#cog-triton-runner-80 -o cog-triton-runner-80
     - run: nix build --accept-flake-config .#cog-triton-runner-90 -o cog-triton-runner-90
+    - run: nix path-info --closure-size --human-readable ./cog-triton-*
