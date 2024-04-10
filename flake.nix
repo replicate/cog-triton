@@ -1,7 +1,7 @@
 {
   nixConfig = {
-    extra-trusted-public-keys = "replicate:+uoDlJCmq7Z6lxxacj4tSgsNa24qHqTZTiyRX2CDhsA=";
-    extra-substituters = "https://cache.yori.cc/replicate";
+    extra-trusted-public-keys = "replicate-1:rbU0MI8kgUmqLINtKfXoDkrl9NxXQMw6//+LHHDYflk=";
+    extra-substituters = "https://storage.googleapis.com/replicate-nix-cache-dev/";
   };
   inputs = {
     cognix.url = "github:datakami/cognix";

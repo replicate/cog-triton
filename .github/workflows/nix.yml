@@ -5,15 +5,24 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest-8-cores
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     steps:
     - uses: actions/checkout@v4
     - uses: DeterminateSystems/nix-installer-action@v10
-    - name: Setup Attic cache
-      uses: ryanccn/attic-action@v0
+    - name: Authenticate to Google Cloud Platform
+      uses: google-github-actions/auth@v2
       with:
-        endpoint: ${{ secrets.ATTIC_ENDPOINT }}
-        cache: replicate
-        token: ${{ secrets.ATTIC_TOKEN }}
+        project_id: yorick-dev-416917
+        workload_identity_provider: projects/752785843927/locations/global/workloadIdentityPools/github/providers/github-actions-workload-prvdr
+        service_account: github-actions-service-account@yorick-dev-416917.iam.gserviceaccount.com
+    - name: Set up cache
+      uses: zombiezen/setup-nix-cache-action@v0.3.2
+      with:
+        substituters: gs://replicate-nix-cache-dev
+        secret_keys: ${{ secrets.NIX_PRIVATE_KEY }}
+        use_nixcached: true
     - name: Get ssh key from secret
       env:
         GIT_SSH_KEY: ${{ secrets.GIT_SSH_KEY }}
