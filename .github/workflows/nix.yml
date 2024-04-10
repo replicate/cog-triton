@@ -35,3 +35,11 @@ jobs:
     - run: nix build --accept-flake-config .#cog-triton-runner-80 -o cog-triton-runner-80
     - run: nix build --accept-flake-config .#cog-triton-runner-90 -o cog-triton-runner-90
     - run: nix path-info --closure-size --human-readable ./cog-triton-*
+    - name: Push to replicate
+      env:
+        COG_TOKEN: ${{ secrets.COG_TOKEN }}
+      run: |
+        ./cog-triton-builder push r8.im/replicate-internal/cog-triton-ci
+        ./cog-triton-runner-86 push r8.im/replicate-internal/cog-triton-ci
+        ./cog-triton-runner-80 push r8.im/replicate-internal/cog-triton-ci
+        ./cog-triton-runner-90 push r8.im/replicate-internal/cog-triton-ci
