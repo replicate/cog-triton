@@ -154,7 +154,7 @@ $ cd cog-triton
 
 
 ```console
-$ nix build .#packages.x86_64-linux.cog-triton-builder && ./result | docker load
+$ nix build .#packages.x86_64-linux.cog-triton-builder && ./result load
 [...]
 Loaded image: cog-triton-builder:1hz2v478b382h6qqwdgxivqqb2bm1kad
 ```
@@ -163,7 +163,7 @@ This command will eventually output the image id loaded into the local docker da
 4. Build cog-triton-runner-86 (runner)
 
 ```console
-$ nix build .#packages.x86_64-linux.cog-triton-runner-86 && ./result | docker load
+$ nix build .#packages.x86_64-linux.cog-triton-runner-86 && ./result load
 [..]
 Loaded image: cog-triton-runner-86:zknc2pj8kx9kmmicmjmswd2yj343lpd1
 ```
