@@ -74,7 +74,13 @@ in
     };
     # has some binaries that want cudart
     tritonclient.mkDerivation.postInstall = "rm -r $out/bin";
+    # replace libtritonserver-90a4cf82.so with libtritonserver.so
+    # so backends don't have to know about the hash
     nvidia-pytriton.mkDerivation.postInstall = ''
+      pushd $out/${site}/nvidia_pytriton.libs
+      ln -s libtritonserver-*.so libtritonserver.so
+      patchelf --replace-needed libtritonserver-*.so libtritonserver.so $out/${python3.sitePackages}/pytriton/tritonserver/bin/tritonserver
+      popd
       pushd $out/${site}/pytriton/tritonserver
       mv python_backend_stubs/${python3.pythonVersion}/triton_python_backend_stub backends/python/
       rm -r python_backend_stubs/
@@ -88,6 +94,24 @@ in
         hash = "sha256-LWntNtgfPB9mvusmEVg8bxFzUlQAuIeeMytGOZcNdz4=";
       };
     };
+    nvidia-cublas-cu12.mkDerivation.postInstall = ''
+      pushd $out/${python3.sitePackages}/nvidia/cublas/lib
+      for f in ./*.so.12; do
+        chmod +w "$f"
+        rm $f
+        ln -s ${cudaPackages.libcublas.lib}/lib/$f ./$f
+      done
+      popd
+    '';
+    nvidia-cudnn-cu12.mkDerivation.postInstall = ''
+      pushd $out/${python3.sitePackages}/nvidia/cudnn/lib
+      for f in ./*.so.8; do
+        chmod +w "$f"
+        rm $f
+        ln -s ${cudaPackages.cudnn.lib}/lib/$f ./$f
+      done
+      popd
+    '';
   };
   # TODO: open-source, switch to fetchFromGitHub
   deps.cog-trt-llm = builtins.fetchGit {

@@ -45,8 +45,6 @@ let
   trt_lib_dir = "${pythonDrvs.tensorrt-libs.public}/${sitePackages}/tensorrt_libs";
   # this package wants gcc12
   oldGccStdenv = stdenvAdapters.useLibsFrom stdenv gcc12Stdenv;
-  # todo don't mix this and cudaPkgs.cudnn:
-  cudnn = "${pythonDrvs.nvidia-cudnn-cu12.public}/${sitePackages}/nvidia/cudnn";
 in
 oldGccStdenv.mkDerivation rec {
   pname = "tensorrtllm_backend";
@@ -61,11 +59,16 @@ oldGccStdenv.mkDerivation rec {
     cmake
     ninja
     python3
+    cudaPackages.cuda_nvcc
   ];
   buildInputs = [
     rapidjson
-    cudaPackages.cudatoolkit
     openmpi
+
+    cudaPackages.cuda_cudart
+    cudaPackages.cuda_cccl
+    cudaPackages.libcublas.lib
+    cudaPackages.libcublas.dev
   ];
   sourceRoot = "source/inflight_batcher_llm";
   cmakeFlags = [
@@ -79,11 +82,8 @@ oldGccStdenv.mkDerivation rec {
     "-DTRTLLM_DIR=${tensorrt-llm}"
   ];
   # buildInputs = [ tensorrt-llm ];
-  # linking to stubs/libtritonserver.so is maybe a bit shady
-  # $out/lib/stubs
-  # todo fix that hash
-  # todo I think tensorrt_llm.so itself should have the cudnn dep
   postFixup = ''
-    patchelf $out/backends/tensorrtllm/libtriton_tensorrtllm.so --add-rpath ${trt_lib_dir}:${tensorrt-llm}/cpp/build/tensorrt_llm:${tensorrt-llm}/cpp/build/tensorrt_llm/plugins:${cudnn}/lib --replace-needed libtritonserver.so libtritonserver-90a4cf82.so --add-needed libcudnn.so.8
+    patchelf $out/backends/tensorrtllm/libtriton_tensorrtllm.so \
+      --add-rpath ${trt_lib_dir}:${tensorrt-llm}/cpp/build/tensorrt_llm:${tensorrt-llm}/cpp/build/tensorrt_llm/plugins
   '';
 }
