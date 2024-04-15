@@ -82,9 +82,19 @@ oldGccStdenv.mkDerivation rec {
     "-DTRT_INCLUDE_DIR=${tensorrt-src}/include"
     "-DTRTLLM_DIR=${tensorrt-llm}"
   ];
+  postInstall = ''
+    mkdir -p $out/backends/tensorrtllm
+    cp libtriton_*.so triton_tensorrtllm_worker $out/backends/tensorrtllm
+    rm -r /build/source/inflight_batcher_llm/build/_deps/repo-core-build
+    rm -r /build/source/inflight_batcher_llm/build/libtriton_tensorrtllm_common.so
+  '';
   # buildInputs = [ tensorrt-llm ];
   postFixup = ''
     patchelf $out/backends/tensorrtllm/libtriton_tensorrtllm.so \
-      --add-rpath ${trt_lib_dir}:${tensorrt-llm}/cpp/build/tensorrt_llm:${tensorrt-llm}/cpp/build/tensorrt_llm/plugins
+      --add-rpath '$ORIGIN:${trt_lib_dir}:${tensorrt-llm}/cpp/build/tensorrt_llm:${tensorrt-llm}/cpp/build/tensorrt_llm/plugins:${cudaPackages.cudnn.lib}/lib'
+    patchelf $out/backends/tensorrtllm/libtriton_tensorrtllm_common.so \
+      --add-rpath '$ORIGIN:${trt_lib_dir}:${tensorrt-llm}/cpp/build/tensorrt_llm:${tensorrt-llm}/cpp/build/tensorrt_llm/plugins:${cudaPackages.cudnn.lib}/lib'
+    patchelf $out/backends/tensorrtllm/triton_tensorrtllm_worker \
+      --add-rpath '$ORIGIN:${trt_lib_dir}:${tensorrt-llm}/cpp/build/tensorrt_llm:${tensorrt-llm}/cpp/build/tensorrt_llm/plugins:${cudaPackages.cudnn.lib}/lib'
   '';
 }
