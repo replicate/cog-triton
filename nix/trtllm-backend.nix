@@ -28,6 +28,7 @@ let
     rev = "a06e9a1157d6b5b9b34b6d05a07bb84d517f17c9";
     hash = "sha256-Ju2zV/jHUuciTs6GbkqcPG8U0y2lkIWSdAsX78DrpV4=";
   };
+  # todo: update with trt-llm 0.9?
   deps.triton_repo_core = fetchFromGitHub {
     owner = "triton-inference-server";
     repo = "core";
@@ -48,12 +49,12 @@ let
 in
 oldGccStdenv.mkDerivation rec {
   pname = "tensorrtllm_backend";
-  version = "0.8.0";
+  version = "0.9.0";
   src = fetchFromGitHub {
     owner = "triton-inference-server";
     repo = "tensorrtllm_backend";
     rev = "v${version}";
-    hash = "sha256-5t8ByQxzfF4Td4HfnOYioVxJfZxOX2TV8a5Qg6YDmSQ=";
+    hash = "sha256-aNjVYu7sDrIj/lse/wS3vYaR/vmjtZfxzBWYi3z3KqQ=";
   };
   nativeBuildInputs = [
     cmake

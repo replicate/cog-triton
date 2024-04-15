@@ -17,14 +17,14 @@
 }:
 stdenv.mkDerivation (o: {
   pname = "tensorrt_llm";
-  version = "0.8.0";
+  version = "0.9.0.dev2024040900";
   src = fetchFromGitHub {
     owner = "NVIDIA";
     repo = "TensorRT-LLM";
-    rev = "v${o.version}";
+    rev = "035b99e0d09d4f2dfdb949810cf7245112aa4165";
     fetchSubmodules = true;
     fetchLFS = true; # libtensorrt_llm_batch_manager_static.a
-    hash = "sha256-10wSFhtMGqqCigG5kOBuegptQJymvpO7xCFtgmOOn+k=";
+    hash = "sha256-dQeJ2unwLhlWANwdFzv5Pl8zj279uOoV76fr5/BNfgI=";
   };
   outputs =
     if withPython then
@@ -48,6 +48,7 @@ stdenv.mkDerivation (o: {
       cudaPackages.cudnn.dev
       cudaPackages.nccl
       openmpi
+      python3.pkgs.setuptools
     ]
     ++ (lib.optionals (!withPython) [
       # torch hates the split cuda, so only do it without torch
@@ -62,7 +63,6 @@ stdenv.mkDerivation (o: {
     ++ (lib.optionals withPython [
       cudaPackages.cudatoolkit
       python3.pkgs.pybind11
-      python3.pkgs.setuptools
       python3.pkgs.wheel
       python3.pkgs.pip
       pybind11-stubgen
@@ -96,6 +96,13 @@ stdenv.mkDerivation (o: {
       janus
     ]
   );
+  # tries to run cutlass's `python setup.py develop`
+  PYTHONUSERBASE = "/tmp/python";
+  preConfigure = ''
+    mkdir -p $PYTHONUSERBASE
+    chmod -R +w ../3rdparty/cutlass/python
+    export PYTHONPATH=$PYTHONPATH:$src/3rdparty/cutlass/python
+  '';
 
   cmakeFlags = [
     "-DBUILD_PYT=${if withPython then "ON" else "OFF"}"
