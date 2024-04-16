@@ -81,10 +81,13 @@ in
       ln -s libtritonserver-*.so libtritonserver.so
       patchelf --replace-needed libtritonserver-*.so libtritonserver.so $out/${python3.sitePackages}/pytriton/tritonserver/bin/tritonserver
       popd
-      pushd $out/${site}/pytriton/tritonserver
-      mv python_backend_stubs/${python3.pythonVersion}/triton_python_backend_stub backends/python/
-      rm -r python_backend_stubs/
-      ln -s ${deps.trtllm-backend}/backends/tensorrtllm backends/
+      pushd $out/${site}/pytriton/tritonserver/python_backend_stubs
+      # remove every python stub but the current python version
+      for d in *; do
+        if [ "$d" != "${python3.pythonVersion}" ]; then
+          rm -r $d
+        fi
+      done
       popd
     '';
     cog = {
@@ -94,6 +97,7 @@ in
         hash = "sha256-LWntNtgfPB9mvusmEVg8bxFzUlQAuIeeMytGOZcNdz4=";
       };
     };
+    # patch in cuda packages from nixpkgs
     nvidia-cublas-cu12.mkDerivation.postInstall = ''
       pushd $out/${python3.sitePackages}/nvidia/cublas/lib
       for f in ./*.so.12; do
@@ -113,6 +117,18 @@ in
       popd
     '';
   };
+  deps.backend_dir = pkgs.runCommand "triton_backends" {} ''
+    mkdir $out
+    tritonserver=${pythonDrvs.nvidia-pytriton.public}/${site}/pytriton/tritonserver
+    cp -r $tritonserver/backends $out/
+    chmod -R +w $out/backends
+    cp $tritonserver/python_backend_stubs/${python3.pythonVersion}/triton_python_backend_stub $out/backends/python/
+    cp -r ${deps.trtllm-backend}/backends/tensorrtllm $out/backends/
+    for f in $out/backends/tensorrtllm/*; do
+      chmod +w $f
+      patchelf --add-rpath ${pythonDrvs.nvidia-pytriton.public}/${site}/nvidia_pytriton.libs $f
+    done
+  '';
   # TODO: open-source, switch to fetchFromGitHub
   deps.cog-trt-llm = builtins.fetchGit {
     url = "git@github.com:replicate/cog-trt-llm.git";
