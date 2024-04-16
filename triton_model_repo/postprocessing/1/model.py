@@ -129,13 +129,19 @@ class TritonPythonModel:
             # tokens_batch = tokens_batch.T
 
             # Postprocessing output data.
-            outputs = self._postprocessing(tokens_batch, sequence_lengths)
+            # outputs = self._postprocessing(tokens_batch, sequence_lengths)
 
             # Create output tensors. You need pb_utils.Tensor
             # objects to create pb_utils.InferenceResponse.
+
             output_tensor = pb_utils.Tensor(
                 'OUTPUT',
-                np.array(outputs).astype(self.output_dtype))
+                tokens_batch
+            )
+
+            # output_tensor = pb_utils.Tensor(
+            #     'OUTPUT',
+            #     np.array(outputs).astype(self.output_dtype))
 
             outputs = []
             outputs.append(output_tensor)
