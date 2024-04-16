@@ -173,8 +173,8 @@ input [
 ]
 output [
   {
-    name: "output_ids"
-    data_type: TYPE_INT32
+    name: "text_output"
+    data_type: TYPE_STRING
     dims: [ -1 ]
   },
   {
@@ -421,7 +421,7 @@ ensemble_scheduling {
       }
       output_map {
         key: "OUTPUT"
-        value: "output_ids"
+        value: "text_output"
       }
       output_map {
         key: "OUT_OUTPUT_LOG_PROBS"
@@ -442,3 +442,4 @@ ensemble_scheduling {
     }
   ]
 }
+
