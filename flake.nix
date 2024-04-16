@@ -25,6 +25,10 @@
           rootDependencies = [ "nvidia-pytriton" "transformers" ];
         };
         cognix.environment.TRITONSERVER_BACKEND_DIR = "${config.deps.backend_dir}/backends";
+        # don't need this file in a runner
+        python-env.pip.drvs.tensorrt-libs.mkDerivation.postInstall = lib.mkAfter ''
+          rm $out/lib/python*/site-packages/tensorrt_libs/libnvinfer_builder_resource*
+        '';
       });
       makeBuilder = name: callCognix ( { config, lib, ... }: {
         inherit name;
