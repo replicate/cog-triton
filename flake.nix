@@ -17,15 +17,15 @@
           Labels."org.opencontainers.image.revision" = sourceRev;
         };
       }) "${self}";
-      makeRunner = name: architectures: env: callCognix {
+      makeRunner = name: architectures: env: callCognix ( {config, lib, ... }: {
         inherit name;
         cog-triton = {
           inherit architectures;
           # only grab deps of nvidia-pytriton, transformers
           rootDependencies = [ "nvidia-pytriton" "transformers" ];
         };
-        cognix.environment = env;
-      };
+        cognix.environment.TRITONSERVER_BACKEND_DIR = "${config.deps.backend_dir}/backends";
+      });
       makeBuilder = name: callCognix ( { config, lib, ... }: {
         inherit name;
         cog-triton = {
