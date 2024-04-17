@@ -17,14 +17,14 @@
 }:
 stdenv.mkDerivation (o: {
   pname = "tensorrt_llm";
-  version = "0.9.0.dev2024040900";
+  version = "0.9.0";
   src = fetchFromGitHub {
     owner = "NVIDIA";
     repo = "TensorRT-LLM";
-    rev = "035b99e0d09d4f2dfdb949810cf7245112aa4165";
+    rev = "v${o.version}";
     fetchSubmodules = true;
     fetchLFS = true; # libtensorrt_llm_batch_manager_static.a
-    hash = "sha256-dQeJ2unwLhlWANwdFzv5Pl8zj279uOoV76fr5/BNfgI=";
+    hash = "sha256-BGU56yI6yuTGHYhq5I3xYhrsKI8O4ykhDFeRP/JGCRo=";
   };
   outputs =
     if withPython then

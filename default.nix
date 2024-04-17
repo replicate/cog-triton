@@ -19,7 +19,7 @@ in
     python_packages = [
       "--extra-index-url"
       "https://pypi.nvidia.com"
-      "tensorrt_llm==0.9.0.dev2024040900"
+      "tensorrt_llm==0.9.0"
       "torch==2.2.2"
       "tensorrt==9.3.0.post12.dev1"
       "tensorrt-bindings==9.3.0.post12.dev1"

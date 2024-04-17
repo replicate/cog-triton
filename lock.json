@@ -8,10 +8,10 @@
         "version": "0.25.0"
       },
       "aiohttp": {
-        "sha256": "689eb4356649ec9535b3686200b231876fb4cab4aca54e3bece71d37f50c1d13",
+        "sha256": "c26959ca7b75ff768e2776d8055bf9582a6267e24556bb7f7bd29e677932be72",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/91/8f/b1f46ef89273414735e5f8835918da305e43857086b70ff11fd89ff3f6f8/aiohttp-3.9.4-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
-        "version": "3.9.4"
+        "url": "https://files.pythonhosted.org/packages/a0/09/e7637f4f0760cad4d67347bbd8311c6ad0259a3fc01f04555af9e84bd378/aiohttp-3.9.5-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "version": "3.9.5"
       },
       "aiosignal": {
         "sha256": "f8376fb07dd1e86a584e4fcdec80b36b7f81aac666ebc724e2c090300dd83b17",
@@ -194,10 +194,10 @@
         "version": "4.1.0"
       },
       "h5py": {
-        "sha256": "77b19a40788e3e362b54af4dcf9e6fde59ca016db2c61360aa30b47c7b7cef00",
+        "sha256": "f42e6c30698b520f0295d70157c4e202a9e402406f50dc08f5a7bc416b24e52d",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/94/00/94bf8573e7487b7c37f2b613fc381880d48ec2311f2e859b8a5817deb4df/h5py-3.11.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
-        "version": "3.11.0"
+        "url": "https://files.pythonhosted.org/packages/3b/d3/ecb4b3d2ec2c84132987e5f12ab1408f455bec1d90cd5bc408ebf37800f5/h5py-3.10.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "version": "3.10.0"
       },
       "hf-transfer": {
         "sha256": "2f42b89735f1cde22f2a795d1f0915741023235666be7de45879e533c7d6010c",
@@ -430,7 +430,7 @@
       "onnx-graphsurgeon": {
         "sha256": "10c130d6129fdeee02945f8103b5b112e6fd4d9b356e2dd3e80f53e0ebee7b5c",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/0d/20/93e7143af3a0b3b3d9f3306bfc46e55d0d307242b4c1bf36ff108460e5a3/onnx_graphsurgeon-0.5.2-py2.py3-none-any.whl",
+        "url": "https://pypi.nvidia.com/onnx-graphsurgeon/onnx_graphsurgeon-0.5.2-py2.py3-none-any.whl",
         "version": "0.5.2"
       },
       "onnxruntime": {
@@ -440,10 +440,10 @@
         "version": "1.16.3"
       },
       "optimum": {
-        "sha256": "c963b4ea86ebc2fd8bbc8b30d3c0fddef6fd47645954f207c1910993498f6547",
+        "sha256": "b259b2379f6904d7e1bef3f9ab1c3f22ae6c42357b416311950cd65526bb485e",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/c2/fb/317aef3c0fe377acbd4190d568ed05e7c6af6e571d7e5f9b290fa051af61/optimum-1.18.1-py3-none-any.whl",
-        "version": "1.18.1"
+        "url": "https://files.pythonhosted.org/packages/47/6d/9bacfbb8dfe4a67a973040093b5718593a79a6631738f781e2b706c9cf0e/optimum-1.19.0-py3-none-any.whl",
+        "version": "1.19.0"
       },
       "packaging": {
         "sha256": "2ddfb553fdf02fb784c234c7ba6ccc288296ceabec964ad2eae3777778130bc5",
@@ -554,10 +554,10 @@
         "version": "23.2.1"
       },
       "regex": {
-        "sha256": "a9cc99d6946d750eb75827cb53c4371b8b0fe89c733a94b1573c9dd16ea6c9e4",
+        "sha256": "c4ed75ea6892a56896d78f11006161eea52c45a14994794bcfa1654430984b22",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/81/8a/96a62ce98e8ff1b16db56fde3debc8a571f6b7ea42ee137eb0d995cdfa26/regex-2023.12.25-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
-        "version": "2023.12.25"
+        "url": "https://files.pythonhosted.org/packages/a3/ec/6f1d7160c9dbbc4ffe87167f28ddfab359e1043acafce5407c8b11c5f581/regex-2024.4.16-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "version": "2024.4.16"
       },
       "requests": {
         "sha256": "58cd2187c01e70e6e26505bca751777aa9f2ee0b7f4300988b709f44e013003f",
@@ -656,10 +656,10 @@
         "version": "9.3.0.post12.dev1"
       },
       "tensorrt-llm": {
-        "sha256": "eb4fa7eee1ce6e4722b40dd2a7acec251392c26fff684c9aaf29d50c9a4908d7",
+        "sha256": "2f60b6f8d0afee5f52a5160a44815b0af3e9cd4c46b53cc7a252377ed6cec670",
         "type": "url",
-        "url": "https://pypi.nvidia.com/tensorrt-llm/tensorrt_llm-0.9.0.dev2024040900-cp310-cp310-linux_x86_64.whl",
-        "version": "0.9.0.dev2024040900"
+        "url": "https://pypi.nvidia.com/tensorrt-llm/tensorrt_llm-0.9.0-cp310-cp310-linux_x86_64.whl",
+        "version": "0.9.0"
       },
       "tokenizers": {
         "sha256": "40b6a4c78da863ff26dbd5ad9a8ecc33d8a8d97b535172601cf00aee9d7ce9ce",
@@ -1129,6 +1129,7 @@
           "pulp",
           "pynvml",
           "sentencepiece",
+          "setuptools",
           "strenum",
           "tensorrt",
           "torch",
@@ -1228,5 +1229,5 @@
       }
     }
   },
-  "invalidationHash": "b39379dea6020a87f2569aaed27b7f9130660c8f8776d35fad9a93be0a7c7f0a"
+  "invalidationHash": "b0e4dad7a8909aa411ea700ffe9be1d1c698fadb0a22ae40598bcb7b9018ccfe"
 }
