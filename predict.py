@@ -47,8 +47,8 @@ class Predictor(BasePredictor):
         
 
         self.system_prompt_exists = os.getenv("SYSTEM_PROMPT", None)
-        self.end_id = os.getenv("END_ID", 2)
-        self.pad_id = os.getenv("PAD_ID", 2)
+        self.end_id = int(os.getenv("END_ID", 2))
+        self.pad_id = int(os.getenv("PAD_ID", 2))
 
         if weights:
             self.log(f"Downloading model files from {weights}...")
