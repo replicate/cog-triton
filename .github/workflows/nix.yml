@@ -48,11 +48,11 @@ jobs:
         ./cog-triton-builder push r8.im/replicate-internal/cog-triton-ci
         echo "::endgroup::"
         echo "::group::Runner-80"
-        ./cog-triton-runner-80 push r8.im/replicate-internal/cog-triton-ci
+        ./cog-triton-runner-80 push r8.im/replicate-internal/triton-base-sm80
         echo "::endgroup::"
         echo "::group::Runner-86"
         ./cog-triton-runner-86 push r8.im/replicate-internal/cog-triton-ci
         echo "::endgroup::"
         echo "::group::Runner-90"
-        ./cog-triton-runner-90 push r8.im/replicate-internal/cog-triton-ci
+        ./cog-triton-runner-90 push r8.im/replicate-internal/triton-base-sm90
         echo "::endgroup::"
