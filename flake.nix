@@ -22,7 +22,7 @@
         cog-triton = {
           inherit architectures;
           # only grab deps of nvidia-pytriton, transformers
-          rootDependencies = [ "nvidia-pytriton" "transformers" "tokenizers==0.19.0" ];
+          rootDependencies = [ "nvidia-pytriton" "transformers" "tokenizers" ];
         };
         cognix.environment = env;
       };
