@@ -31,6 +31,7 @@ in
       "nvidia-cuda-runtime-cu12<12.4"
       "omegaconf"
       "hf-transfer"
+      "tokenizers==0.19.0"
     ];
     # don't ask why it needs ssh
     system_packages = [ "pget" "openssh" "openmpi" ];
