@@ -134,6 +134,21 @@ This repository builds 4 different images:
 [Here's a full GPU compatibility list](https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/#ampere-cuda-11-1-and-later.).
 
 
+For updating dependencies and overriding trt-llm package declared dependencies:
+
+```
+git clone https://github.com/yorickvp/uv
+git checkout yorickvp/dream2nix-resolver
+cargo build
+echo tokenizers==0.19.0 > tokenizers.txt
+echo transformers==4.40.0 >> tokenizers.txt
+python310 -m venv ./venv
+./target/debug/uv pip install tensorrt_llm==0.8.0 torch==2.1.2+cu121 tensorrt==9.2.0.post12.dev5 tensorrt-libs==9.2.0.post12.dev5 tensorrt-bindings==9.2.0.post12.dev5 nvidia-cublas-cu12==12.3.4.1 nvidia-cuda-nvrtc-cu12==12.3.107 nvidia-cuda-runtime-cu12==12.3.101 nvidia-cudnn-cu12==8.9.7.29 cog==0.10.0a5 httpx omegaconf hf-transfer tokenizers nvidia-pytriton==0.5.2 datasets==2.18.0 certifi==2024.2.2 --dry-run -p ./venv/bin/python --extra-index-url https://download.pytorch.org/whl/cu121 --extra-index-url https://pypi.nvidia.com --reinstall --index-strategy unsafe-any-match --override tokenizers.txt > comp.json
+```
+
+and then editing lock.json to replace the `.fetchPipMetadata` key with the contents of `comp.json`
+
+
 ## End-to-end build process 
 
 Cog-triton is pre-release and not stable. This build process currently requires `nix` to be installed (with the config setting `experimental-features = nix-command flakes`). We recommend the [DeterminateSystems Nix installer](https://github.com/DeterminateSystems/nix-installer), which will set this setting for you.
