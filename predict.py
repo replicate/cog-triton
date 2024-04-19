@@ -157,7 +157,7 @@ class Predictor(BasePredictor):
         ),
         stop_sequences: str = Input(
             description="A comma-separated list of sequences to stop generation at. For example, '<end>,<stop>' will stop generation at the first instance of 'end' or '<stop>'.",
-            default=None,
+            default=os.getenv("STOP_SEQUENCES"),
         ),
         length_penalty: float = Input(
             description="A parameter that controls how long the outputs are. If < 1, the model will tend to generate shorter outputs, and > 1 will tend to generate longer outputs.",
