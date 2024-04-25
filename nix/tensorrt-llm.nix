@@ -133,7 +133,7 @@ stdenv.mkDerivation (o: {
       mkdir -p $out/cpp/build/tensorrt_llm/plugins
       pushd tensorrt_llm
       cp ./libtensorrt_llm.so $out/cpp/build/tensorrt_llm/
-      patchelf --add-needed 'libcudnn.so.8' $out/cpp/build/tensorrt_llm/libtensorrt_llm.so
+      patchelf --add-needed 'libcudnn.so.8' --add-rpath ${cudaPackages.cudnn.lib}/lib $out/cpp/build/tensorrt_llm/libtensorrt_llm.so
       cp ./plugins/libnvinfer_plugin_tensorrt_llm.so* $out/cpp/build/tensorrt_llm/plugins/
       for f in $out/cpp/build/tensorrt_llm/plugins/*.so*; do
         if [ ! -L "$f" ]; then
