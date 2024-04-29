@@ -78,7 +78,7 @@ class Predictor(BasePredictor):
             self.model_exists = False
             return
         self.model_exists = True
-        self.client = httpx.AsyncClient(timeout=10)
+        self.client = httpx.AsyncClient(timeout=60)
         for i in range(3):
             if await self.start_triton():
                 return
@@ -177,6 +177,7 @@ class Predictor(BasePredictor):
             description="Template for formatting the prompt. Can be an arbitrary string, but must contain the substring `{prompt}`.",
             default=os.getenv("PROMPT_TEMPLATE", "{prompt}"),
         ),
+        log_performance_metrics: bool = False,
     ) -> ConcatenateIterator:
         if not self.model_exists:
             self.log(
@@ -256,7 +257,7 @@ class Predictor(BasePredictor):
                 yield current_output
         
         end_time = time.time()
-        if self.log_performance_metrics:
+        if self.log_performance_metrics or log_performance_metrics:
             latency = end_time - start_time
             actual_tps = n_tokens / latency
             time_to_first_token = first_token_time - start_time
