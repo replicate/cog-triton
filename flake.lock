@@ -8,18 +8,20 @@
           "cognix",
           "dream2nix",
           "nixpkgs"
-        ]
+        ],
+        "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1712779586,
-        "narHash": "sha256-1K3a/tlk4TLm9O6+unqj8u/WEyOYBcj3VnCoB15+WaI=",
+        "lastModified": 1713555332,
+        "narHash": "sha256-t9MT0ankeD2s0IfLY3BENarm9ln4GCZDs9SL80fPO8U=",
         "owner": "datakami",
         "repo": "cognix",
-        "rev": "0a029f5e3374c7a592c4bc680702c16efc47991c",
+        "rev": "6186b4858d38fe86ec2df6e8c4f33ddf01d9ba6a",
         "type": "github"
       },
       "original": {
         "owner": "datakami",
+        "ref": "yorickvp/uv",
         "repo": "cognix",
         "type": "github"
       }
@@ -59,6 +61,24 @@
       "original": {
         "owner": "hercules-ci",
         "repo": "flake-parts",
+        "type": "github"
+      }
+    },
+    "flake-utils": {
+      "inputs": {
+        "systems": "systems"
+      },
+      "locked": {
+        "lastModified": 1705309234,
+        "narHash": "sha256-uNRRNRKmJyCRC/8y1RqBkqWBLM034y4qN7EprSdmgyA=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "1ef2e671c3b0c19053962c07dbda38332dcebf26",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
         "type": "github"
       }
     },
@@ -141,6 +161,28 @@
         "cognix": "cognix"
       }
     },
+    "rust-overlay": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "nixpkgs": [
+          "cognix",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1713492869,
+        "narHash": "sha256-Zv+ZQq3X+EH6oogkXaJ8dGN8t1v26kPZgC5bki04GnM=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "1e9264d1214d3db00c795b41f75d55b5e153758e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
     "slimlock": {
       "inputs": {
         "nixpkgs": [
@@ -161,6 +203,21 @@
       "original": {
         "owner": "thomashoneyman",
         "repo": "slimlock",
+        "type": "github"
+      }
+    },
+    "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
         "type": "github"
       }
     }

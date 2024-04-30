@@ -4,7 +4,7 @@
     extra-substituters = "https://storage.googleapis.com/replicate-nix-cache-dev/";
   };
   inputs = {
-    cognix.url = "github:datakami/cognix";
+    cognix.url = "github:datakami/cognix/yorickvp/uv";
   };
 
   outputs = { self, cognix }@inputs: (cognix.lib.cognixFlake inputs {}) // {
@@ -22,7 +22,7 @@
         cog-triton = {
           inherit architectures;
           # only grab deps of nvidia-pytriton, transformers
-          rootDependencies = [ "nvidia-pytriton" "transformers" ];
+          rootDependencies = [ "nvidia-pytriton" "transformers" "tokenizers" ];
         };
         cognix.environment.TRITONSERVER_BACKEND_DIR = "${config.deps.backend_dir}/backends";
         # don't need this file in a runner

@@ -31,9 +31,21 @@ in
       "nvidia-cuda-runtime-cu12<12.2"
       "omegaconf"
       "hf-transfer"
+      "tokenizers"
     ];
     # don't ask why it needs ssh
     system_packages = [ "pget" "openssh" "openmpi" ];
+  };
+  python-env.pip.uv = {
+    enable = true;
+    # todo: add some constraints to match cudaPackages
+    constraints = [
+      "nvidia-cudnn-cu12<9"
+    ];
+    overrides = [
+      "tokenizers==0.19.0"
+      "transformers==4.40.0"
+    ];
   };
   cognix.includeNix = true;
   # allow taking subsets of the above python_packages
