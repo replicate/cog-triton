@@ -12,7 +12,9 @@ from triton_config_generator import generate_configs, load_yaml_config
 
 import pytriton.utils.distribution
 
-TRITONSERVER_DIST_DIR = pytriton.utils.distribution.get_root_module_path() / "tritonserver"
+TRITONSERVER_DIST_DIR = (
+    pytriton.utils.distribution.get_root_module_path() / "tritonserver"
+)
 
 import numpy as np
 
@@ -23,11 +25,11 @@ from utils import (
 
 from transformers import AutoTokenizer
 
+
 class Predictor(BasePredictor):
     async def setup(self, weights: str = "") -> None:
         self.log_performance_metrics = bool(os.getenv("LOG_PERFORMANCE_METRICS", False))
 
-        
         COG_TRITON_CONFIG = os.getenv("COG_TRITON_CONFIG", "config.yaml")
         if not os.path.exists(COG_TRITON_CONFIG):
             print(f"Config file {COG_TRITON_CONFIG} not found. Defaults will be used.")
@@ -44,7 +46,6 @@ class Predictor(BasePredictor):
         engine_dir = os.environ.get(
             "ENGINE_DIR", "/src/triton_model_repo/tensorrt_llm/1/"
         )
-        
 
         self.system_prompt_exists = os.getenv("SYSTEM_PROMPT", None)
         self.end_id = int(os.getenv("END_ID", 2))
@@ -67,10 +68,13 @@ class Predictor(BasePredictor):
             self.max_sequence_length = int(os.getenv("MAX_SEQUENCE_LENGTH"))
         else:
             try:
-                self.max_sequence_length = self.trt_llm_config["pretrained_config"]["max_position_embeddings"]
+                self.max_sequence_length = self.trt_llm_config["pretrained_config"][
+                    "max_position_embeddings"
+                ]
             except KeyError:
-                self.log("`max_seq_len` not found in ENV and not found in `config.json. Not enforcing `max_seq_len`.")
-        
+                self.log(
+                    "`max_seq_len` not found in ENV and not found in `config.json. Not enforcing `max_seq_len`."
+                )
 
         # if engine_dir is empty, stop here
         if not os.listdir(engine_dir):
@@ -89,19 +93,22 @@ class Predictor(BasePredictor):
         # # python3 scripts/launch_triton_server.py --world_size=1 --model_repo=/src/tensorrtllm_backend/triton_model
         world_size = int(os.getenv("WORLD_SIZE", "1"))
         print("Starting Triton")
-        cmd = ['mpirun', '--allow-run-as-root']
+        cmd = ["mpirun", "--allow-run-as-root"]
         for i in range(world_size):
             cmd += [
-                "-n", "1",
+                "-n",
+                "1",
                 str(TRITONSERVER_DIST_DIR / "bin" / "tritonserver"),
-                "--backend-dir", str(TRITONSERVER_DIST_DIR / "backends"),
-                #"--log-verbose=3", "--log-file=triton_log.txt",
-                "--model-repository", "/src/triton_model_repo",
-                f"--backend-config=python,shm-region-prefix-name=prefix{i}_"
+                "--backend-dir",
+                str(TRITONSERVER_DIST_DIR / "backends"),
+                # "--log-verbose=3", "--log-file=triton_log.txt",
+                "--model-repository",
+                "/src/triton_model_repo",
+                f"--backend-config=python,shm-region-prefix-name=prefix{i}_",
             ]
             if i != 0:
-                cmd += [ "--model-control-mode=explicit", "--load-model=tensorrt_llm" ]
-            cmd += [ ":" ]
+                cmd += ["--model-control-mode=explicit", "--load-model=tensorrt_llm"]
+            cmd += [":"]
         self.proc = subprocess.Popen(cmd)
         # Health check Triton until it is ready or for 3 minutes
         for i in range(180):
@@ -228,11 +235,11 @@ class Predictor(BasePredictor):
                 # this check can be removed once we identify the cause of KeyError
                 except Exception as e:
                     raise Exception(f"error with event {event}") from e
-                
+
                 n_tokens += 1
                 if n_tokens == 1:
                     first_token_time = time.time()
-                
+
                 tokens = np.append(tokens, token)
                 output = self.tokenizer.decode(tokens, skip_special_tokens=True)
                 # Catches partial emojis, waits for them to finish
@@ -255,7 +262,7 @@ class Predictor(BasePredictor):
             current_output = stop_sequence_handler.finalize()
             if current_output:
                 yield current_output
-        
+
         end_time = time.time()
         if self.log_performance_metrics or log_performance_metrics:
             latency = end_time - start_time
@@ -264,7 +271,9 @@ class Predictor(BasePredictor):
             self.log(f"Tokens processed: {n_tokens}\n")
             self.log(f"Serverside tokens per second: {round(actual_tps, 2)}\n")
             self.log(f"Serverside execution time: {round(latency, 2)} seconds\n")
-            self.log(f"Serverside time to first token: {round(time_to_first_token, 2)} seconds\n")
+            self.log(
+                f"Serverside time to first token: {round(time_to_first_token, 2)} seconds\n"
+            )
 
         self.log(f"Random seed used: `{args['random_seed']}`\n")
         self.log(
