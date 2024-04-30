@@ -17,15 +17,19 @@
           Labels."org.opencontainers.image.revision" = sourceRev;
         };
       }) "${self}";
-      makeRunner = name: architectures: env: callCognix {
+      makeRunner = name: architectures: env: callCognix ( {config, lib, ... }: {
         inherit name;
         cog-triton = {
           inherit architectures;
           # only grab deps of nvidia-pytriton, transformers
           rootDependencies = [ "nvidia-pytriton" "transformers" "tokenizers" ];
         };
-        cognix.environment = env;
-      };
+        cognix.environment.TRITONSERVER_BACKEND_DIR = "${config.deps.backend_dir}/backends";
+        # don't need this file in a runner
+        python-env.pip.drvs.tensorrt-libs.mkDerivation.postInstall = lib.mkAfter ''
+          rm $out/lib/python*/site-packages/tensorrt_libs/libnvinfer_builder_resource*
+        '';
+      });
       makeBuilder = name: callCognix ( { config, lib, ... }: {
         inherit name;
         cog-triton = {

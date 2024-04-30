@@ -2,7 +2,7 @@
 let
   deps = config.deps;
   python3 = config.python-env.deps.python;
-  cudaPackages = pkgs.cudaPackages_12_2;
+  cudaPackages = pkgs.cudaPackages_12_1;
   site = python3.sitePackages;
   pythonDrvs = config.python-env.pip.drvs;
   inherit (pkgs) lib;
@@ -19,16 +19,16 @@ in
     python_packages = [
       "--extra-index-url"
       "https://pypi.nvidia.com"
-      "tensorrt_llm==0.8.0"
-      "torch==2.1.2"
-      "tensorrt==9.2.0.post12.dev5"
-      "tensorrt-bindings==9.2.0.post12.dev5"
-      "tensorrt-libs==9.2.0.post12.dev5"
+      "tensorrt_llm==0.9.0"
+      "torch==2.2.2"
+      "tensorrt==9.3.0.post12.dev1"
+      "tensorrt-bindings==9.3.0.post12.dev1"
+      "tensorrt-libs==9.3.0.post12.dev1"
       "nvidia-pytriton==0.5.2" # corresponds to 2.42.0
       "httpx"
-      "nvidia-cublas-cu12<12.4"
-      "nvidia-cuda-nvrtc-cu12<12.4"
-      "nvidia-cuda-runtime-cu12<12.4"
+      "nvidia-cublas-cu12<12.2"
+      "nvidia-cuda-nvrtc-cu12<12.2"
+      "nvidia-cuda-runtime-cu12<12.2"
       "omegaconf"
       "hf-transfer"
       "tokenizers"
@@ -61,14 +61,6 @@ in
       tensorrt-bindings.public
     ];
     tensorrt-bindings.mkDerivation.propagatedBuildInputs = [ pythonDrvs.tensorrt-libs.public ];
-    # fixed in torch 2.2
-    torch.mkDerivation.postFixup = ''
-      pushd $out/${site}/torch/lib
-      ln -s libcudart-*.so.12 libcudart.so.12
-      ln -s libnvrtc-*.so.12 libnvrtc.so.12
-      ln -s libnvToolsExt-*.so.1 libnvToolsExt.so.1
-      popd
-    '';
     tensorrt-libs.mkDerivation.postFixup = ''
       pushd $out/${site}/tensorrt_libs
       ln -s libnvinfer.so.9 libnvinfer.so
@@ -93,10 +85,13 @@ in
       ln -s libtritonserver-*.so libtritonserver.so
       patchelf --replace-needed libtritonserver-*.so libtritonserver.so $out/${python3.sitePackages}/pytriton/tritonserver/bin/tritonserver
       popd
-      pushd $out/${site}/pytriton/tritonserver
-      mv python_backend_stubs/${python3.pythonVersion}/triton_python_backend_stub backends/python/
-      rm -r python_backend_stubs/
-      ln -s ${deps.trtllm-backend}/backends/tensorrtllm backends/
+      pushd $out/${site}/pytriton/tritonserver/python_backend_stubs
+      # remove every python stub but the current python version
+      for d in *; do
+        if [ "$d" != "${python3.pythonVersion}" ]; then
+          rm -r $d
+        fi
+      done
       popd
     '';
     cog = {
@@ -106,6 +101,7 @@ in
         hash = "sha256-LWntNtgfPB9mvusmEVg8bxFzUlQAuIeeMytGOZcNdz4=";
       };
     };
+    # patch in cuda packages from nixpkgs
     nvidia-cublas-cu12.mkDerivation.postInstall = ''
       pushd $out/${python3.sitePackages}/nvidia/cublas/lib
       for f in ./*.so.12; do
@@ -125,6 +121,18 @@ in
       popd
     '';
   };
+  deps.backend_dir = pkgs.runCommand "triton_backends" {} ''
+    mkdir $out
+    tritonserver=${pythonDrvs.nvidia-pytriton.public}/${site}/pytriton/tritonserver
+    cp -r $tritonserver/backends $out/
+    chmod -R +w $out/backends
+    cp $tritonserver/python_backend_stubs/${python3.pythonVersion}/triton_python_backend_stub $out/backends/python/
+    cp -r ${deps.trtllm-backend}/backends/tensorrtllm $out/backends/
+    for f in $out/backends/tensorrtllm/*; do
+      chmod +w $f
+      patchelf --add-rpath ${pythonDrvs.nvidia-pytriton.public}/${site}/nvidia_pytriton.libs $f
+    done
+  '';
   # TODO: open-source, switch to fetchFromGitHub
   deps.cog-trt-llm = builtins.fetchGit {
     url = "git@github.com:replicate/cog-trt-llm.git";
@@ -134,8 +142,8 @@ in
   deps.tensorrt-src = pkgs.fetchFromGitHub {
     owner = "NVIDIA";
     repo = "TensorRT";
-    rev = "93b6044fc106b69bce6751f27aa9fc198b02bddc"; # release/9.2 branch
-    hash = "sha256-W3ytzwq0mm40w6HZ/hArT6G7ID3HSUwzoZ8ix0Q/F6E=";
+    rev = "6d1397ed4bb65933d02725623c122a157544a729"; # release/9.3 branch
+    hash = "sha256-XWFyMD7jjvgIihlqCJNyH5iSa1vZCDhv1maLJqMM3UE=";
   };
   # todo: replace with lockfile
   deps.pybind11-stubgen = python3.pkgs.buildPythonPackage rec {
