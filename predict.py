@@ -3,6 +3,7 @@ import asyncio
 import os
 import subprocess
 import httpx
+from concurrent.futures import ThreadPoolExecutor
 from cog import BasePredictor, ConcatenateIterator, Input
 import time
 import json
@@ -57,7 +58,9 @@ class Predictor(BasePredictor):
                 dest=engine_dir,
             )
 
-        self.tokenizer = AutoTokenizer.from_pretrained(engine_dir)
+        self.tokenizer = AutoTokenizer.from_pretrained(engine_dir, use_fast=True)
+        self.loop = asyncio.get_running_loop()
+        self.executor = ThreadPoolExecutor(max_workers=32)
 
         with open(f"{engine_dir}/config.json", "r") as f:
             self.trt_llm_config = config = json.load(f)
@@ -191,7 +194,7 @@ class Predictor(BasePredictor):
         if formatted_prompt == "":
             raise Exception("A prompt is required, but your formatted prompt is blank")
 
-        args = self._process_args(
+        args = await self._process_args(
             prompt=formatted_prompt,
             max_new_tokens=max_new_tokens,
             min_new_tokens=min_new_tokens,
@@ -233,8 +236,9 @@ class Predictor(BasePredictor):
                 if n_tokens == 1:
                     first_token_time = time.time()
                 
-                tokens = np.append(tokens, token)
-                output = self.tokenizer.decode(tokens, skip_special_tokens=True)
+                tokens = np.append(tokens, token) # ouch
+                # output = self.tokenizer.decode(tokens, skip_special_tokens=True)
+                output = await self.loop.run_in_executor(self.pool, self.tokenizer, tokens, skip_special_tokens=True)
                 # Catches partial emojis, waits for them to finish
                 output = output.replace("\N{Replacement Character}", "")
                 # Remove the tokens that were already yielded
@@ -278,7 +282,7 @@ class Predictor(BasePredictor):
         )
         self.log(f"Formatted prompt: `{formatted_prompt}`")
 
-    def _process_args(
+    async def _process_args(
         self,
         prompt: str,
         max_new_tokens: int = 250,
@@ -306,7 +310,7 @@ class Predictor(BasePredictor):
         if not seed:
             seed = int(np.random.randint(0, 100000))
 
-        n_prompt_tokens = self._get_n_tokens(prompt)
+        n_prompt_tokens = await self._get_n_tokens(prompt)
 
         if self.max_sequence_length:
             token_budget = self.max_sequence_length - n_prompt_tokens
@@ -345,5 +349,6 @@ class Predictor(BasePredictor):
         formatted_prompt = prompt_template.format(prompt=prompt)
         return formatted_prompt
 
-    def _get_n_tokens(self, text: str) -> int:
-        return len(self.tokenizer(text)["input_ids"])
+    async def _get_n_tokens(self, text: str) -> int:
+        tokens = await self.loop.run_in_executor(self.pool, self.tokenizer, text)
+        return len(tokens["input_ids"])
