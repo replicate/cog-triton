@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-latest-16-cores
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -18,11 +18,12 @@ jobs:
         workload_identity_provider: projects/752785843927/locations/global/workloadIdentityPools/github/providers/github-actions-workload-prvdr
         service_account: github-actions-service-account@yorick-dev-416917.iam.gserviceaccount.com
     - name: Set up cache
-      uses: zombiezen/setup-nix-cache-action@v0.3.2
+      uses: zombiezen/setup-nix-cache-action@v0.4.0
       with:
         substituters: gs://replicate-nix-cache-dev
         secret_keys: ${{ secrets.NIX_PRIVATE_KEY }}
         use_nixcached: true
+        nixcached_upload_options: -j12
     - name: Get ssh key from secret
       env:
         GIT_SSH_KEY: ${{ secrets.GIT_SSH_KEY }}
@@ -30,16 +31,28 @@ jobs:
         mkdir -p ~/.ssh
         cat > ~/.ssh/id_ed25519 <<< "$GIT_SSH_KEY"
         chmod 0600 ~/.ssh/id_ed25519
-    - run: nix build --accept-flake-config .#cog-triton-builder -o cog-triton-builder
-    - run: nix build --accept-flake-config .#cog-triton-runner-86 -o cog-triton-runner-86
-    - run: nix build --accept-flake-config .#cog-triton-runner-80 -o cog-triton-runner-80
-    - run: nix build --accept-flake-config .#cog-triton-runner-90 -o cog-triton-runner-90
+    - name: Build cog-triton-builder
+      run: nix build --accept-flake-config .#cog-triton-builder -o cog-triton-builder
+    - name: Build cog-triton-runner-80
+      run: nix build --accept-flake-config .#cog-triton-runner-80 -o cog-triton-runner-80
+    - name: Build cog-triton-runner-86
+      run: nix build --accept-flake-config .#cog-triton-runner-86 -o cog-triton-runner-86
+    - name: Build cog-triton-runner-90
+      run: nix build --accept-flake-config .#cog-triton-runner-90 -o cog-triton-runner-90
     - run: nix path-info --closure-size --human-readable ./cog-triton-*
     - name: Push to replicate
       env:
         COG_TOKEN: ${{ secrets.COG_TOKEN }}
       run: |
+        echo "::group::Builder"
         ./cog-triton-builder push r8.im/replicate-internal/cog-triton-ci
+        echo "::endgroup::"
+        echo "::group::Runner-80"
+        ./cog-triton-runner-80 push r8.im/replicate-internal/triton-base-sm80
+        echo "::endgroup::"
+        echo "::group::Runner-86"
         ./cog-triton-runner-86 push r8.im/replicate-internal/cog-triton-ci
-        ./cog-triton-runner-80 push r8.im/replicate-internal/cog-triton-ci
-        ./cog-triton-runner-90 push r8.im/replicate-internal/cog-triton-ci
+        echo "::endgroup::"
+        echo "::group::Runner-90"
+        ./cog-triton-runner-90 push r8.im/replicate-internal/triton-base-sm90
+        echo "::endgroup::"

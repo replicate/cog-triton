@@ -13,6 +13,7 @@ from triton_config_generator import generate_configs, load_yaml_config
 import pytriton.utils.distribution
 
 TRITONSERVER_DIST_DIR = pytriton.utils.distribution.get_root_module_path() / "tritonserver"
+TRITONSERVER_BACKEND_DIR = os.getenv("TRITONSERVER_BACKEND_DIR", str(TRITONSERVER_DIST_DIR / "backends"))
 
 import numpy as np
 
@@ -94,7 +95,7 @@ class Predictor(BasePredictor):
             cmd += [
                 "-n", "1",
                 str(TRITONSERVER_DIST_DIR / "bin" / "tritonserver"),
-                "--backend-dir", str(TRITONSERVER_DIST_DIR / "backends"),
+                "--backend-dir", TRITONSERVER_BACKEND_DIR,
                 #"--log-verbose=3", "--log-file=triton_log.txt",
                 "--model-repository", "/src/triton_model_repo",
                 f"--backend-config=python,shm-region-prefix-name=prefix{i}_"
