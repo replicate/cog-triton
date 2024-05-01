@@ -134,12 +134,12 @@ class Predictor(BasePredictor):
             description="System prompt to send to the model. This is prepended to the prompt and helps guide system behavior.",
             default=os.getenv("SYSTEM_PROMPT", ""),
         ),
-        max_new_tokens: int = Input(
+        max_tokens: int = Input(
             description="Maximum number of tokens to generate. A word is generally 2-3 tokens",
             ge=1,
             default=512,
         ),
-        min_new_tokens: int = Input(
+        min_tokens: int = Input(
             description="Minimum number of tokens to generate. To disable, set to -1. A word is generally 2-3 tokens.",
             ge=-1,
             default=None,
@@ -184,13 +184,13 @@ class Predictor(BasePredictor):
             default=os.getenv("PROMPT_TEMPLATE", "{prompt}"),
         ),
         log_performance_metrics: bool = False,
-        max_tokens: int = Input(
-            description="This option is backwards compatibility, please use max_new_tokens instead.",
+        max_new_tokens: int = Input(
+            description="This parameter has been renamed to max_tokens. max_new_tokens only exists for backwards compatibility purposes. We recommend you use max_tokens instead. If both are specified, max_new_tokens will be used",
             ge=1,
             default=None,
         ),
-        min_tokens: int = Input(
-            description="This option is backwards compatibility, please use min_new_tokens instead.",
+        min_new_tokens: int = Input(
+            description="This parameter has been renamed to min_tokens. min_new_tokens only exists for backwards compatibility purposes. We recommend you use min_tokens instead. If both are specified, min_new_tokens will be used",
             ge=-1,
             default=None,
         ),
@@ -207,23 +207,23 @@ class Predictor(BasePredictor):
         if formatted_prompt == "":
             raise Exception("A prompt is required, but your formatted prompt is blank")
 
-        # compatibility with the original vLLM release
-        if max_tokens:
+        # compatibility with older language models
+        if max_new_tokens:
             # 512 is the default
-            if max_new_tokens == 512 or max_new_tokens is None:
-                max_new_tokens = max_tokens
+            if max_tokens == 512 or max_tokens is None:
+                max_tokens = max_new_tokens
             else:
                 raise Exception(f"Can't set both max_tokens ({max_tokens}) and max_new_tokens ({max_new_tokens})")
-        if min_tokens:
-            if min_new_tokens is None:
-                min_new_tokens = min_tokens
+        if min_new_tokens:
+            if min_tokens is None:
+                min_tokens = min_new_tokens
             else:
                 raise Exception(f"Can't set both min_tokens ({min_tokens}) and min_new_tokens ({min_new_tokens})")
 
         args = self._process_args(
             prompt=formatted_prompt,
-            max_new_tokens=max_new_tokens,
-            min_new_tokens=min_new_tokens,
+            max_tokens=max_tokens,
+            min_tokens=min_tokens,
             top_k=top_k,
             top_p=top_p,
             temperature=temperature,
@@ -312,8 +312,8 @@ class Predictor(BasePredictor):
     def _process_args(
         self,
         prompt: str,
-        max_new_tokens: int = 250,
-        min_new_tokens: int = None,
+        max_tokens: int = 250,
+        min_tokens: int = None,
         top_k: int = 0,
         top_p: float = 0.0,
         temperature: float = 1.0,
@@ -324,15 +324,15 @@ class Predictor(BasePredictor):
         stream: bool = True,
     ):
         stop_words_list = stop_words.split(",") if stop_words else []
-        min_new_tokens = 0 if min_new_tokens is None else min_new_tokens
+        min_tokens = 0 if min_tokens is None else min_tokens
 
         pad_id = self.pad_id
         end_id = self.end_id
 
         if top_k < 0:
             top_k = 0
-        if min_new_tokens < 0:
-            min_new_tokens = 0
+        if min_tokens < 0:
+            min_tokens = 0
 
         if not seed:
             seed = int(np.random.randint(0, 100000))
@@ -341,13 +341,13 @@ class Predictor(BasePredictor):
 
         if self.max_sequence_length:
             token_budget = self.max_sequence_length - n_prompt_tokens
-            max_new_tokens = min(max_new_tokens, token_budget)
-            min_new_tokens = min(min_new_tokens, token_budget)
+            max_tokens = min(max_tokens, token_budget)
+            min_tokens = min(min_tokens, token_budget)
 
         args = {
             "text_input": prompt,
-            "max_tokens": max_new_tokens,
-            "min_length": min_new_tokens,
+            "max_tokens": max_tokens,
+            "min_length": min_tokens,
             "top_k": top_k,
             "temperature": temperature,
             "top_p": top_p,
