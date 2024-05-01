@@ -1,29 +1,28 @@
-# Prediction interface for Cog ⚙️
 import asyncio
+import json
 import os
 import subprocess
-import httpx
-from cog import BasePredictor, ConcatenateIterator, Input
 import time
-import json
+import multiprocessing as mp
 
-from sse import receive_sse
-from triton_config_generator import generate_configs, load_yaml_config
+from cog import BasePredictor, ConcatenateIterator, Input
 
-import pytriton.utils.distribution
+if mp.current_process().name != "MainProcess":
+    import httpx
+    import numpy as np
+    import pytriton.utils.distribution
+    from transformers import AutoTokenizer
 
-TRITONSERVER_DIST_DIR = (
-    pytriton.utils.distribution.get_root_module_path() / "tritonserver"
-)
+    from sse import receive_sse
+    from triton_config_generator import generate_configs, load_yaml_config
+    from utils import StreamingTokenStopSequenceHandler, maybe_download_tarball_with_pget
 
-import numpy as np
-
-from utils import (
-    maybe_download_tarball_with_pget,
-    StreamingTokenStopSequenceHandler,
-)
-
-from transformers import AutoTokenizer
+    TRITONSERVER_DIST_DIR = (
+        pytriton.utils.distribution.get_root_module_path() / "tritonserver"
+    )
+    TRITONSERVER_BACKEND_DIR = os.getenv(
+        "TRITONSERVER_BACKEND_DIR", str(TRITONSERVER_DIST_DIR / "backends")
+    )
 
 
 class Predictor(BasePredictor):
@@ -138,7 +137,7 @@ class Predictor(BasePredictor):
         max_new_tokens: int = Input(
             description="Maximum number of tokens to generate. A word is generally 2-3 tokens",
             ge=1,
-            default=128,
+            default=512,
         ),
         min_new_tokens: int = Input(
             description="Minimum number of tokens to generate. To disable, set to -1. A word is generally 2-3 tokens.",
@@ -185,6 +184,16 @@ class Predictor(BasePredictor):
             default=os.getenv("PROMPT_TEMPLATE", "{prompt}"),
         ),
         log_performance_metrics: bool = False,
+        max_tokens: int = Input(
+            description="This option is backwards compatibility, please use max_new_tokens instead.",
+            ge=1,
+            default=None,
+        ),
+        min_tokens: int = Input(
+            description="This option is backwards compatibility, please use min_new_tokens instead.",
+            ge=-1,
+            default=None,
+        ),
     ) -> ConcatenateIterator:
         if not self.model_exists:
             self.log(
@@ -197,6 +206,19 @@ class Predictor(BasePredictor):
         )
         if formatted_prompt == "":
             raise Exception("A prompt is required, but your formatted prompt is blank")
+
+        # compatibility with the original vLLM release
+        if max_tokens:
+            # 512 is the default
+            if max_new_tokens == 512 or max_new_tokens is None:
+                max_new_tokens = max_tokens
+            else:
+                raise Exception(f"Can't set both max_tokens ({max_tokens}) and max_new_tokens ({max_new_tokens})")
+        if min_tokens:
+            if min_new_tokens is None:
+                min_new_tokens = min_tokens
+            else:
+                raise Exception(f"Can't set both min_tokens ({min_tokens}) and min_new_tokens ({min_new_tokens})")
 
         args = self._process_args(
             prompt=formatted_prompt,
