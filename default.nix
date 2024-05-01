@@ -15,7 +15,7 @@ in
     cog_version = "0.10.0-alpha5";
     cuda = "12.1"; # todo: 12.2
     gpu = true;
-    # echo tensorrt_llm==0.8.0 | uv pip compile - --extra-index-url https://pypi.nvidia.com -p 3.10 --prerelease=allow --annotation-style=line
+    # inspiration: echo tensorrt_llm==0.8.0 | uv pip compile - --extra-index-url https://pypi.nvidia.com -p 3.10 --prerelease=allow --annotation-style=line
     python_packages = [
       "--extra-index-url"
       "https://pypi.nvidia.com"
@@ -36,8 +36,8 @@ in
     # don't ask why it needs ssh
     system_packages = [ "pget" "openssh" "openmpi" ];
   };
-  python-env.pip.uv = {
-    enable = true;
+  python-env.pip = {
+    uv.enable = true;
     # todo: add some constraints to match cudaPackages
     constraints = [
       "nvidia-cudnn-cu12<9"
@@ -45,6 +45,7 @@ in
     overrides = [
       "tokenizers==0.19.0"
       "transformers==4.40.0"
+      "cog @ https://r2.drysys.workers.dev/tmp/cog-0.10.0a6-py3-none-any.whl"
     ];
   };
   cognix.includeNix = true;
@@ -56,6 +57,7 @@ in
     # circumvent by manually depending on tensorrt_libs, tensorrt_bindings
     # and setting this env variable
     tensorrt.env.NVIDIA_TENSORRT_DISABLE_INTERNAL_PIP = true;
+    # TODO remove upon next rebuild:
     tensorrt.mkDerivation.propagatedBuildInputs = with pythonDrvs; [
       tensorrt-libs.public
       tensorrt-bindings.public
@@ -94,13 +96,6 @@ in
       done
       popd
     '';
-    cog = {
-      version = lib.mkForce "0.10.0a6";
-      mkDerivation.src = pkgs.fetchurl {
-        url = "http://r2.drysys.workers.dev/tmp/cog-0.10.0a6-py3-none-any.whl";
-        hash = "sha256-LWntNtgfPB9mvusmEVg8bxFzUlQAuIeeMytGOZcNdz4=";
-      };
-    };
     # patch in cuda packages from nixpkgs
     nvidia-cublas-cu12.mkDerivation.postInstall = ''
       pushd $out/${python3.sitePackages}/nvidia/cublas/lib
