@@ -137,7 +137,7 @@ class Predictor(BasePredictor):
             default=os.getenv("SYSTEM_PROMPT", ""),
         ),
         max_tokens: int = Input(
-            description="Maximum number of tokens to generate. A word is generally 2-3 tokens",
+            description="Maximum number of tokens to generate. A word is generally 2-3 tokens.",
             ge=1,
             default=512,
         ),
@@ -153,13 +153,13 @@ class Predictor(BasePredictor):
             default=0.7,
         ),
         top_p: float = Input(
-            description="When decoding text, samples from the top p percentage of most likely tokens; lower to ignore less likely tokens",
+            description="When decoding text, samples from the top p percentage of most likely tokens; lower to ignore less likely tokens.",
             ge=0.0,
             le=1.0,
             default=0.95,
         ),
         top_k: int = Input(
-            description="When decoding text, samples from the top k most likely tokens; lower to ignore less likely tokens",
+            description="When decoding text, samples from the top k most likely tokens; lower to ignore less likely tokens.",
             ge=-1,
             default=0,
         ),
@@ -178,7 +178,7 @@ class Predictor(BasePredictor):
             default=0.0,
         ),
         seed: int = Input(
-            description="Random seed. Leave blank to randomize the seed",
+            description="Random seed. Leave blank to randomize the seed.",
             default=None,
         ),
         prompt_template: str = Input(
@@ -187,12 +187,12 @@ class Predictor(BasePredictor):
         ),
         log_performance_metrics: bool = False,
         max_new_tokens: int = Input(
-            description="This parameter has been renamed to max_tokens. max_new_tokens only exists for backwards compatibility purposes. We recommend you use max_tokens instead. If both are specified, max_new_tokens will be used",
+            description="This parameter has been renamed to max_tokens. max_new_tokens only exists for backwards compatibility purposes. We recommend you use max_tokens instead. Both may not be specified.",
             ge=1,
             default=None,
         ),
         min_new_tokens: int = Input(
-            description="This parameter has been renamed to min_tokens. min_new_tokens only exists for backwards compatibility purposes. We recommend you use min_tokens instead. If both are specified, min_new_tokens will be used",
+            description="This parameter has been renamed to min_tokens. min_new_tokens only exists for backwards compatibility purposes. We recommend you use min_tokens instead. Both may not be specified.",
             ge=-1,
             default=None,
         ),
