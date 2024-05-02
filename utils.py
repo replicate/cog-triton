@@ -1,14 +1,12 @@
 import os
-import subprocess
-import requests
-import time
+import shutil
 import subprocess
 import sys
-from pathlib import Path
-import shutil
+import time
 import typing as tp
-from collections import deque
+from pathlib import Path
 
+import requests
 
 def maybe_download_tarball_with_pget(
     url: str,
