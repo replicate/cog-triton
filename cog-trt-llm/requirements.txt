@@ -1,0 +1,5 @@
+aiohttp[speedups]
+transformers
+omegaconf
+huggingface-hub
+hf_transfer

@@ -1,0 +1,31 @@
+# this is an identifier for downloading the model. e.g.,
+# https://huggingface.co/<model_id>
+# cacheburst4
+model_id: meta-llama/Llama-2-70b-hf
+example_name: llama
+weight_format: safetensors # or pt
+convert_to_ft:
+  executable: "python"
+  script: convert_checkpoint.py
+  output_dir: ./c-model/meta-llama/Llama-2-70b-hf
+  args:
+    model_dir: /src/models/meta-llama/Llama-2-70b-hf
+    output_dir: ./c-model/meta-llama/Llama-2-70b-hf
+    tp_size: 4
+    storage-type: fp16
+    load_by_shard:
+build:
+  executable: trtllm-build
+  output_dir: ./engine_outputs/
+  args:
+    checkpoint_dir: /src/c-model/meta-llama/Llama-2-70b-hf
+    output_dir: ./engine_outputs/
+    remove_input_padding: enable
+    context_fmha: enable
+    gpt_attention_plugin: float16
+    gemm_plugin: float16
+    paged_kv_cache: enable
+    workers: 2
+    max_batch_size: 64
+    max_input_len: 1024
+    max_output_len: 512

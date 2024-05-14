@@ -1,0 +1,38 @@
+# this is an identifier for downloading the model. e.g.,
+# https://huggingface.co/<model_id>
+model_id: meta-llama/Llama-2-13b-chat-hf 
+example_name: llama
+weight_format: safetensors # or pt
+model_tar_url: https://weights.replicate.delivery/default/official-models/hf/meta-llama/Llama-2-13b-chat-hf/model.tar
+convert_to_ft:
+  executable: "python"
+  script: convert_checkpoint.py
+  output_dir: ./c-model/meta-llama/Llama-2-13b-chat-hf/int8/2-gpu
+  args:
+    model_dir: /src/models/meta-llama/Llama-2-13b-chat-hf
+    output_dir: /src/c-model/meta-llama/Llama-2-13b-chat-hf/int8/2-gpu
+    tp_size: 2
+    dtype: float16
+    use_weight_only:
+    weight_only_precision: int8
+build:
+  executable: trtllm-build
+  output_dir: ./engine_outputs/
+  args:
+    checkpoint_dir: /src/c-model/meta-llama/Llama-2-13b-chat-hf/int8/2-gpu
+    output_dir: ./engine_outputs/
+    remove_input_padding: enable
+    context_fmha: enable
+    gpt_attention_plugin: float16
+    gemm_plugin: float16
+    paged_kv_cache: enable
+    workers: 4
+    max_batch_size: 64
+    max_input_len: 4096
+    max_output_len: 4096
+    use_paged_context_fmha: enable
+    use_custom_all_reduce: disable
+    # For max_num_tokens
+    # max_batch_size * max_input_len * alpha + max_batch_size * max_beam_width * (1 - alpha)
+    # 64*4096*.2 + 64*1*(1-.3) = 54,474
+    max_num_tokens: 54474

@@ -1,0 +1,23 @@
+model_id: meta-llama/Llama-2-13b-chat-hf
+example_name: llama
+weight_format: safetensors
+model_tar_url: https://weights.replicate.delivery/default/official-models/hf/meta-llama/Llama-2-13b-chat-hf/model.tar
+build:
+  script: build.py
+  output_dir: ./engine_outputs_1/
+  args:
+    model_dir: /src/models/meta-llama/Llama-2-13b-chat-hf
+    output_dir: ./engine_outputs/
+    dtype: float16
+    use_gpt_attention_plugin: float16
+    use_inflight_batching: null
+    paged_kv_cache: null
+    use_gemm_plugin: float16
+    remove_input_padding: null
+    parallel_build: null
+    enable_context_fmha: null
+    max_batch_size: 1
+    max_input_len: 500
+    max_output_len: 500
+    n_positions: 1000
+merge: true

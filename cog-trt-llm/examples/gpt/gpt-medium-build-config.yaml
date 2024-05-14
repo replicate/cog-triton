@@ -1,0 +1,31 @@
+# this is an identifier for downloading the model. e.g., 
+# https://huggingface.co/<model_id>
+model_id: gpt2-medium
+example_name: gpt
+model_tar_url: https://weights.replicate.delivery/default/official-models/hf/gpt2-medium/model.tar
+convert_to_ft:
+  executable: "python"
+  script: hf_gpt_convert.py
+  output_dir: ./c-model/gpt2/1-gpu
+  args:
+    in-file: /src/models/gpt2-medium
+    out-dir: ./c-model/gpt2
+    tensor-parallelism: 1
+    storage-type: float16
+build:
+  executable: "python"
+  script: build.py
+  output_dir: ./engine_outputs/
+  args:
+    model_dir: ./c-model/gpt2/1-gpu
+    output_dir: ./engine_outputs/
+    dtype: float16
+    use_gpt_attention_plugin: float16
+    hidden_act: gelu
+    use_inflight_batching:
+    paged_kv_cache:
+    use_paged_context_fmha:
+    enable_context_fmha:
+    use_gemm_plugin: float16
+    remove_input_padding:
+    parallel_build:
