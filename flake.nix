@@ -25,6 +25,7 @@
           rootDependencies = [ "nvidia-pytriton" "transformers" "tokenizers" ];
         };
         cognix.environment.TRITONSERVER_BACKEND_DIR = "${config.deps.backend_dir}/backends";
+        cognix.sourceIgnores = "cog-trt-llm/";
         # don't need this file in a runner
         python-env.pip.drvs.tensorrt-libs.mkDerivation.postInstall = lib.mkAfter ''
           rm $out/lib/python*/site-packages/tensorrt_libs/libnvinfer_builder_resource*
@@ -38,10 +39,7 @@
         };
         # override cog.yaml:
         cog.concurrency = lib.mkForce 1;
-        # copy cog-trt-llm source into /src
-        cognix.postCopyCommands = ''
-          cp ${config.deps.cog-trt-llm}/{*.py,cog-trt-llm-config.yaml} $out/src/
-        '';
+        cognix.rootPath = lib.mkForce "${./cog-trt-llm}";
         # this just needs the examples/ dir
         cognix.environment.TRTLLM_DIR = config.deps.tensorrt-llm.examples;
       });

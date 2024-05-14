@@ -128,12 +128,6 @@ in
       patchelf --add-rpath ${pythonDrvs.nvidia-pytriton.public}/${site}/nvidia_pytriton.libs $f
     done
   '';
-  # TODO: open-source, switch to fetchFromGitHub
-  deps.cog-trt-llm = builtins.fetchGit {
-    url = "git@github.com:replicate/cog-trt-llm.git";
-    rev = "1f092d891b3cefeea5e0b4d39eb4406ebc60d99a";
-    ref = "main";
-  };
   deps.tensorrt-src = pkgs.fetchFromGitHub {
     owner = "NVIDIA";
     repo = "TensorRT";
