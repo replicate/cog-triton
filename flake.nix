@@ -25,7 +25,6 @@
           rootDependencies = [ "nvidia-pytriton" "transformers" "tokenizers" ];
         };
         cognix.environment.TRITONSERVER_BACKEND_DIR = "${config.deps.backend_dir}/backends";
-        cognix.sourceIgnores = "cog-trt-llm/";
         # don't need this file in a runner
         python-env.pip.drvs.tensorrt-libs.mkDerivation.postInstall = lib.mkAfter ''
           rm $out/lib/python*/site-packages/tensorrt_libs/libnvinfer_builder_resource*

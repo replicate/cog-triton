@@ -32,3 +32,6 @@ gpt2/*.ot
 **/*.html
 **/*.pdf
 **/docs
+
+# builder source-code
+cog-trt-llm/
