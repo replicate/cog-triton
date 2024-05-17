@@ -3,13 +3,12 @@
 # https://docs.docker.com/engine/reference/builder/#dockerignore-file
 
 # Exclude Git files
-**/.git
-**/.github
-**/.gitignore
-**/.gitkeep
+.git
+.github
+.gitignore
 
 # Exclude Python cache files
-**/__pycache__
+__pycache__
 .mypy_cache
 .pytest_cache
 .ruff_cache
@@ -17,21 +16,18 @@
 # Exclude Python virtual environment
 /venv
 
-# *.bin
+# Exclude TRT-LLM Examples
+# TensorRT-LLM/examples
+models/
+tests/
+*.bin
 *.safetensors
-**/*.tar
-
-gpt2/*.bin
-gpt2/onnx/
-gpt2/*.h5
-gpt2/*.onnx
-gpt2/*.msgpack
-gpt2/*.ot
-
-# stuff from the nvidia source repos
-**/*.html
-**/*.pdf
-**/docs
-
-# builder source-code
-cog-trt-llm/
+*.ot
+*.h5
+*.msgpack
+*.onnx
+**/gpt2/
+**/onnx/
+**/engine_outputs/
+*.tar
+**/*engine*/

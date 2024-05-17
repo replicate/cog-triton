@@ -38,10 +38,7 @@
         };
         # override cog.yaml:
         cog.concurrency = lib.mkForce 1;
-        # copy cog-trt-llm source into /src
-        cognix.postCopyCommands = ''
-          cp ${config.deps.cog-trt-llm}/{*.py,cog-trt-llm-config.yaml} $out/src/
-        '';
+        cognix.rootPath = lib.mkForce "${./cog-trt-llm}";
         # this just needs the examples/ dir
         cognix.environment.TRTLLM_DIR = config.deps.tensorrt-llm.examples;
       });

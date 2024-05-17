@@ -1,0 +1,46 @@
+# this is an identifier for downloading the model. e.g.,
+# https://huggingface.co/<model_id>
+model_id: meta-llama/Llama-2-7b-chat-hf 
+example_name: llama
+weight_format: safetensors # or pt
+model_tar_url: https://weights.replicate.delivery/default/official-models/hf/meta-llama/Llama-2-7b-chat-hf/model.tar
+convert_to_ft:
+  executable: "python"
+  script: convert_checkpoint.py
+  output_dir: ./c-model/meta-llama/Llama-2-7b-chat-hf
+  args:
+    model_dir: /src/models/meta-llama/Llama-2-7b-chat-hf
+    output_dir: ./c-model/meta-llama/Llama-2-7b-chat-hf
+    tp_size: 1
+    storage-type: fp16
+    load_by_shard:
+build:
+  executable: trtllm-build
+  output_dir: ./engine_outputs/
+  args:
+    checkpoint_dir: /src/c-model/meta-llama/Llama-2-7b-chat-hf
+    output_dir: ./engine_outputs/
+    remove_input_padding: enable
+    context_fmha: enable
+    gpt_attention_plugin: float16
+    gemm_plugin: float16
+    paged_kv_cache: enable
+    workers: 1
+    max_batch_size: 8
+    # max_batch_size: 1
+    # max_input_len: 500
+    # max_output_len: 500
+    # n_positions: 1000
+# python build.py --model_dir ./tmp/mistral/7B/ \
+#                 --dtype float16 \
+#                 --remove_input_padding \
+#                 --use_gpt_attention_plugin float16 \
+#                 --enable_context_fmha \
+#                 --use_gemm_plugin float16 \
+#                 --output_dir ./tmp/mistral/7B/trt_engines/fp16/1-gpu/ \
+#                 --max_input_len 32256
+# # Run Mistral 7B fp16 inference with sliding window/cache size 4096
+# python3 run.py --max_output_len=50 \
+#                --tokenizer_dir ./tmp/llama/7B/ \
+#                --engine_dir=./tmp/llama/7B/trt_engines/fp16/1-gpu/ \
+#                --max_attention_window_size=4096
