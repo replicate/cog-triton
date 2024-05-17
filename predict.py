@@ -6,6 +6,7 @@ import time
 import multiprocessing as mp
 from typing import Optional
 
+import cog
 from cog import BasePredictor, ConcatenateIterator, Input
 
 if mp.current_process().name != "MainProcess":
@@ -26,6 +27,23 @@ if mp.current_process().name != "MainProcess":
     )
     TRITONSERVER_BACKEND_DIR = os.getenv(
         "TRITONSERVER_BACKEND_DIR", str(TRITONSERVER_DIST_DIR / "backends")
+    )
+
+
+def format_prompt(
+    prompt: str, prompt_template: str, system_prompt: Optional[str]
+) -> str:
+    if not prompt_template:
+        prompt_template = "{prompt}"
+    if prompt and "{prompt}" not in prompt_template:
+        raise Exception(
+            "You have submitted both a prompt and a prompt template that doesn't include '{prompt}'. "
+            "Your prompt would not be used. "
+            "If don't want to use formatting, use your full prompt for the prompt argument and set prompt_template to '{prompt}'."
+        )
+    return prompt_template.format(
+        system_prompt=system_prompt or "",
+        prompt=prompt,
     )
 
 
@@ -206,7 +224,7 @@ class Predictor(BasePredictor):
             )
             return
 
-        formatted_prompt = self._format_prompt(
+        formatted_prompt = format_prompt(
             prompt=prompt, system_prompt=system_prompt, prompt_template=prompt_template
         )
         if formatted_prompt == "":
@@ -229,8 +247,10 @@ class Predictor(BasePredictor):
                     f"Can't set both min_tokens ({min_tokens}) and min_new_tokens ({min_new_tokens})"
                 )
 
+        n_prompt_tokens = self._get_n_tokens(prompt)
         args = self._process_args(
             prompt=formatted_prompt,
+            n_prompt_tokens=n_prompt_tokens,
             max_tokens=max_tokens,
             min_tokens=min_tokens,
             top_k=top_k,
@@ -308,6 +328,8 @@ class Predictor(BasePredictor):
                     f"Serverside time to first token: {round(time_to_first_token, 2)} seconds\n"
                 )
 
+        cog.emit_metric("input_token_count", n_prompt_tokens)
+        cog.emit_metric("output_token_count", n_tokens)
         self.log(f"Random seed used: `{args['random_seed']}`\n")
         self.log(
             "Note: Random seed will not impact output if greedy decoding is used.\n"
@@ -323,6 +345,7 @@ class Predictor(BasePredictor):
     def _process_args(
         self,
         prompt: str,
+        n_prompt_tokens: int,
         max_tokens: int = 250,
         min_tokens: Optional[int] = None,
         top_k: int = 0,
@@ -348,8 +371,6 @@ class Predictor(BasePredictor):
         if not seed:
             seed = int(np.random.randint(0, 100000))
 
-        n_prompt_tokens = self._get_n_tokens(prompt)
-
         if self.max_sequence_length:
             token_budget = self.max_sequence_length - n_prompt_tokens
             max_tokens = min(max_tokens, token_budget)
@@ -372,20 +393,6 @@ class Predictor(BasePredictor):
         }
 
         return args
-
-    def _format_prompt(
-        self, prompt: str, prompt_template: str, system_prompt: str
-    ) -> str:
-        if not prompt_template:
-            return prompt
-        if "system_prompt" in prompt_template:
-            system_prompt = system_prompt if system_prompt else ""
-            formatted_prompt = prompt_template.format(
-                system_prompt=system_prompt, prompt=prompt
-            )
-            return formatted_prompt
-        formatted_prompt = prompt_template.format(prompt=prompt)
-        return formatted_prompt
 
     def _get_n_tokens(self, text: str) -> int:
         return len(self.tokenizer(text)["input_ids"])
