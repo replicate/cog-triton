@@ -54,8 +54,7 @@ class Predictor(BasePredictor):
     ) -> Path:
 
         config = self.load_config(config)
-        if not config.model_tar_url:
-            self._login_to_hf_if_token_provided(config, hf_token)
+        self._login_to_hf_if_token_provided(config, hf_token)
         self.config_parser.print_config(config)
 
         local_model_dir = self.downloader.run(
@@ -96,6 +95,8 @@ class Predictor(BasePredictor):
         if hf_token:
             print("Logging in to Hugging Face Hub...")
             _login(token=hf_token, add_to_git_credential=False)
+        else:
+            print("No HuggingFace token, not logging in, gated tokenizers and models cannot be downloaded")
 
     def load_config(self, config_path: str) -> dict:
         """Load a config file from a path.
