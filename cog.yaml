@@ -2,4 +2,6 @@ build:
    gpu: true
    python_version: "3.10"
 predict: "predict.py:Predictor"
-concurrency: 64
+concurrency:
+   max: 64
+   default_target: 16
