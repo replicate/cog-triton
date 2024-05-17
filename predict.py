@@ -16,7 +16,10 @@ if mp.current_process().name != "MainProcess":
 
     from sse import receive_sse
     from triton_config_generator import generate_configs, load_yaml_config
-    from utils import StreamingTokenStopSequenceHandler, maybe_download_tarball_with_pget
+    from utils import (
+        StreamingTokenStopSequenceHandler,
+        maybe_download_tarball_with_pget,
+    )
 
     TRITONSERVER_DIST_DIR = (
         pytriton.utils.distribution.get_root_module_path() / "tritonserver"
@@ -65,8 +68,8 @@ class Predictor(BasePredictor):
             print(f"tensorrt_llm config: {config}")
 
         max_seqlen_env = os.getenv("MAX_SEQUENCE_LENGTH", None)
-        if max_seqlen_env :
-            self.max_sequence_length = int(max_seqlen_env )
+        if max_seqlen_env:
+            self.max_sequence_length = int(max_seqlen_env)
         else:
             try:
                 self.max_sequence_length = self.trt_llm_config["pretrained_config"][
@@ -215,12 +218,16 @@ class Predictor(BasePredictor):
             if max_tokens == 512 or max_tokens is None:
                 max_tokens = max_new_tokens
             else:
-                raise Exception(f"Can't set both max_tokens ({max_tokens}) and max_new_tokens ({max_new_tokens})")
+                raise Exception(
+                    f"Can't set both max_tokens ({max_tokens}) and max_new_tokens ({max_new_tokens})"
+                )
         if min_new_tokens:
             if min_tokens is None:
                 min_tokens = min_new_tokens
             else:
-                raise Exception(f"Can't set both min_tokens ({min_tokens}) and min_new_tokens ({min_new_tokens})")
+                raise Exception(
+                    f"Can't set both min_tokens ({min_tokens}) and min_new_tokens ({min_new_tokens})"
+                )
 
         args = self._process_args(
             prompt=formatted_prompt,
@@ -268,7 +275,7 @@ class Predictor(BasePredictor):
                 tokens = np.append(tokens, token)
                 output = self.tokenizer.decode(tokens, skip_special_tokens=True)
                 # Catches partial emojis, waits for them to finish
-                output = output.replace("\N{Replacement Character}", "")
+                output = output.replace("\N{REPLACEMENT CHARACTER}", "")
                 # Remove the tokens that were already yielded
                 current_output = output[generation_length:]
 
