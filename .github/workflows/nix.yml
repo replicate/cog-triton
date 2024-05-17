@@ -51,7 +51,7 @@ jobs:
         ./cog-triton-runner-80 push r8.im/replicate-internal/triton-base-sm80
         echo "::endgroup::"
         echo "::group::Runner-86"
-        ./cog-triton-runner-86 push r8.im/replicate-internal/cog-triton-ci
+        ./cog-triton-runner-86 push r8.im/replicate-internal/triton-base-sm86
         echo "::endgroup::"
         echo "::group::Runner-90"
         ./cog-triton-runner-90 push r8.im/replicate-internal/triton-base-sm90
