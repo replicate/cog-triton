@@ -4,7 +4,7 @@
     extra-substituters = "https://storage.googleapis.com/replicate-nix-cache-dev/";
   };
   inputs = {
-    cognix.url = "github:datakami/cognix/yorickvp/uv";
+    cognix.url = "github:datakami/cognix";
   };
 
   outputs = { self, cognix }@inputs: (cognix.lib.cognixFlake inputs {}) // {
@@ -19,12 +19,12 @@
       }) "${self}";
       makeRunner = name: architectures: env: callCognix ( {config, lib, ... }: {
         inherit name;
-        cog-triton = {
-          inherit architectures;
-          # only grab deps of nvidia-pytriton, transformers
-          rootDependencies = [ "nvidia-pytriton" "transformers" "tokenizers" ];
-        };
+        # only grab deps of nvidia-pytriton, transformers
+        cognix.python_root_packages = [ "nvidia-pytriton" "transformers" "tokenizers" ];
+
         cognix.environment.TRITONSERVER_BACKEND_DIR = "${config.deps.backend_dir}/backends";
+
+        cog-triton.architectures = architectures;
         # don't need this file in a runner
         python-env.pip.drvs.tensorrt-libs.mkDerivation.postInstall = lib.mkAfter ''
           rm $out/lib/python*/site-packages/tensorrt_libs/libnvinfer_builder_resource*
@@ -32,12 +32,14 @@
       });
       makeBuilder = name: callCognix ( { config, lib, ... }: {
         inherit name;
-        cog-triton = {
-          # only grab deps of tensorrt-llm, omegaconf, hf-transfer
-          rootDependencies = [ "tensorrt-llm" "omegaconf" "hf-transfer" ];
-        };
+        # only grab deps of tensorrt-llm, omegaconf, hf-transfer
+        cognix.python_root_packages = [ "tensorrt-llm" "omegaconf" "hf-transfer" ];
+
         # override cog.yaml:
-        cog.concurrency = lib.mkForce 1;
+        cog.concurrency = {
+          max = lib.mkForce 1;
+          default_target = lib.mkForce 1;
+        };
         cognix.rootPath = lib.mkForce "${./cog-trt-llm}";
         # this just needs the examples/ dir
         cognix.environment.TRTLLM_DIR = config.deps.tensorrt-llm.examples;

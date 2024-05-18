@@ -39,19 +39,16 @@ in
   python-env.pip = {
     uv.enable = true;
     # todo: add some constraints to match cudaPackages
-    constraints = [
+    constraintsList = [
       "nvidia-cudnn-cu12<9"
     ];
-    overrides = [
+    overridesList = [
       "tokenizers==0.19.0"
       "transformers==4.40.0"
       "cog==0.10.0a7"
     ];
   };
   cognix.includeNix = true;
-  # allow taking subsets of the above python_packages
-  python-env.pip.rootDependencies = lib.mkIf (config.cog-triton.rootDependencies != null)
-    (lib.mkForce (lib.genAttrs ([ "cog" ] ++ cfg.rootDependencies) (x: true)));
   python-env.pip.drvs = {
     # tensorrt likes doing a pip invocation from it's setup.py
     # circumvent by manually depending on tensorrt_libs, tensorrt_bindings
