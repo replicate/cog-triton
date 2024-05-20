@@ -12,11 +12,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1716233552,
-        "narHash": "sha256-fpHO1jaMMiTJmI0UdYqQGWaFqv/ndR6s/EAYF84LAUY=",
+        "lastModified": 1716234112,
+        "narHash": "sha256-P6u+3s+jPoogW3oMSgRKjI/oLZ6Pq3nySGef315rx0U=",
         "owner": "datakami",
         "repo": "cognix",
-        "rev": "c3b239dea5b6efe7f3d3c2a5839c8273a1bdcec4",
+        "rev": "168106c36a16bac425422e3afd20872fd71af609",
         "type": "github"
       },
       "original": {
