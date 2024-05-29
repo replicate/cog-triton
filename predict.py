@@ -104,7 +104,7 @@ class Predictor(BasePredictor):
             self.model_exists = False
             return
         self.model_exists = True
-        self.client = httpx.AsyncClient(timeout=60)
+        self.client = httpx.AsyncClient(timeout=120)
         for i in range(3):
             if await self.start_triton():
                 return
