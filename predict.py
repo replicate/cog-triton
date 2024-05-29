@@ -247,7 +247,7 @@ class Predictor(BasePredictor):
                     f"Can't set both min_tokens ({min_tokens}) and min_new_tokens ({min_new_tokens})"
                 )
 
-        n_prompt_tokens = self._get_n_tokens(prompt)
+        n_prompt_tokens = self._get_n_tokens(formatted_prompt)
         args = self._process_args(
             prompt=formatted_prompt,
             n_prompt_tokens=n_prompt_tokens,
