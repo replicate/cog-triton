@@ -4,4 +4,3 @@ build:
 predict: "predict.py:Predictor"
 concurrency:
    max: 64
-   default_target: 16

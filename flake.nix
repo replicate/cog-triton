@@ -36,10 +36,7 @@
         cognix.python_root_packages = [ "tensorrt-llm" "omegaconf" "hf-transfer" ];
 
         # override cog.yaml:
-        cog.concurrency = {
-          max = lib.mkForce 1;
-          default_target = lib.mkForce 1;
-        };
+        cog.concurrency.max = lib.mkForce 1;
         cognix.rootPath = lib.mkForce "${./cog-trt-llm}";
         # this just needs the examples/ dir
         cognix.environment.TRTLLM_DIR = config.deps.tensorrt-llm.examples;
