@@ -44,7 +44,7 @@ def format_prompt(
         prompt_template = "{prompt}"
     if prompt and "{prompt}" not in prompt_template:
         raise Exception(
-            "E008: You have submitted both a prompt and a prompt template that doesn't include '{prompt}'. "
+            "E003: You have submitted both a prompt and a prompt template that doesn't include '{prompt}'. "
             "Your prompt would not be used. "
             "If don't want to use formatting, use your full prompt for the prompt argument and set prompt_template to '{prompt}'."
         )
@@ -63,7 +63,7 @@ async def wrap_httpx_error(
             yield resp
     except httpx.ReadTimeout:
         raise TritonError(
-            f"E007: Triton timed out after {TRITON_TIMEOUT}s: httpx.ReadTimeout. "
+            f"E201: Triton timed out after {TRITON_TIMEOUT}s: httpx.ReadTimeout. "
             "This can happen for extremely long prompts or large batches. "
             "Try a shorter prompt, or sending requests more slowly."
         )
@@ -262,14 +262,14 @@ class Predictor(BasePredictor):
                 max_tokens = max_new_tokens
             else:
                 raise UserError(
-                    f"E002: Can't set both max_tokens ({max_tokens}) and max_new_tokens ({max_new_tokens})"
+                    f"E101: Can't set both max_tokens ({max_tokens}) and max_new_tokens ({max_new_tokens})"
                 )
         if min_new_tokens:
             if min_tokens is None:
                 min_tokens = min_new_tokens
             else:
                 raise UserError(
-                    f"E003: Can't set both min_tokens ({min_tokens}) and min_new_tokens ({min_new_tokens})"
+                    f"E102: Can't set both min_tokens ({min_tokens}) and min_new_tokens ({min_new_tokens})"
                 )
 
         n_prompt_tokens = self._get_n_tokens(formatted_prompt)
@@ -310,23 +310,23 @@ class Predictor(BasePredictor):
                 try:
                     event_data = event.json()
                 except json.JSONDecodeError as e:
-                    raise json.JSONDecodeError(f"E009: Triton returned malformed JSON: {event}") from e
+                    raise json.JSONDecodeError(f"E203: Triton returned malformed JSON: {event}") from e
                 if error_message := event_data.get("error"):
                     if "exceeds maximum input length" in error_message:
                         raise UserError(
-                            f"E004: Prompt length exceeds maximum input length. Detail: {error_message}"
+                            f"E002: Prompt length exceeds maximum input length. Detail: {error_message}"
                         )
                     if (
                         "the first token of the stop sequence IDs was not"
                         in error_message
                     ):
-                        raise TritonError(f"E005: Tokenizer error: {error_message}")
+                        raise TritonError(f"E202: Tokenizer error: {error_message}")
                     # should we raise an exception if there's both output_ids and error?
                     if "output_ids" not in event_data:
-                        raise TritonError(f"E000: Unkown error: {error_message}")
+                        raise TritonError(f"E200: Unkown Triton error: {error_message}")
                 if not token := event_data.get("output_ids"):
-                    raise KeyError(
-                        f"E006: Triton returned malformed event (no output_ids or error key): {event_data}"
+                    raise TritonError(
+                        f"E204: Triton returned malformed event (no output_ids or error key): {event_data}"
                     )
 
                 n_tokens += 1

@@ -3,16 +3,25 @@ A cog implementation of Nvidia's Triton server
 
 ## Error codes
 
-E000: Unknown error
+Universal user errors:
+
+E000: Generic user error (not used)
 E001: A prompt is required, but your formatted prompt is blank
-E002: Can't set both max_tokens ({max_tokens}) and max_new_tokens ({max_new_tokens})
-E003: Can't set both min_tokens ({min_tokens}) and min_new_tokens ({min_new_tokens})
-E004: Prompt length exceeds maximum input length.
-E005: Tokenizer error: ... the first token of the stop sequence IDs was not '!', which suggests there is a problem with the tokenizer that you are using.
-E006: Triton returned malformed event (no output_ids or error key)
-E007: Triton timed out after 120s: httpx.ReadTimeout.
-E008: You have submitted both a prompt and a prompt template that doesn't include '{prompt}'.
-E009: Triton returned malformed JSON
+E002: Prompt length exceeds maximum input length.
+E003: You have submitted both a prompt and a prompt template that doesn't include '{prompt}'.
+
+Triton user errors:
+
+E101: Can't set both max_tokens ({max_tokens}) and max_new_tokens ({max_new_tokens})
+E102: Can't set both min_tokens ({min_tokens}) and min_new_tokens ({min_new_tokens})
+
+Triton errors:
+
+E200: Unknown error
+E201: Triton timed out after 120s: httpx.ReadTimeout.
+E202: Tokenizer error: ... the first token of the stop sequence IDs was not '!', which suggests there is a problem with the tokenizer that you are using.
+E203: Triton returned malformed JSON
+E204: Triton returned malformed event (no output_ids or error key)
 
 ## Create a Replicate Model with cog-triton
 
