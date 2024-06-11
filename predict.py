@@ -29,6 +29,8 @@ if mp.current_process().name != "MainProcess":
         "TRITONSERVER_BACKEND_DIR", str(TRITONSERVER_DIST_DIR / "backends")
     )
 
+TRITON_TIMEOUT = 120
+
 
 def format_prompt(
     prompt: str, prompt_template: str, system_prompt: Optional[str]
@@ -37,7 +39,7 @@ def format_prompt(
         prompt_template = "{prompt}"
     if prompt and "{prompt}" not in prompt_template:
         raise Exception(
-            "You have submitted both a prompt and a prompt template that doesn't include '{prompt}'. "
+            "E008: You have submitted both a prompt and a prompt template that doesn't include '{prompt}'. "
             "Your prompt would not be used. "
             "If don't want to use formatting, use your full prompt for the prompt argument and set prompt_template to '{prompt}'."
         )
@@ -45,6 +47,21 @@ def format_prompt(
         system_prompt=system_prompt or "",
         prompt=prompt,
     )
+
+
+@contextlib.asynccontextmanager
+async def wrap_httpx_error(
+    req: contextlib._AsyncGeneratorContextManager,
+) -> AsyncIterator[httpx.Response]:
+    try:
+        with req as resp:
+            yield resp
+    except httpx.ReadTimeout:
+        raise Exception(
+            f"E007: Triton timed out after {TRITON_TIMEOUT}s: httpx.ReadTimeout. "
+            "This can happen for extremely long prompts or large batches. "
+            "Try a shorter prompt, or sending requests more slowly."
+        )
 
 
 class Predictor(BasePredictor):
@@ -104,7 +121,7 @@ class Predictor(BasePredictor):
             self.model_exists = False
             return
         self.model_exists = True
-        self.client = httpx.AsyncClient(timeout=120)
+        self.client = httpx.AsyncClient(timeout=TRITON_TIMEOUT)
         for i in range(3):
             if await self.start_triton():
                 return
@@ -205,6 +222,7 @@ class Predictor(BasePredictor):
         prompt_template: str = Input(
             description="Template for formatting the prompt. Can be an arbitrary string, but must contain the substring `{prompt}`.",
             default=os.getenv("PROMPT_TEMPLATE", "{prompt}"),
+            min_length=1,
         ),
         log_performance_metrics: bool = False,
         max_new_tokens: int = Input(
@@ -228,7 +246,9 @@ class Predictor(BasePredictor):
             prompt=prompt, system_prompt=system_prompt, prompt_template=prompt_template
         )
         if formatted_prompt == "":
-            raise Exception("A prompt is required, but your formatted prompt is blank")
+            raise Exception(
+                "E001: A prompt is required, but your formatted prompt is blank"
+            )
 
         # compatibility with older language models
         if max_new_tokens:
@@ -237,14 +257,14 @@ class Predictor(BasePredictor):
                 max_tokens = max_new_tokens
             else:
                 raise Exception(
-                    f"Can't set both max_tokens ({max_tokens}) and max_new_tokens ({max_new_tokens})"
+                    f"E002: Can't set both max_tokens ({max_tokens}) and max_new_tokens ({max_new_tokens})"
                 )
         if min_new_tokens:
             if min_tokens is None:
                 min_tokens = min_new_tokens
             else:
                 raise Exception(
-                    f"Can't set both min_tokens ({min_tokens}) and min_new_tokens ({min_new_tokens})"
+                    f"E003: Can't set both min_tokens ({min_tokens}) and min_new_tokens ({min_new_tokens})"
                 )
 
         n_prompt_tokens = self._get_n_tokens(formatted_prompt)
@@ -279,14 +299,30 @@ class Predictor(BasePredictor):
         tokens = np.array([], dtype=np.int32)
         first_token_time = None
 
-        async with req as resp:
+        async with wrap_httpx_error(req) as resp:
             async for event in receive_sse(resp):
                 # Output is the _entire_ sequence, from the beginning
                 try:
-                    token = event.json()["output_ids"]
-                # this check can be removed once we identify the cause of KeyError
-                except Exception as e:
-                    raise Exception(f"error with event {event}") from e
+                    event_data = event.json()
+                except json.JSONDecodeError as e:
+                    raise json.JSONDecodeError(f"E009: Triton returned malformed JSON: {event}") from e
+                if error_message := event_data.get("error"):
+                    if "exceeds maximum input length" in error_message:
+                        raise Exception(
+                            f"E004: Prompt length exceeds maximum input length. Detail: {error_message}"
+                        )
+                    if (
+                        "the first token of the stop sequence IDs was not"
+                        in error_message
+                    ):
+                        raise Exception(f"E005: Tokenizer error: {error_message}")
+                    # should we raise an exception if there's both output_ids and error?
+                    if "output_ids" not in event_data:
+                        raise Exception(f"E000: Unkown error: {error_message}")
+                if not token := event_data.get("output_ids"):
+                    raise KeyError(
+                        f"E006: Triton returned malformed event (no output_ids or error key): {event_data}"
+                    )
 
                 n_tokens += 1
                 if n_tokens == 1:
