@@ -1,6 +1,38 @@
 # cog-triton
 A cog implementation of Nvidia's Triton server
 
+## Error codes
+
+We are using "E[Category][Subcategory][Sequence] [Short Error Name]: [Description]
+
+### Universal user errors:
+
+Category 1 (user error), subcategory 0 (framework-agnostic user errors).
+
+* E1000 GenericError: Generic user error (reserved)
+* E1001 PromptRequired: A prompt is required, but your formatted prompt is blank
+* E1002 PromptTooLong: Prompt length exceeds maximum input length.
+* E1003 BadPromptTemplate: You have submitted both a prompt and a prompt template that doesn't include '{prompt}'.
+
+### Triton user errors:
+
+Category 1 (user error), subcategory 1 (triton-specific user errors)
+
+* E1101 InvalidArgumentMinTokens: Can't set both min_tokens ({min_tokens}) and min_new_tokens ({min_new_tokens})
+* E1102 InvalidArgumentMaxTokens: Can't set both max_tokens ({max_tokens}) and max_new_tokens ({max_new_tokens})
+
+### Triton errors:
+
+Category 2 (framework error), subcategory 1 (triton system error)
+
+* E2100 TritonUnknownError: Unknown error
+* E2101 TritonTimeout: Triton timed out after {TRITON_TIMEOUT}s: httpx.ReadTimeout.
+* E2102 TritonTokenizerError: Tokenizer error: ... the first token of the stop sequence IDs was not '!', which suggests there is a problem with the tokenizer that you are using.
+* E2103 TritonMalformedJSON: Triton returned malformed JSON
+* E2104 TritonMalformedEvent: Triton returned malformed event (no output_ids or error key)
+
+Other frameworks like vLLM might start their error numbering from E2200. 
+
 ## Create a Replicate Model with cog-triton
 
 Currently, we use [yolo](https://github.com/replicate/yolo), a CLI tool we've built to help with non-standard Replicate workflows. To get started, install yolo:

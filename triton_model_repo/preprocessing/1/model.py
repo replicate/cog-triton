@@ -285,9 +285,9 @@ class TritonPythonModel:
                 ids = self.tokenizer.encode(word, add_special_tokens=False)
                 if ids[0] != arbitrary_start_sequence_id:
                     raise ValueError(
-                        f"To standardize tokenizer behavior, we prepend '{arbitrary_start_sequence_token}' to the string representation of each stop sequence."
-                        "We then strip the corresponding first token from the stop sequence IDs."
-                        "However, the first token of the stop sequence IDs was not '{arbitrary_start_sequence_id}', which suggestions there is a problem with the tokenizer that you are using."
+                        f"To standardize tokenizer behavior, we prepend '{arbitrary_start_sequence_token}' to the string representation of each stop sequence. "
+                        "We then strip the corresponding first token from the stop sequence IDs. "
+                        "However, the first token of the stop sequence IDs was not '{arbitrary_start_sequence_id}', which suggests there is a problem with the tokenizer that you are using."
                     )
                 else:
                     ids = ids[1:]
