@@ -17,14 +17,14 @@
 }:
 stdenv.mkDerivation (o: {
   pname = "tensorrt_llm";
-  version = "0.9.0";
+  version = "0.10.0";
   src = fetchFromGitHub {
     owner = "NVIDIA";
     repo = "TensorRT-LLM";
     rev = "v${o.version}";
     fetchSubmodules = true;
     fetchLFS = true; # libtensorrt_llm_batch_manager_static.a
-    hash = "sha256-BGU56yI6yuTGHYhq5I3xYhrsKI8O4ykhDFeRP/JGCRo=";
+    hash = "sha256-eOAixXzOQRaySbUtpeAF9qMFOzwe1rosC0GOgy8CakU=";
   };
   outputs =
     if withPython then
@@ -54,6 +54,10 @@ stdenv.mkDerivation (o: {
       # torch hates the split cuda, so only do it without torch
       cudaPackages.cuda_cudart
       cudaPackages.cuda_nvcc.dev
+      cudaPackages.cuda_nvrtc.dev
+      cudaPackages.cuda_nvrtc.lib
+      cudaPackages.cuda_nvml_dev.lib
+      cudaPackages.cuda_nvml_dev.dev
       cudaPackages.cuda_cccl
       cudaPackages.libcublas.lib
       cudaPackages.libcublas.dev
@@ -85,8 +89,8 @@ stdenv.mkDerivation (o: {
       pynvml # >=11.5.0
       sentencepiece # >=0.1.99
       tensorrt # ==9.2.0.post12.dev5
-      tensorrt-bindings # missed transitive dep
-      tensorrt-libs
+      tensorrt-cu12-bindings # missed transitive dep
+      tensorrt-cu12-libs
       torch # <=2.2.0a
       nvidia-ammo # ~=0.7.0; platform_machine=="x86_64"
       transformers # ==4.36.1
@@ -109,11 +113,16 @@ stdenv.mkDerivation (o: {
     "-DBUILD_PYBIND=${if withPython then "ON" else "OFF"}" # needs BUILD_PYT
     "-DBUILD_TESTS=OFF" # needs nvonnxparser.h
     # believe it or not, this is the actual binary distribution channel for tensorrt:
-    "-DTRT_LIB_DIR=${pythonDrvs.tensorrt-libs.public}/${python3.sitePackages}/tensorrt_libs"
+    "-DTRT_LIB_DIR=${pythonDrvs.tensorrt-cu12-libs.public}/${python3.sitePackages}/tensorrt_libs"
     "-DTRT_INCLUDE_DIR=${tensorrt-src}/include"
     "-DCMAKE_CUDA_ARCHITECTURES=${builtins.concatStringsSep ";" architectures}"
     # "-DFAST_BUILD=ON"
   ];
+  # include cstdint in cpp/tensorrt_llm/common/mpiUtils.h after pragma once
+  postPatch = ''
+    sed -i 's/#include <mpi.h>/#include <mpi.h>\n#include <cstdint>/' /build/source/cpp/include/tensorrt_llm/common/mpiUtils.h
+    sed -i 's/#pragma once/#pragma once\n#include <cuda_runtime.h>/' /build/source/cpp/tensorrt_llm/kernels/lruKernel.h
+  '';
   postBuild = lib.optionalString withPython ''
     pushd ../../
     chmod -R +w .
@@ -137,17 +146,29 @@ stdenv.mkDerivation (o: {
       mkdir -p $out
       ${rsync}/bin/rsync -a --exclude "tensorrt_llm/kernels" $src/cpp $out/
       chmod -R u+w $out/cpp
+      ${rsync}/bin/rsync -a $src/cpp/tensorrt_llm/kernels $out/cpp/tensorrt_llm/
+      chmod -R u+w $out/cpp
       mkdir -p $out/cpp/build/tensorrt_llm/plugins
       pushd tensorrt_llm
       cp ./libtensorrt_llm.so $out/cpp/build/tensorrt_llm/
+      cp -r ./executor_worker $out/cpp/build/tensorrt_llm/
+      chmod -R u+w $out/cpp/build/tensorrt_llm/executor_worker
       patchelf --add-needed 'libcudnn.so.8' --add-rpath ${cudaPackages.cudnn.lib}/lib $out/cpp/build/tensorrt_llm/libtensorrt_llm.so
       cp ./plugins/libnvinfer_plugin_tensorrt_llm.so* $out/cpp/build/tensorrt_llm/plugins/
-      for f in $out/cpp/build/tensorrt_llm/plugins/*.so*; do
+      mkdir -p $out/cpp/tensorrt_llm/kernels/decoderMaskedMultiheadAttention/decoderXQAImplJIT/
+      cp -r /build/source/cpp/tensorrt_llm/kernels/decoderMaskedMultiheadAttention/decoderXQAImplJIT/nvrtcWrapper $_
+      for f in $out/cpp/build/tensorrt_llm/plugins/*.so* $out/cpp/build/tensorrt_llm/executor_worker/executorWorker; do
         if [ ! -L "$f" ]; then
-          new_path=$(patchelf --print-rpath "$f" | sed 's#/build/source/cpp/build/tensorrt_llm#$ORIGIN/..#')
+          new_path=$(patchelf --print-rpath "$f" |
+            sed 's#/build/source/cpp/build/tensorrt_llm#$ORIGIN/..#g' |
+            sed 's#/build/source/cpp/tensorrt_llm#$ORIGIN/../../../tensorrt_llm#g'
+          )
           patchelf --set-rpath "$new_path" "$f"
         fi
       done
+      new_path=$(patchelf --print-rpath $out/cpp/build/tensorrt_llm/libtensorrt_llm.so |
+        sed 's#/build/source/cpp/tensorrt_llm#$ORIGIN/../../tensorrt_llm#')
+      patchelf --set-rpath "$new_path" $out/cpp/build/tensorrt_llm/libtensorrt_llm.so
       popd
     ''
     + (lib.optionalString withPython ''
