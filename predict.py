@@ -61,7 +61,7 @@ def format_prompt(
 @contextlib.asynccontextmanager
 async def wrap_httpx_error(
     req: contextlib._AsyncGeneratorContextManager,
-) -> AsyncIterator[httpx.Response]:
+) -> AsyncIterator["httpx.Response"]:
     try:
         async with req as resp:
             yield resp
