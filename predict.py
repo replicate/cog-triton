@@ -44,7 +44,7 @@ def format_prompt(
         prompt_template = "{prompt}"
     if prompt and "{prompt}" not in prompt_template:
         raise Exception(
-            "E003: You have submitted both a prompt and a prompt template that doesn't include '{prompt}'. "
+            "E1003 BadPromptTemplate: You have submitted both a prompt and a prompt template that doesn't include '{prompt}'."
             "Your prompt would not be used. "
             "If don't want to use formatting, use your full prompt for the prompt argument and set prompt_template to '{prompt}'."
         )
@@ -63,7 +63,7 @@ async def wrap_httpx_error(
             yield resp
     except httpx.ReadTimeout:
         raise TritonError(
-            f"E201: Triton timed out after {TRITON_TIMEOUT}s: httpx.ReadTimeout. "
+            f"E2101 TritonTimeout: Triton timed out after {TRITON_TIMEOUT}s: httpx.ReadTimeout. "
             "This can happen for extremely long prompts or large batches. "
             "Try a shorter prompt, or sending requests more slowly."
         )
@@ -252,7 +252,7 @@ class Predictor(BasePredictor):
         )
         if formatted_prompt == "":
             raise UserError(
-                "E001: A prompt is required, but your formatted prompt is blank"
+                "E1001 PromptRequired: A prompt is required, but your formatted prompt is blank"
             )
 
         # compatibility with older language models
@@ -262,14 +262,14 @@ class Predictor(BasePredictor):
                 max_tokens = max_new_tokens
             else:
                 raise UserError(
-                    f"E101: Can't set both max_tokens ({max_tokens}) and max_new_tokens ({max_new_tokens})"
+                    f"E1102 InvalidArgumentMaxTokens: Can't set both max_tokens ({max_tokens}) and max_new_tokens ({max_new_tokens})"
                 )
         if min_new_tokens:
             if min_tokens is None:
                 min_tokens = min_new_tokens
             else:
                 raise UserError(
-                    f"E102: Can't set both min_tokens ({min_tokens}) and min_new_tokens ({min_new_tokens})"
+                    f"E1101 InvalidArgumentMinTokens: Can't set both min_tokens ({min_tokens}) and min_new_tokens ({min_new_tokens})"
                 )
 
         n_prompt_tokens = self._get_n_tokens(formatted_prompt)
@@ -310,23 +310,23 @@ class Predictor(BasePredictor):
                 try:
                     event_data = event.json()
                 except json.JSONDecodeError as e:
-                    raise json.JSONDecodeError(f"E203: Triton returned malformed JSON: {event}") from e
+                    raise json.JSONDecodeError(f"E2103 TritonMalformedJSON: Triton returned malformed JSON: {event}") from e
                 if error_message := event_data.get("error"):
                     if "exceeds maximum input length" in error_message:
                         raise UserError(
-                            f"E002: Prompt length exceeds maximum input length. Detail: {error_message}"
+                            f"E1002 PromptTooLong: Prompt length exceeds maximum input length. Detail: {error_message}"
                         )
                     if (
                         "the first token of the stop sequence IDs was not"
                         in error_message
                     ):
-                        raise TritonError(f"E202: Tokenizer error: {error_message}")
+                        raise TritonError(f"E2102 TritonTokenizerError: Tokenizer error: {error_message}")
                     # should we raise an exception if there's both output_ids and error?
                     if "output_ids" not in event_data:
-                        raise TritonError(f"E200: Unkown Triton error: {error_message}")
+                        raise TritonError(f"E2100 TritonUnknownError: Unkown Triton error: {error_message}")
                 if not token := event_data.get("output_ids"):
                     raise TritonError(
-                        f"E204: Triton returned malformed event (no output_ids or error key): {event_data}"
+                        f"E2104 TritonMalformedEvent: Triton returned malformed event (no output_ids or error key): {event_data}"
                     )
 
                 n_tokens += 1
