@@ -1,10 +1,11 @@
 import asyncio
+import contextlib
 import json
+import multiprocessing as mp
 import os
 import subprocess
 import time
-import multiprocessing as mp
-from typing import Optional
+from typing import AsyncIterator, Optional
 
 import cog
 from cog import BasePredictor, ConcatenateIterator, Input
@@ -62,7 +63,7 @@ async def wrap_httpx_error(
     req: contextlib._AsyncGeneratorContextManager,
 ) -> AsyncIterator[httpx.Response]:
     try:
-        with req as resp:
+        async with req as resp:
             yield resp
     except httpx.ReadTimeout:
         raise TritonError(
@@ -334,7 +335,7 @@ class Predictor(BasePredictor):
                             "output_ids and error are both set, this shouldn't happen"
                         )
                     raise parse_triton_error(error_message)
-                if not token := event_data.get("output_ids"):
+                if not (token := event_data.get("output_ids")):
                     raise TritonError(
                         f"E2104 TritonMalformedEvent: Triton returned malformed event (no output_ids or error key): {event_data}"
                     )
