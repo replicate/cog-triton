@@ -28,12 +28,11 @@ let
     rev = "a06e9a1157d6b5b9b34b6d05a07bb84d517f17c9";
     hash = "sha256-Ju2zV/jHUuciTs6GbkqcPG8U0y2lkIWSdAsX78DrpV4=";
   };
-  # todo: update with trt-llm 0.9?
   deps.triton_repo_core = fetchFromGitHub {
     owner = "triton-inference-server";
     repo = "core";
-    rev = "5d4a99c285c729a349265ce8dd7a4535e59d29b1";
-    hash = "sha256-WP8bwplo98GmNulX+QA+IrQEc2+GMcTjV53K438vX1g=";
+    rev = "434e50313b80fdc7ef295fcb3baeeacf65b295e4";
+    hash = "sha256-kfDXQEYuMze4E53OHHJ1YjQHnNtAEt4lzNK27K6ttVE=";
   };
   deps.googletest = fetchFromGitHub {
     owner = "google";

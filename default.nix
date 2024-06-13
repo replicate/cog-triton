@@ -24,7 +24,7 @@ in
       "tensorrt==9.3.0.post12.dev1"
       "tensorrt-bindings==9.3.0.post12.dev1"
       "tensorrt-libs==9.3.0.post12.dev1"
-      "nvidia-pytriton==0.5.2" # corresponds to 2.42.0
+      "nvidia-pytriton==0.5.4" # corresponds to 2.44.0
       "httpx"
       "nvidia-cublas-cu12<12.2"
       "nvidia-cuda-nvrtc-cu12<12.2"
