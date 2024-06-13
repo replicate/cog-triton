@@ -45,7 +45,6 @@ in
     overridesList = [
       "tokenizers==0.19.0"
       "transformers==4.40.0"
-      "cog==0.10.0a12"
     ];
   };
   cognix.includeNix = true;
