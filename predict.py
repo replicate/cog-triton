@@ -335,7 +335,7 @@ class Predictor(BasePredictor):
                             "output_ids and error are both set, this shouldn't happen"
                         )
                     raise parse_triton_error(error_message)
-                if not (token := event_data.get("output_ids")):
+                if (token := event_data.get("output_ids", ...)) is ...:
                     raise TritonError(
                         f"E2104 TritonMalformedEvent: Triton returned malformed event (no output_ids or error key): {event_data}"
                     )
