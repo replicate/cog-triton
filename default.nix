@@ -48,6 +48,10 @@ in
     ];
   };
   cognix.includeNix = true;
+  cognix.nix.extraOptions = ''
+    extra-trusted-public-keys = replicate-1:rbU0MI8kgUmqLINtKfXoDkrl9NxXQMw6//+LHHDYflk=
+    extra-substituters = https://storage.googleapis.com/replicate-nix-cache-dev/
+  '';
   python-env.pip.drvs = {
     # tensorrt likes doing a pip invocation from it's setup.py
     # circumvent by manually depending on tensorrt_libs, tensorrt_bindings
