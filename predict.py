@@ -168,7 +168,7 @@ class Predictor(BasePredictor):
         await self.ensure_triton_started()
         # we expect this to throw a timeout or some other error in the case of failures
         generator = self.predict(**(self._defaults | {"max_tokens": 3, "prompt": "hi"}))
-        test_output = "".join(tok async for tok in generator)
+        test_output = "".join([tok async for tok in generator])
         print("Test prediction output:", test_output)
 
     async def ensure_triton_started(self):
