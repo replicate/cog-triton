@@ -10,7 +10,7 @@ import requests
 
 def maybe_download_tarball_with_pget(
     url: str,
-    real_dest: str,
+    dest: str,
 ):
     """
     Downloads a tarball from url and decompresses to dest if dest does not exist. Remote path is constructed
@@ -26,28 +26,31 @@ def maybe_download_tarball_with_pget(
     """
     try:
         Path("/weights").mkdir(exit_ok=True)
-        dest = "/weights/triton"
+        first_dest = "/weights/triton"
     except PermissionError:
         print("/weights doesn't exist, and we couldn't create it")
-        dest = real_dest
+        first_dest = dest
 
 
     # if dest exists and is not empty, return
-    if os.path.exists(dest) and os.listdir(dest):
-        print(f"Files already present in `{dest}`, nothing will be downloaded.")
-        if dest != real_dest:
-            os.symlink(dest, real_dest)
+    if os.path.exists(first_dest) and os.listdir(first_dest):
+        print(f"Files already present in `{first_dest}`, nothing will be downloaded.")
+        if first_dest != dest:
+            try:
+                os.symlink(first_dest, dest)
+            except FileExistsError:
+                print(f"Ignoring existing file at {dest}")
         return dest
 
     # if dest exists but is empty, remove it so we can pull with pget
-    if os.path.exists(dest):
-        shutil.rmtree(dest)
+    if os.path.exists(first_dest):
+        shutil.rmtree(first_dest)
 
     print("Downloading model assets...")
-    command = ["pget", url, dest, "-x"]
+    command = ["pget", url, first_dest, "-x"]
     subprocess.check_call(command, close_fds=True)
-    if dest != real_dest:
-        os.symlink(dest, real_dest)
+    if first_dest != dest:
+        os.symlink(first_dest, dest)
 
     return dest
 
