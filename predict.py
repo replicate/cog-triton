@@ -3,6 +3,7 @@ import contextlib
 import json
 import multiprocessing as mp
 import os
+import re
 import subprocess
 import time
 from typing import AsyncIterator, Optional
@@ -89,11 +90,12 @@ async def wrap_httpx_error(
             "Try a shorter prompt, or sending requests more slowly."
         )
 
+prompt_too_long_pattern = re.compile(r"[Pp]rompt length \(\d+\) exceeds maximum input length \(\d+\)")
 
 def parse_triton_error(error_message: str) -> Exception:
-    if "exceeds maximum input length" in error_message:
+    if match := prompt_too_long_pattern.search(error_message):
         raise UserError(
-            f"E1002 PromptTooLong: Prompt length exceeds maximum input length. Detail: {error_message}"
+            f"E1002 PromptTooLong: {match.group()}"
         )
     if "the first token of the stop sequence IDs was not" in error_message:
         raise TritonError(
