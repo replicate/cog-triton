@@ -1,5 +1,6 @@
 import asyncio
 import contextlib
+import inspect
 import json
 import multiprocessing as mp
 import os
@@ -143,6 +144,12 @@ class Predictor(BasePredictor):
             return
         self.model_exists = True
         self.client = httpx.AsyncClient(timeout=TRITON_TIMEOUT)
+        await self.ensure_triton_started()
+        # we expect this to throw a timeout or some other error in the case of failures
+        async for tok in self.predict("A", **(self._defaults | {"max_tokens": 3})):
+            return
+
+    async def ensure_triton_started(self):
         for i in range(3):
             if await self.start_triton():
                 return
@@ -445,6 +452,12 @@ class Predictor(BasePredictor):
         }
 
         return args
+
+    _defaults = {
+        key: param.default.default
+        for key, param in inspect.signature(predict).parameters.items()
+        if hasattr(param.default, "default")
+    }
 
     def _get_n_tokens(self, text: str) -> int:
         return len(self.tokenizer(text)["input_ids"])
