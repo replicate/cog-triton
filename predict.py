@@ -47,15 +47,32 @@ def format_prompt(
     if not prompt_template:
         prompt_template = "{prompt}"
     if prompt and "{prompt}" not in prompt_template:
-        raise Exception(
+        raise UserError(
             "E1003 BadPromptTemplate: You have submitted both a prompt and a prompt template that doesn't include '{prompt}'."
             "Your prompt would not be used. "
             "If don't want to use formatting, use your full prompt for the prompt argument and set prompt_template to '{prompt}'."
         )
-    return prompt_template.format(
-        system_prompt=system_prompt or "",
-        prompt=prompt,
-    )
+    try:
+        return prompt_template.format(
+            system_prompt=system_prompt or "",
+            prompt=prompt,
+        )
+    except (ValueError, KeyError, IndexError):
+        # sometimes people put the prompt in prompt_template
+        if len(prompt_template) > len(prompt):
+            raise UserError(
+                "E1004 PromptTemplateError: Prompt template must be a valid python format spec. "
+                "Did you submit your prompt as `prompt_template` instead of `prompt`? "
+                'If you want finer control over templating, set prompt_template to `"{prompt}"` to disable formatting. '
+                "You can't put JSON in prompt_template, because braces will be parsed as a python format string. "
+                f"Detail: {repr(e)}"
+            )
+        # most common case is "unmatched '{' in format spec",
+        # but IndexError/KeyError and other formatting errors can happen
+        # str(KeyError) is only the missing key which can be confusing
+        raise UserError(
+            "E1004 PromptTemplateError: Prompt template must be a valid python format spec: {repr(e)}"
+        )
 
 
 @contextlib.asynccontextmanager
@@ -326,7 +343,7 @@ class Predictor(BasePredictor):
                 try:
                     event_data = event.json()
                 except json.JSONDecodeError as e:
-                    raise json.JSONDecodeError(
+                    raise UserError(
                         f"E2103 TritonMalformedJSON: Triton returned malformed JSON: {event}"
                     ) from e
                 if error_message := event_data.get("error"):
