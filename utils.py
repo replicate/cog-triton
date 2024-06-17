@@ -25,7 +25,7 @@ def maybe_download_tarball_with_pget(
 
     """
     try:
-        Path("/weights").mkdir(exit_ok=True)
+        Path("/weights").mkdir(exist_ok=True)
         first_dest = "/weights/triton"
     except PermissionError:
         print("/weights doesn't exist, and we couldn't create it")
