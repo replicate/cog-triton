@@ -13,6 +13,7 @@ Category 1 (user error), subcategory 0 (framework-agnostic user errors).
 * E1001 PromptRequired: A prompt is required, but your formatted prompt is blank
 * E1002 PromptTooLong: Prompt length exceeds maximum input length.
 * E1003 BadPromptTemplate: You have submitted both a prompt and a prompt template that doesn't include '{prompt}'.
+* E1004 PromptTemplateError: Prompt template must be a valid python format spec
 
 ### Triton user errors:
 
