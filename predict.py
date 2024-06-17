@@ -167,7 +167,7 @@ class Predictor(BasePredictor):
         self.client = httpx.AsyncClient(timeout=TRITON_TIMEOUT)
         await self.ensure_triton_started()
         # we expect this to throw a timeout or some other error in the case of failures
-        generator = self.predict("A", **(self._defaults | {"max_tokens": 3}))
+        generator = self.predict(**(self._defaults | {"max_tokens": 3, "prompt": "hi"}))
         test_output = "".join(tok async for tok in generator)
         print("Test prediction output:", test_output)
 
