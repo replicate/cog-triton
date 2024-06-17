@@ -125,7 +125,7 @@ class Predictor(BasePredictor):
                 generate_configs(config["instantiate"]["server"])
 
         engine_dir = os.environ.get(
-            "ENGINE_DIR", "/src/triton_model_repo/tensorrt_llm/1/"
+            "ENGINE_DIR", "/src/triton_model_repo/tensorrt_llm/1"
         )
 
         self.system_prompt_exists = os.getenv("SYSTEM_PROMPT", None)
