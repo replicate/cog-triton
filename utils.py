@@ -10,7 +10,7 @@ import requests
 
 def maybe_download_tarball_with_pget(
     url: str,
-    dest: str,
+    real_dest: str,
 ):
     """
     Downloads a tarball from url and decompresses to dest if dest does not exist. Remote path is constructed
@@ -24,10 +24,19 @@ def maybe_download_tarball_with_pget(
         path (str): Path to the directory where files were downloaded
 
     """
+    try:
+        Path("/weights").mkdir(exit_ok=True)
+        dest = "/weights/triton"
+    except PermissionError:
+        print("/weights doesn't exist, and we couldn't create it")
+        dest = real_dest
+
 
     # if dest exists and is not empty, return
     if os.path.exists(dest) and os.listdir(dest):
-        print(f"Files already present in the `{dest}`, nothing will be downloaded.")
+        print(f"Files already present in `{dest}`, nothing will be downloaded.")
+        if dest != real_dest:
+            os.symlink(dest, real_dest)
         return dest
 
     # if dest exists but is empty, remove it so we can pull with pget
@@ -37,6 +46,8 @@ def maybe_download_tarball_with_pget(
     print("Downloading model assets...")
     command = ["pget", url, dest, "-x"]
     subprocess.check_call(command, close_fds=True)
+    if dest != real_dest:
+        os.symlink(dest, real_dest)
 
     return dest
 
