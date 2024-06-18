@@ -167,9 +167,11 @@ class Predictor(BasePredictor):
         self.client = httpx.AsyncClient(timeout=TRITON_TIMEOUT)
         await self.ensure_triton_started()
         # we expect this to throw a timeout or some other error in the case of failures
+        self._testing = True
         generator = self.predict(**(self._defaults | {"max_tokens": 3, "prompt": "hi"}))
         test_output = "".join([tok async for tok in generator])
         print("Test prediction output:", test_output)
+        self._testing = False
 
     async def ensure_triton_started(self):
         for i in range(3):
@@ -408,9 +410,9 @@ class Predictor(BasePredictor):
                 self.log(
                     f"Serverside time to first token: {round(time_to_first_token, 2)} seconds\n"
                 )
-
-        cog.emit_metric("input_token_count", n_prompt_tokens)
-        cog.emit_metric("output_token_count", n_tokens)
+        if not self._testing:
+            cog.emit_metric("input_token_count", n_prompt_tokens)
+            cog.emit_metric("output_token_count", n_tokens)
         self.log(f"Random seed used: `{args['random_seed']}`\n")
         self.log(
             "Note: Random seed will not impact output if greedy decoding is used.\n"
