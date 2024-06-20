@@ -128,7 +128,7 @@ class TritonHandler:
 
             stdout, stderr = process.communicate()
             error_message = stderr.decode("utf-8") if stderr else ""
-            raise RuntimeError(f"Server failed to start.")
+            raise RuntimeError(f"Server failed to start: {error_message}")
 
         except RuntimeError as e:
             process.terminate()
