@@ -305,14 +305,14 @@ class Predictor(BasePredictor):
         # compatibility with older language models
         if max_new_tokens:
             # 512 is the default
-            if max_tokens == 512 or max_tokens is None:
+            if max_tokens == 512 or max_tokens is None or max_tokens == max_new_tokens:
                 max_tokens = max_new_tokens
             else:
                 raise UserError(
                     f"E1102 InvalidArgumentMaxTokens: Can't set both max_tokens ({max_tokens}) and max_new_tokens ({max_new_tokens})"
                 )
         if min_new_tokens:
-            if min_tokens is None:
+            if min_tokens is None or min_tokens == min_new_tokens:
                 min_tokens = min_new_tokens
             else:
                 raise UserError(
