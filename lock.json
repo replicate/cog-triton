@@ -74,10 +74,10 @@
         "version": "8.1.7"
       },
       "cog": {
-        "sha256": "b8cd390c8620aa015fdb8138ca09f1a1008981ecbde6ece6249bb9ba7d4e065c",
+        "sha256": "c1b82243ee152f7e4f57b9fc828bdc23de28c11f68589f7622ebdbf6afa6aa10",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/38/b0/da376de00ab98ff390d0a8003c720a426cc21ef1dc693afa820460464810/cog-0.10.0a12-py3-none-any.whl",
-        "version": "0.10.0a12"
+        "url": "https://files.pythonhosted.org/packages/d5/cf/88b0794a5a54f749462c90022be01733a256d4444a9bcb96e2227b4be762/cog-0.10.0a13-py3-none-any.whl",
+        "version": "0.10.0a13"
       },
       "colored": {
         "sha256": "a7069673bd90a35f46cb748d012c17284a0668d2f1c06bc7a51822a2d5ad2112",
@@ -230,10 +230,10 @@
         "version": "0.27.0"
       },
       "huggingface-hub": {
-        "sha256": "22222c41223f1b7c209ae5511d2d82907325a0e3cdbce5f66949d43c598ff3bc",
+        "sha256": "3a0b957aa87150addf0cc7bd71b4d954b78e749850e1e7fb29ebbd2db64ca037",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/66/e8/bbbad5c7b49c68def42830f96c606e693bfa935a886740a363f04cb84e44/huggingface_hub-0.23.3-py3-none-any.whl",
-        "version": "0.23.3"
+        "url": "https://files.pythonhosted.org/packages/69/d6/73f9d1b7c4da5f0544bc17680d0fa9932445423b90cd38e1ee77d001a4f5/huggingface_hub-0.23.4-py3-none-any.whl",
+        "version": "0.23.4"
       },
       "humanfriendly": {
         "sha256": "1697e1a8a8f550fd43c2865cd84542fc175a61dcb779b6fee18cf6b6ccba1477",
@@ -476,10 +476,10 @@
         "version": "4.25.3"
       },
       "psutil": {
-        "sha256": "d06016f7f8625a1825ba3732081d77c94589dca78b7a3fc072194851e88461a4",
+        "sha256": "5fd9a97c8e94059b0ef54a7d4baf13b405011176c3b6ff257c247cae0d560ecd",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/c5/4f/0e22aaa246f96d6ac87fe5ebb9c5a693fbe8877f537a1022527c47ca43c5/psutil-5.9.8-cp36-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
-        "version": "5.9.8"
+        "url": "https://files.pythonhosted.org/packages/19/74/f59e7e0d392bc1070e9a70e2f9190d652487ac115bb16e2eff6b22ad1d24/psutil-6.0.0-cp36-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "version": "6.0.0"
       },
       "pulp": {
         "sha256": "4a19814a5b0a4392d788ac2315263435293579b0583c3469943fe0c6a586f263",
@@ -710,10 +710,10 @@
         "version": "2024.1"
       },
       "urllib3": {
-        "sha256": "450b20ec296a467077128bff42b73080516e71b56ff59a60a02bef2232c4fa9d",
+        "sha256": "a448b2f64d686155468037e1ace9f2d2199776e17f0a46610480d311f73e3472",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/a2/73/a68704750a7679d0b6d3ad7aa8d4da8e14e151ae82e6fee774e6e0d05ec8/urllib3-2.2.1-py3-none-any.whl",
-        "version": "2.2.1"
+        "url": "https://files.pythonhosted.org/packages/ca/1c/89ffc63a9605b583d5df2be791a27bc1a42b7c32bab68d3c8f2f73a98cd4/urllib3-2.2.2-py3-none-any.whl",
+        "version": "2.2.2"
       },
       "uvicorn": {
         "sha256": "cd17daa7f3b9d7a24de3617820e634d0933b69eed8e33a516071174427238c81",
@@ -1214,5 +1214,5 @@
       }
     }
   },
-  "invalidationHash": "047baae7c7320bfb61049e3c510db261368d23f0d4e37e786eb5f7355e26b11a"
+  "invalidationHash": "23ea07e0604afcc40a1e2da1b9718dd6b47f959d7f0ae495243f7e9cf125a36d"
 }
