@@ -32,27 +32,27 @@ jobs:
         cat > ~/.ssh/id_ed25519 <<< "$GIT_SSH_KEY"
         chmod 0600 ~/.ssh/id_ed25519
     - name: Build cog-triton-builder
-      run: nix build --accept-flake-config .#cog-triton-builder -o cog-triton-builder
-    - name: Build cog-triton-runner-80
-      run: nix build --accept-flake-config .#cog-triton-runner-80 -o cog-triton-runner-80
-    - name: Build cog-triton-runner-86
-      run: nix build --accept-flake-config .#cog-triton-runner-86 -o cog-triton-runner-86
-    - name: Build cog-triton-runner-90
-      run: nix build --accept-flake-config .#cog-triton-runner-90 -o cog-triton-runner-90
-    - run: nix path-info --closure-size --human-readable ./cog-triton-*
-    - name: Push to replicate
       env:
         COG_TOKEN: ${{ secrets.COG_TOKEN }}
       run: |
-        echo "::group::Builder"
-        ./cog-triton-builder push r8.im/replicate-internal/cog-triton-ci
-        echo "::endgroup::"
-        echo "::group::Runner-80"
+        nix build --accept-flake-config ".#cog-triton-builder" -o cog-triton-builder
+        ./cog-triton-builder push r8.im/replicate-internal/triton-builder
+    - name: Build cog-triton-runner-80
+      env:
+        COG_TOKEN: ${{ secrets.COG_TOKEN }}
+      run: |
+        nix build --accept-flake-config ".#cog-triton-runner-80" -o cog-triton-runner-80
         ./cog-triton-runner-80 push r8.im/replicate-internal/triton-base-sm80
-        echo "::endgroup::"
-        echo "::group::Runner-86"
-        ./cog-triton-runner-86 push r8.im/replicate-internal/triton-base-sm86
-        echo "::endgroup::"
-        echo "::group::Runner-90"
+    # - name: Build cog-triton-runner-86
+    #   env:
+    #     COG_TOKEN: ${{ secrets.COG_TOKEN }}
+    #   run: |
+    #     nix build --accept-flake-config ".#cog-triton-runner-86" -o cog-triton-runner-86
+    #     ./cog-triton-runner-86 push r8.im/replicate-internal/triton-base-sm86
+    - name: Build cog-triton-runner-90
+      env:
+        COG_TOKEN: ${{ secrets.COG_TOKEN }}
+      run: |
+        nix build --accept-flake-config ".#cog-triton-runner-90" -o cog-triton-runner-90
         ./cog-triton-runner-90 push r8.im/replicate-internal/triton-base-sm90
-        echo "::endgroup::"
+    - run: nix path-info --closure-size --human-readable ./cog-triton-*
