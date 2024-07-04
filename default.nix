@@ -12,7 +12,7 @@ in
   imports = [ ./interface.nix ];
   cog.build = {
     python_version = "3.10";
-    cog_version = "0.10.0-alpha13";
+    cog_version = "0.10.0-alpha16";
     cuda = "12.1"; # todo: 12.2
     gpu = true;
     # inspiration: echo tensorrt_llm==0.8.0 | uv pip compile - --extra-index-url https://pypi.nvidia.com -p 3.10 --prerelease=allow --annotation-style=line
