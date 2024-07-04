@@ -268,11 +268,6 @@ class TritonPythonModel:
 
         flat_ids = []
         offsets = []
-        arbitrary_start_sequence_token = "!"
-        arbitrary_start_sequence_id = self.tokenizer.encode(
-            "!", add_special_tokens=False
-        )[0]
-
         for word_list in word_lists:
             item_flat_ids = []
             item_offsets = []
@@ -281,16 +276,7 @@ class TritonPythonModel:
                 if isinstance(word, bytes):
                     word = word.decode()
 
-                word = arbitrary_start_sequence_token + word
                 ids = self.tokenizer.encode(word, add_special_tokens=False)
-                if ids[0] != arbitrary_start_sequence_id:
-                    raise ValueError(
-                        f"To standardize tokenizer behavior, we prepend '{arbitrary_start_sequence_token}' to the string representation of each stop sequence. "
-                        "We then strip the corresponding first token from the stop sequence IDs. "
-                        f"However, the first token of the stop sequence IDs was not '{arbitrary_start_sequence_id}', which suggests there is a problem with the tokenizer that you are using."
-                    )
-                else:
-                    ids = ids[1:]
                 if len(ids) == 0:
                     continue
 
