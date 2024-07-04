@@ -28,7 +28,7 @@ import json
 
 import numpy as np
 import triton_python_backend_utils as pb_utils
-from transformers import AutoTokenizer
+# from transformers import AutoTokenizer
 
 
 class TritonPythonModel:
@@ -53,19 +53,19 @@ class TritonPythonModel:
         """
         # Parse model configs
         model_config = json.loads(args['model_config'])
-        tokenizer_dir = model_config['parameters']['tokenizer_dir'][
-            'string_value']
-        self.skip_special_tokens = model_config['parameters'].get(
-            'skip_special_tokens',
-            {'string_value': "true"})['string_value'].lower() in [
-                'true', '1', 't', 'y', 'yes'
-            ]
+        # tokenizer_dir = model_config['parameters']['tokenizer_dir'][
+        #     'string_value']
+        # self.skip_special_tokens = model_config['parameters'].get(
+        #     'skip_special_tokens',
+        #     {'string_value': "true"})['string_value'].lower() in [
+        #         'true', '1', 't', 'y', 'yes'
+        #     ]
 
-        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_dir,
-                                                       legacy=False,
-                                                       padding_side='left',
-                                                       trust_remote_code=True)
-        self.tokenizer.pad_token = self.tokenizer.eos_token
+        # self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_dir,
+        #                                                legacy=False,
+        #                                                padding_side='left',
+        #                                                trust_remote_code=True)
+        # self.tokenizer.pad_token = self.tokenizer.eos_token
 
         # Parse model output configs
         output_config = pb_utils.get_output_config_by_name(
@@ -129,13 +129,13 @@ class TritonPythonModel:
             # tokens_batch = tokens_batch.T
 
             # Postprocessing output data.
-            outputs = self._postprocessing(tokens_batch, sequence_lengths)
+            # outputs = self._postprocessing(tokens_batch, sequence_lengths)
 
             # Create output tensors. You need pb_utils.Tensor
             # objects to create pb_utils.InferenceResponse.
             output_tensor = pb_utils.Tensor(
                 'OUTPUT',
-                np.array(outputs).astype(self.output_dtype))
+                tokens_batch)
 
             outputs = []
             outputs.append(output_tensor)
@@ -201,13 +201,13 @@ class TritonPythonModel:
         """
         print('Cleaning up...')
 
-    def _postprocessing(self, tokens_batch, sequence_lengths):
-        outputs = []
-        for batch_idx, beam_tokens in enumerate(tokens_batch):
-            for beam_idx, tokens in enumerate(beam_tokens):
-                seq_len = sequence_lengths[batch_idx][beam_idx]
-                output = self.tokenizer.decode(
-                    tokens[:seq_len],
-                    skip_special_tokens=self.skip_special_tokens)
-                outputs.append(output.encode('utf8'))
-        return outputs
+    # def _postprocessing(self, tokens_batch, sequence_lengths):
+    #     outputs = []
+    #     for batch_idx, beam_tokens in enumerate(tokens_batch):
+    #         for beam_idx, tokens in enumerate(beam_tokens):
+    #             seq_len = sequence_lengths[batch_idx][beam_idx]
+    #             output = self.tokenizer.decode(
+    #                 tokens[:seq_len],
+    #                 skip_special_tokens=self.skip_special_tokens)
+    #             outputs.append(output.encode('utf8'))
+    #     return outputs
