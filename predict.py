@@ -446,10 +446,19 @@ class Predictor(BasePredictor):
         pad_id = self.pad_id
         end_id = self.end_id
 
-        if top_k < 0:
-            top_k = 0
-        if min_tokens < 0:
-            min_tokens = 0
+        decoding_mode = "top_k_top_p"
+
+        if top_k <= 0:
+            top_k = None
+            decoding_mode = "top_p"
+
+        if top_p == 0.0:
+            if decoding_mode == "top_p":
+                raise UserError(
+                    "E1105 InvalidArgumentTopKTopP: Can't set both top_k and top_p to 0"
+                )
+            decoding_mode = "top_k"
+            top_p = None
 
         if not seed:
             seed = int(np.random.randint(0, 100000))
@@ -459,7 +468,10 @@ class Predictor(BasePredictor):
             max_tokens = min(max_tokens, token_budget)
             min_tokens = min(min_tokens, token_budget)
 
-        args = {
+        if min_tokens <= 0:
+            min_tokens = None
+
+        args = {k: v for k, v in {
             "text_input": prompt,
             "max_tokens": max_tokens,
             "min_length": min_tokens,
@@ -473,7 +485,8 @@ class Predictor(BasePredictor):
             "random_seed": seed,
             "pad_id": pad_id,
             "end_id": end_id,
-        }
+            "decoding_mode": decoding_mode,
+        }.items() if v is not None}
 
         return args
 
