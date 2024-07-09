@@ -32,6 +32,7 @@ if mp.current_process().name != "MainProcess":
         "TRITONSERVER_BACKEND_DIR", str(TRITONSERVER_DIST_DIR / "backends")
     )
 
+TRITON_START_TIMEOUT_MINUTES = 5
 TRITON_TIMEOUT = 120
 
 
@@ -104,7 +105,7 @@ def parse_triton_error(error_message: str) -> Exception:
         raise TritonError(
             f"E2102 TritonTokenizerError: Tokenizer error: {error_message}"
         )
-    raise TritonError(f"E2100 TritonUnknownError: Unkown Triton error: {error_message}")
+    raise TritonError(f"E2100 TritonUnknownError: Unknown Triton error: {error_message}")
 
 
 class Predictor(BasePredictor):
@@ -201,8 +202,8 @@ class Predictor(BasePredictor):
                 cmd += ["--model-control-mode=explicit", "--load-model=tensorrt_llm"]
             cmd += [":"]
         self.proc = subprocess.Popen(cmd)
-        # Health check Triton until it is ready or for 3 minutes
-        for i in range(180):
+        # Health check Triton until it is ready or for 5 minutes
+        for i in range(TRITON_START_TIMEOUT_MINUTES * 60):
             try:
                 response = await self.client.get(
                     "http://localhost:8000/v2/health/ready"
@@ -213,7 +214,7 @@ class Predictor(BasePredictor):
             except httpx.RequestError:
                 pass
             await asyncio.sleep(1)
-        print(f"Triton was not ready within 3 minutes (exit code: {self.proc.poll()})")
+        print(f"Triton was not ready within {TRITON_START_TIMEOUT_MINUTES} minutes (exit code: {self.proc.poll()})")
         self.proc.terminate()
         await asyncio.sleep(0.001)
         self.proc.kill()
