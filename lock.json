@@ -650,22 +650,22 @@
         "version": "10.0.1"
       },
       "tensorrt-cu12": {
-        "sha256": "9663446e2872113d619ad5010766cccc1f023d693cb43c3f8f2496563028badc",
+        "sha256": "a549e2fe472eb03b2737a708c0aef0cac9cb0be1ae46bc7dad72ec1dfc81bd19",
         "type": "url",
-        "url": "https://pypi.nvidia.com/tensorrt-cu12/tensorrt-cu12-10.2.0.post1.tar.gz",
-        "version": "10.2.0.post1"
+        "url": "https://pypi.nvidia.com/tensorrt-cu12/tensorrt-cu12-10.1.0.tar.gz",
+        "version": "10.1.0"
       },
       "tensorrt-cu12-bindings": {
-        "sha256": "3248e7951d1f2fa8884759b19456ab7d08a3f75bd6b8e5d58e5cc18788c02171",
+        "sha256": "91e1bd0eb348524ff209ef6b235d329983ea704b5d16f9a7ba747c08cc3c2495",
         "type": "url",
-        "url": "https://pypi.nvidia.com/tensorrt-cu12-bindings/tensorrt_cu12_bindings-10.2.0.post1-cp310-none-manylinux_2_17_x86_64.whl",
-        "version": "10.2.0.post1"
+        "url": "https://pypi.nvidia.com/tensorrt-cu12-bindings/tensorrt_cu12_bindings-10.1.0-cp310-none-manylinux_2_17_x86_64.whl",
+        "version": "10.1.0"
       },
       "tensorrt-cu12-libs": {
-        "sha256": "a42f7ecb1659fac27cf68996df0984e68018be61bd8bbd95f51619f9c4e9cf31",
+        "sha256": "1ad13c26b3f441267a746df6859e44eb0e8da78d4382458d1fd2eb7675abd49f",
         "type": "url",
-        "url": "https://pypi.nvidia.com/tensorrt-cu12-libs/tensorrt_cu12_libs-10.2.0.post1-py2.py3-none-manylinux_2_17_x86_64.whl",
-        "version": "10.2.0.post1"
+        "url": "https://pypi.nvidia.com/tensorrt-cu12-libs/tensorrt_cu12_libs-10.1.0-py2.py3-none-manylinux_2_17_x86_64.whl",
+        "version": "10.1.0"
       },
       "tensorrt-llm": {
         "sha256": "c7975326fa10b56079e0febf7c52a65ccf5b37760cd1c79d5aa3e8c7d85ce69c",
@@ -1248,5 +1248,5 @@
       }
     }
   },
-  "invalidationHash": "aedf040e5687ab8badc94e4500a11b3037a51c13346051fbcf5f441fd85fcfbb"
+  "invalidationHash": "e7e207b87a9d99d7041d2be7edfba110533a437cc9cf984be13642572fa5f156"
 }
