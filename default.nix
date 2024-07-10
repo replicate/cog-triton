@@ -20,6 +20,7 @@ in
       "--extra-index-url"
       "https://pypi.nvidia.com"
       "tensorrt_llm==0.10.0"
+      "tensorrt-cu12==10.1.0"
       "torch==2.2.2"
       "nvidia-pytriton==0.5.6" # corresponds to 2.44.0
       "omegaconf"
