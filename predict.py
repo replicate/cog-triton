@@ -372,6 +372,9 @@ class Predictor(BasePredictor):
                         f"E2104 TritonMalformedEvent: Triton returned malformed event (no output_ids or error key): {event_data}"
                     )
 
+                if token == []:
+                    continue
+
                 n_tokens += 1
                 if n_tokens == 1:
                     first_token_time = time.time()
@@ -447,18 +450,12 @@ class Predictor(BasePredictor):
         pad_id = self.pad_id
         end_id = self.end_id
 
-        decoding_mode = "top_k_top_p"
-
         if top_k <= 0:
+            # workaround, unneccesary with with trtllm > 0.10.0
             top_k = None
-            decoding_mode = "top_p"
 
-        if top_p == 0.0:
-            if decoding_mode == "top_p":
-                raise UserError(
-                    "E1105 InvalidArgumentTopKTopP: Can't set both top_k and top_p to 0"
-                )
-            decoding_mode = "top_k"
+        if top_p <= 0.0:
+            # workaround, unneccesary with with trtllm > 0.10.0
             top_p = None
 
         if not seed:
@@ -470,6 +467,7 @@ class Predictor(BasePredictor):
             min_tokens = min(min_tokens, token_budget)
 
         if min_tokens <= 0:
+            # workaround, unneccesary with with trtllm > 0.10.0
             min_tokens = None
 
         args = {k: v for k, v in {
@@ -486,7 +484,6 @@ class Predictor(BasePredictor):
             "random_seed": seed,
             "pad_id": pad_id,
             "end_id": end_id,
-            "decoding_mode": decoding_mode,
         }.items() if v is not None}
 
         return args
