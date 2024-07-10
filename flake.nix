@@ -26,7 +26,7 @@
 
         cog-triton.architectures = architectures;
         # don't need this file in a runner
-        python-env.pip.drvs.tensorrt-libs.mkDerivation.postInstall = lib.mkAfter ''
+        python-env.pip.drvs.tensorrt-cu12-libs.mkDerivation.postInstall = lib.mkAfter ''
           rm $out/lib/python*/site-packages/tensorrt_libs/libnvinfer_builder_resource*
         '';
       });

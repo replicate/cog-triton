@@ -15,36 +15,29 @@ in
     cog_version = "0.10.0-alpha16";
     cuda = "12.1"; # todo: 12.2
     gpu = true;
-    # inspiration: echo tensorrt_llm==0.8.0 | uv pip compile - --extra-index-url https://pypi.nvidia.com -p 3.10 --prerelease=allow --annotation-style=line
+    # inspiration: echo tensorrt_llm==0.10.0 | uv pip compile - --extra-index-url https://pypi.nvidia.com -p 3.10 --prerelease=allow --annotation-style=line
     python_packages = [
       "--extra-index-url"
       "https://pypi.nvidia.com"
-      "tensorrt_llm==0.9.0"
+      "tensorrt_llm==0.10.0"
+      "tensorrt-cu12==10.1.0"
       "torch==2.2.2"
-      "tensorrt==9.3.0.post12.dev1"
-      "tensorrt-bindings==9.3.0.post12.dev1"
-      "tensorrt-libs==9.3.0.post12.dev1"
-      "nvidia-pytriton==0.5.2" # corresponds to 2.42.0
-      "httpx"
-      "nvidia-cublas-cu12<12.2"
-      "nvidia-cuda-nvrtc-cu12<12.2"
-      "nvidia-cuda-runtime-cu12<12.2"
+      "nvidia-pytriton==0.5.6" # corresponds to 2.44.0
       "omegaconf"
       "hf-transfer"
-      "tokenizers"
+      "tokenizers>=0.19.0"
     ];
     # don't ask why it needs ssh
     system_packages = [ "pget" "openssh" "openmpi" ];
   };
   python-env.pip = {
     uv.enable = true;
-    # todo: add some constraints to match cudaPackages
     constraintsList = [
-      "nvidia-cudnn-cu12<9"
+      # "nvidia-cudnn-cu12==${cudaPackages.cudnn.version}"
+      "nvidia-cublas-cu12==${cudaPackages.libcublas.version}"
     ];
     overridesList = [
-      "tokenizers==0.19.0"
-      "transformers==4.40.0"
+      "pydantic==1.10.16"
     ];
   };
   cognix.includeNix = true;
@@ -56,27 +49,31 @@ in
     # tensorrt likes doing a pip invocation from it's setup.py
     # circumvent by manually depending on tensorrt_libs, tensorrt_bindings
     # and setting this env variable
-    tensorrt.env.NVIDIA_TENSORRT_DISABLE_INTERNAL_PIP = true;
-    # TODO remove upon next rebuild:
-    tensorrt.mkDerivation.propagatedBuildInputs = with pythonDrvs; [
-      tensorrt-libs.public
-      tensorrt-bindings.public
+    tensorrt-cu12.env.NVIDIA_TENSORRT_DISABLE_INTERNAL_PIP = true;
+    tensorrt-cu12.mkDerivation.buildInputs = [ python3.pkgs.pip ];
+    tensorrt-cu12-bindings.mkDerivation.propagatedBuildInputs = [
+      pythonDrvs.tensorrt-cu12-libs.public
     ];
-    tensorrt-bindings.mkDerivation.propagatedBuildInputs = [ pythonDrvs.tensorrt-libs.public ];
-    tensorrt-libs.mkDerivation.postFixup = ''
+    # fixes tensorrt-llm build
+    tensorrt-cu12-libs.mkDerivation.postFixup = ''
       pushd $out/${site}/tensorrt_libs
-      ln -s libnvinfer.so.9 libnvinfer.so
-      ln -s libnvonnxparser.so.9 libnvonnxparser.so
+      ln -s libnvinfer.so.10 libnvinfer.so
+      ln -s libnvonnxparser.so.10 libnvonnxparser.so
       popd
     '';
-    tensorrt-libs.env.appendRunpaths = [ "/usr/lib64" "$ORIGIN" ];
+    tensorrt-cu12-libs.env.appendRunpaths = [ "/usr/lib64" "$ORIGIN" ];
     tensorrt-llm = {
       mkDerivation.buildInputs = [ cudaPackages.nccl ];
       mkDerivation.propagatedBuildInputs = with pythonDrvs; [
-        tensorrt-libs.public # libnvinfer, onnxparse
+        tensorrt-cu12-libs.public # libnvinfer, onnxparse
       ];
       env.appendRunpaths = [ "/usr/lib64" "$ORIGIN" ];
-      env.autoPatchelfIgnoreMissingDeps = ["libcuda.so.1"];
+      env.autoPatchelfIgnoreMissingDeps = [ "libcuda.so.1" "libnvidia-ml.so.1" ];
+      mkDerivation.postInstall = ''
+        pushd $out/${site}/tensorrt_llm/bin
+        patchelf --replace-needed libnvinfer_plugin_tensorrt_llm.so{.10,} executorWorker
+        popd
+      '';
     };
     # has some binaries that want cudart
     tritonclient.mkDerivation.postInstall = "rm -r $out/bin";
@@ -131,8 +128,8 @@ in
   deps.tensorrt-src = pkgs.fetchFromGitHub {
     owner = "NVIDIA";
     repo = "TensorRT";
-    rev = "6d1397ed4bb65933d02725623c122a157544a729"; # release/9.3 branch
-    hash = "sha256-XWFyMD7jjvgIihlqCJNyH5iSa1vZCDhv1maLJqMM3UE=";
+    rev = "v10.0.1";
+    hash = "sha256-lSEw0GM0eW2BHNBq/wTQA8v3aNueE3FT+k9F5nH1OgA=";
   };
   # todo: replace with lockfile
   deps.pybind11-stubgen = python3.pkgs.buildPythonPackage rec {
