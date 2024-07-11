@@ -41,6 +41,7 @@ stdenv.mkDerivation (o: {
     ninja
     python3
     cudaPackages.cuda_nvcc
+    rsync
   ];
   buildInputs =
     [
@@ -144,19 +145,12 @@ stdenv.mkDerivation (o: {
   installPhase =
     ''
       mkdir -p $out
-      ${rsync}/bin/rsync -a --exclude "tensorrt_llm/kernels" $src/cpp $out/
-      chmod -R u+w $out/cpp
-      ${rsync}/bin/rsync -a $src/cpp/tensorrt_llm/kernels $out/cpp/tensorrt_llm/
-      chmod -R u+w $out/cpp
-      mkdir -p $out/cpp/build/tensorrt_llm/plugins
+      rsync -a --chmod=u+w --include "tensorrt_llm/kernels/" --include "tensorrt_llm/kernels/kvCacheIndex.h" --exclude "tensorrt_llm/kernels/*" $src/cpp $out/
+      # rsync -a --chmod=u+w $src/cpp/tensorrt_llm/kernels $out/cpp/tensorrt_llm/
       pushd tensorrt_llm
-      cp ./libtensorrt_llm.so $out/cpp/build/tensorrt_llm/
-      cp -r ./executor_worker $out/cpp/build/tensorrt_llm/
-      chmod -R u+w $out/cpp/build/tensorrt_llm/executor_worker
+      mkdir -p $out/cpp/build/tensorrt_llm/
+      find . '(' '(' -type f -executable ')' -or -type l ')' -print0 | rsync -av --chmod=u+w --files-from=- --from0 ./ $out/cpp/build/tensorrt_llm/
       patchelf --add-needed 'libcudnn.so.8' --add-rpath ${cudaPackages.cudnn.lib}/lib $out/cpp/build/tensorrt_llm/libtensorrt_llm.so
-      cp ./plugins/libnvinfer_plugin_tensorrt_llm.so* $out/cpp/build/tensorrt_llm/plugins/
-      mkdir -p $out/cpp/tensorrt_llm/kernels/decoderMaskedMultiheadAttention/decoderXQAImplJIT/
-      cp -r /build/source/cpp/tensorrt_llm/kernels/decoderMaskedMultiheadAttention/decoderXQAImplJIT/nvrtcWrapper $_
       for f in $out/cpp/build/tensorrt_llm/plugins/*.so* $out/cpp/build/tensorrt_llm/executor_worker/executorWorker; do
         if [ ! -L "$f" ]; then
           new_path=$(patchelf --print-rpath "$f" |
