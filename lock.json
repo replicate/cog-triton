@@ -422,10 +422,10 @@
         "version": "12.1.105"
       },
       "nvidia-pytriton": {
-        "sha256": "6403e65c2bbab0ab2fe2b737ad612e2b88f3edf20d41aadd1d544ffb309a701c",
+        "sha256": "cd3cdfb704db3a01f857adc97fea77d5413c9f9e89f9b7add91c9d16a0bec7f8",
         "type": "url",
-        "url": "https://pypi.nvidia.com/nvidia-pytriton/nvidia_pytriton-0.5.6-py3-none-manylinux_2_35_x86_64.whl",
-        "version": "0.5.6"
+        "url": "https://pypi.nvidia.com/nvidia-pytriton/nvidia_pytriton-0.5.8-py3-none-manylinux_2_35_x86_64.whl",
+        "version": "0.5.8"
       },
       "omegaconf": {
         "sha256": "7b4df175cdb08ba400f45cae3bdcae7ba8365db4d165fc65fd04b050ab63b46b",
@@ -494,16 +494,10 @@
         "version": "17.0.0"
       },
       "pydantic": {
-        "sha256": "4660dd697de1ae2d4305a85161312611f64d5360663a9ba026cd6ad9e3fe14c3",
+        "sha256": "371dcf1831f87c9e217e2b6a0c66842879a14873114ebb9d0861ab22e3b5bb1e",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/ae/d8/3ffbdeccf252d56c8e0b6f1f30798d3aa0ad5afaa541908207881855beeb/pydantic-1.10.16-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
-        "version": "1.10.16"
-      },
-      "pygments": {
-        "sha256": "b8e6aca0523f3ab76fee51799c488e38782ac06eafcf95e7ba832985c8e7b13a",
-        "type": "url",
-        "url": "https://files.pythonhosted.org/packages/f7/3f/01c8b82017c199075f8f788d0d906b9ffbbc5a47dc9918a945e13d5a2bda/pygments-2.18.0-py3-none-any.whl",
-        "version": "2.18.0"
+        "url": "https://files.pythonhosted.org/packages/ef/a6/080cace699e89a94bd4bf34e8c12821d1f05fe4d56a0742f797b231d9a40/pydantic-1.10.17-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "version": "1.10.17"
       },
       "pygments": {
         "sha256": "b8e6aca0523f3ab76fee51799c488e38782ac06eafcf95e7ba832985c8e7b13a",
@@ -686,10 +680,10 @@
         "version": "2.0.1"
       },
       "torch": {
-        "sha256": "f0deb5d2f932a68ed54625ba140eddbf2af22be978ee19b9b63c986add6425b2",
+        "sha256": "605a25b23944be5ab7c3467e843580e1d888b8066e5aaf17ff7bf9cc30001cc3",
         "type": "url",
-        "url": "https://download.pytorch.org/whl/cu121/torch-2.3.1%2Bcu121-cp310-cp310-linux_x86_64.whl",
-        "version": "2.3.1+cu121"
+        "url": "https://files.pythonhosted.org/packages/cb/e2/1bd899d3eb60c6495cf5d0d2885edacac08bde7a1407eadeb2ab36eca3c7/torch-2.3.1-cp310-cp310-manylinux1_x86_64.whl",
+        "version": "2.3.1"
       },
       "tqdm": {
         "sha256": "b75ca56b413b030bc3f00af51fd2c1a1a5eac6a0c1cca83cbb37a5c52abce644",
@@ -706,7 +700,7 @@
       "triton": {
         "sha256": "3c84595cbe5e546b1b290d2a58b1494df5a2ef066dd890655e5b8a8a92205c33",
         "type": "url",
-        "url": "https://download.pytorch.org/whl/triton-2.3.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "url": "https://files.pythonhosted.org/packages/d7/69/8a9fde07d2d27a90e16488cdfe9878e985a247b2496a4b5b1a2126042528/triton-2.3.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
         "version": "2.3.1"
       },
       "tritonclient": {
@@ -1246,5 +1240,5 @@
       }
     }
   },
-  "invalidationHash": "a2c91999e1adbeb840cd39d43711d7c054e354dff33f419447333a2b7c828a10"
+  "invalidationHash": "2153dab33417c384528232f5c3de33dc8c095e98856c27966f082773d23db171"
 }
