@@ -342,7 +342,6 @@ class Predictor(BasePredictor):
         )
 
         output = ""
-        generation_length = 0
         stop_sequence_handler = StreamingTokenStopSequenceHandler(
             stop_sequences=args["stop_words"]
         )
@@ -354,7 +353,7 @@ class Predictor(BasePredictor):
 
         async with wrap_httpx_error(req) as resp:
             async for event in receive_sse(resp):
-                # Output is the _entire_ sequence, from the beginning
+                # Output may be the _entire_ sequence, from the beginning
                 try:
                     event_data = event.json()
                 except json.JSONDecodeError as e:
@@ -380,11 +379,11 @@ class Predictor(BasePredictor):
                     first_token_time = time.time()
 
                 tokens = np.append(tokens, token)
-                output = self.tokenizer.decode(tokens, skip_special_tokens=True)
+                new_output = self.tokenizer.decode(tokens, skip_special_tokens=True)
                 # Catches partial emojis, waits for them to finish
-                output = output.replace("\N{REPLACEMENT CHARACTER}", "")
+                new_output = new_output.replace("\N{REPLACEMENT CHARACTER}", "")
                 # Remove the tokens that were already yielded
-                current_output = output[generation_length:]
+                current_output = new_output.removeprefix(output)
 
                 if current_output:
                     # Process the output for stop sequences
@@ -394,8 +393,8 @@ class Predictor(BasePredictor):
                     if current_output:
                         yield current_output
 
-                # Update generation length
-                generation_length = len(output)
+                # Update output
+                output = new_output
 
             # Handles the case where the generation ends in the middle of a valid stop sequence
             current_output = stop_sequence_handler.finalize()

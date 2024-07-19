@@ -4,7 +4,7 @@
     extra-substituters = "https://storage.googleapis.com/replicate-nix-cache-dev/";
   };
   inputs = {
-    cognix.url = "github:datakami/cognix";
+    cognix.url = "github:datakami/cognix/24.03";
   };
 
   outputs = { self, cognix }@inputs: (cognix.lib.cognixFlake inputs {}) // {
