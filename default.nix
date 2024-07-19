@@ -19,9 +19,9 @@ in
     python_packages = [
       "--extra-index-url"
       "https://pypi.nvidia.com"
-      "tensorrt_llm==0.10.0"
+      "tensorrt_llm==0.11.0"
       "tensorrt-cu12==10.1.0"
-      "torch==2.2.2"
+      "torch==2.3.1"
       "nvidia-pytriton==0.5.6" # corresponds to 2.44.0
       "omegaconf"
       "hf-transfer"
@@ -37,7 +37,7 @@ in
       "nvidia-cublas-cu12==${cudaPackages.libcublas.version}"
     ];
     overridesList = [
-      "pydantic==1.10.16"
+      "pydantic==1.10.17"
     ];
   };
   cognix.includeNix = true;
