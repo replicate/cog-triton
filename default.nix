@@ -22,7 +22,7 @@ in
       "tensorrt_llm==0.11.0"
       "tensorrt-cu12==10.1.0"
       "torch<2.4.0"
-      "nvidia-pytriton==0.5.8" # corresponds to 2.44.0
+      "nvidia-pytriton==0.5.8"
       "omegaconf"
       "hf-transfer"
       "tokenizers>=0.19.0"
@@ -37,7 +37,7 @@ in
       "nvidia-cublas-cu12==${cudaPackages.libcublas.version}"
     ];
     overridesList = [
-      "pydantic==1.10.16"
+      "pydantic==1.10.17"
     ];
   };
   cognix.includeNix = true;

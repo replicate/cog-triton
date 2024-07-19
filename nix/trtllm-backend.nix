@@ -48,12 +48,12 @@ let
 in
 oldGccStdenv.mkDerivation rec {
   pname = "tensorrtllm_backend";
-  version = "0.10.0";
+  version = "0.11.0";
   src = fetchFromGitHub {
     owner = "triton-inference-server";
     repo = "tensorrtllm_backend";
     rev = "v${version}";
-    hash = "sha256-6df9MbHPqBVxpdkTcEzf99OCPtgFrK0jjDJfvE/guyA=";
+    hash = "sha256-PzcFpeq7ISqmHa9TBT0lVVYNdkJWB224kRGQKF4uas8=";
   };
   nativeBuildInputs = [
     cmake

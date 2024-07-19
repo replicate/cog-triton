@@ -12,16 +12,16 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1721227860,
-        "narHash": "sha256-Ufbkk0FaMViyFoRogCq+5iEWs8pCGR0Xkc+v7i83Uw0=",
+        "lastModified": 1721228311,
+        "narHash": "sha256-EEe5Kcno5FMFSd2aYVB2ONHFpe/9k0CX1gIFjNQgV+A=",
         "owner": "datakami",
         "repo": "cognix",
-        "rev": "47db7ff3e82bc73bd067c89997bb8006da08a148",
+        "rev": "8c28f745d7339c495265a85fb65da3ce5592f0ef",
         "type": "github"
       },
       "original": {
         "owner": "datakami",
-        "ref": "24.03",
+        "ref": "24.07",
         "repo": "cognix",
         "type": "github"
       }
@@ -33,15 +33,15 @@
         "pyproject-nix": "pyproject-nix"
       },
       "locked": {
-        "lastModified": 1710167744,
-        "narHash": "sha256-z78iB1ckRQuJluM82iCuQNjN5hqsNpd1om0q75ncza4=",
-        "owner": "yorickvp",
+        "lastModified": 1719513340,
+        "narHash": "sha256-on3zRua52KZ8G5kBOXMQOzrsA07ywVMNdcIWJEeotfo=",
+        "owner": "nix-community",
         "repo": "dream2nix",
-        "rev": "3bfbbbb19471b60cf1bb7f7c476588a36ac3fb04",
+        "rev": "4d441820e0d0916c97d7af6c4d4f6843d676e242",
         "type": "github"
       },
       "original": {
-        "owner": "yorickvp",
+        "owner": "nix-community",
         "repo": "dream2nix",
         "type": "github"
       }
