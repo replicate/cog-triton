@@ -19,6 +19,12 @@
         "url": "https://files.pythonhosted.org/packages/76/ac/a7305707cb852b7e16ff80eaf5692309bde30e2b1100a1fcacdc8f731d97/aiosignal-1.3.1-py3-none-any.whl",
         "version": "1.3.1"
       },
+      "annotated-types": {
+        "sha256": "1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53",
+        "type": "url",
+        "url": "https://files.pythonhosted.org/packages/78/b6/6307fbef88d9b5ee7421e68d78a9f162e0da4900bc5f5793f6d3d0e34fb8/annotated_types-0.7.0-py3-none-any.whl",
+        "version": "0.7.0"
+      },
       "antlr4-python3-runtime": {
         "sha256": "f224469b4168294902bb1efa80a8bf7855f24c99aef99cbefc1bcd3cce77881b",
         "type": "url",
@@ -494,10 +500,16 @@
         "version": "17.0.0"
       },
       "pydantic": {
-        "sha256": "371dcf1831f87c9e217e2b6a0c66842879a14873114ebb9d0861ab22e3b5bb1e",
+        "sha256": "73ee9fddd406dc318b885c7a2eab8a6472b68b8fb5ba8150949fc3db939f23c8",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/ef/a6/080cace699e89a94bd4bf34e8c12821d1f05fe4d56a0742f797b231d9a40/pydantic-1.10.17-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
-        "version": "1.10.17"
+        "url": "https://files.pythonhosted.org/packages/1f/fa/b7f815b8c9ad021c07f88875b601222ef5e70619391ade4a49234d12d278/pydantic-2.8.2-py3-none-any.whl",
+        "version": "2.8.2"
+      },
+      "pydantic-core": {
+        "sha256": "3d482efec8b7dc6bfaedc0f166b2ce349df0011f5d2f1f25537ced4cfc34fd98",
+        "type": "url",
+        "url": "https://files.pythonhosted.org/packages/ae/49/8a6fe79d35e2f3bea566d8ea0e4e6f436d4f749d7838c8e8c4c5148ae706/pydantic_core-2.20.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "version": "2.20.1"
       },
       "pygments": {
         "sha256": "b8e6aca0523f3ab76fee51799c488e38782ac06eafcf95e7ba832985c8e7b13a",
@@ -828,6 +840,7 @@
         "aiosignal": [
           "frozenlist"
         ],
+        "annotated-types": [],
         "antlr4-python3-runtime": [],
         "anyio": [
           "exceptiongroup",
@@ -1061,6 +1074,11 @@
           "numpy"
         ],
         "pydantic": [
+          "annotated-types",
+          "pydantic-core",
+          "typing-extensions"
+        ],
+        "pydantic-core": [
           "typing-extensions"
         ],
         "pygments": [],
@@ -1240,5 +1258,5 @@
       }
     }
   },
-  "invalidationHash": "a2c91999e1adbeb840cd39d43711d7c054e354dff33f419447333a2b7c828a10"
+  "invalidationHash": "f5f309acde79ec4808388874f81a02dd122a2dda9eb1cc24deb2a0e5db9dee1f"
 }

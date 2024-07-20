@@ -30,7 +30,7 @@
           rm $out/lib/python*/site-packages/tensorrt_libs/libnvinfer_builder_resource*
         '';
       });
-      makeBuilder = name: callCognix ( { config, lib, ... }: {
+      makeBuilder = name: callCognix ( { config, lib, pkgs, ... }: {
         inherit name;
         # only grab deps of tensorrt-llm, omegaconf, hf-transfer
         cognix.python_root_packages = [ "tensorrt-llm" "omegaconf" "hf-transfer" ];
@@ -40,6 +40,19 @@
         cognix.rootPath = lib.mkForce "${./cog-trt-llm}";
         # this just needs the examples/ dir
         cognix.environment.TRTLLM_DIR = config.deps.tensorrt-llm.examples;
+        # HACK: cog needs pydantic v1, but trt-llm needs pydantic v2
+        cognix.environment.TRTLLM_PYTHON = (config.python-env.public.extendModules {
+          modules = [{
+            _file = ./.;
+            pip.drvs.pydantic = let mkMoreForce = lib.mkOverride 49; in {
+              version = mkMoreForce "2.8.2";
+              mkDerivation.src = mkMoreForce (pkgs.fetchurl {
+                sha256 = "73ee9fddd406dc318b885c7a2eab8a6472b68b8fb5ba8150949fc3db939f23c8";
+                url = "https://files.pythonhosted.org/packages/1f/fa/b7f815b8c9ad021c07f88875b601222ef5e70619391ade4a49234d12d278/pydantic-2.8.2-py3-none-any.whl";
+              });
+            };
+          }];
+        }).config.public.pyEnv;
       });
     in {
       cog-triton-builder = makeBuilder "cog-triton-builder";

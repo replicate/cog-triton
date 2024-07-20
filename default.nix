@@ -36,9 +36,17 @@ in
       # "nvidia-cudnn-cu12==${cudaPackages.cudnn.version}"
       "nvidia-cublas-cu12==${cudaPackages.libcublas.version}"
     ];
+    # HACK: cog requires pydantic <2, but we do need the extra deps pydantic2 brings in
     overridesList = [
-      "pydantic==1.10.17"
+      "pydantic>=2.0"
     ];
+    drvs.pydantic = {
+      version = lib.mkForce "1.10.17";
+      mkDerivation.src = pkgs.fetchurl {
+        sha256 ="371dcf1831f87c9e217e2b6a0c66842879a14873114ebb9d0861ab22e3b5bb1e";
+        url = "https://files.pythonhosted.org/packages/ef/a6/080cace699e89a94bd4bf34e8c12821d1f05fe4d56a0742f797b231d9a40/pydantic-1.10.17-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl";
+      };
+    };
   };
   cognix.includeNix = true;
   cognix.nix.extraOptions = ''
