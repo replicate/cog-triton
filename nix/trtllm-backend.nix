@@ -19,20 +19,21 @@ let
   deps.triton_repo_common = fetchFromGitHub {
     owner = "triton-inference-server";
     repo = "common";
-    rev = "00b3a71519e32e3bc954e9f0d067e155ef8f1a6c";
-    hash = "sha256-KyFicnB0716nIteSNo43RoiDzuVbj17KM4tIbmN6F+s=";
+    rev = "0f2072bbc2d4e85f68b10cf60c0ed4e4ebfc766b";
+    hash = "sha256-7DdJ1zkHrFEImI137Gt/pDKZhBvoQu0lg2ulqA/yLFA=";
   };
   deps.triton_repo_backend = fetchFromGitHub {
     owner = "triton-inference-server";
     repo = "backend";
+    # update for tritons after may 28, 2024
     rev = "a06e9a1157d6b5b9b34b6d05a07bb84d517f17c9";
     hash = "sha256-Ju2zV/jHUuciTs6GbkqcPG8U0y2lkIWSdAsX78DrpV4=";
   };
   deps.triton_repo_core = fetchFromGitHub {
     owner = "triton-inference-server";
     repo = "core";
-    rev = "434e50313b80fdc7ef295fcb3baeeacf65b295e4";
-    hash = "sha256-kfDXQEYuMze4E53OHHJ1YjQHnNtAEt4lzNK27K6ttVE=";
+    rev = "bbcd7816997046821f9d1a22e418acb84ca5364b";
+    hash = "sha256-LWLxMvtV0VQYMQQIfztm10xzQreNAoN9zAexf+5ktHo=";
   };
   deps.googletest = fetchFromGitHub {
     owner = "google";

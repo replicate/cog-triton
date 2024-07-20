@@ -22,7 +22,7 @@ in
       "tensorrt_llm==0.11.0"
       "tensorrt-cu12==10.1.0"
       "torch==2.3.1"
-      "nvidia-pytriton==0.5.6" # corresponds to 2.44.0
+      "nvidia-pytriton==0.5.8" # corresponds to 2.46.0
       "omegaconf"
       "hf-transfer"
       "tokenizers>=0.19.0"

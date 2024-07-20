@@ -428,10 +428,10 @@
         "version": "12.1.105"
       },
       "nvidia-pytriton": {
-        "sha256": "6403e65c2bbab0ab2fe2b737ad612e2b88f3edf20d41aadd1d544ffb309a701c",
+        "sha256": "cd3cdfb704db3a01f857adc97fea77d5413c9f9e89f9b7add91c9d16a0bec7f8",
         "type": "url",
-        "url": "https://pypi.nvidia.com/nvidia-pytriton/nvidia_pytriton-0.5.6-py3-none-manylinux_2_35_x86_64.whl",
-        "version": "0.5.6"
+        "url": "https://pypi.nvidia.com/nvidia-pytriton/nvidia_pytriton-0.5.8-py3-none-manylinux_2_35_x86_64.whl",
+        "version": "0.5.8"
       },
       "omegaconf": {
         "sha256": "7b4df175cdb08ba400f45cae3bdcae7ba8365db4d165fc65fd04b050ab63b46b",
@@ -602,10 +602,10 @@
         "version": "0.2.0"
       },
       "setuptools": {
-        "sha256": "f501b6e6db709818dc76882582d9c516bf3b67b948864c5fa1d1624c09a49207",
+        "sha256": "ed2feca703be3bdbd94e6bb17365d91c6935c6b2a8d0bb09b66a2c435ba0b1a5",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/32/10/e72bb221cdd2f11e649cf38bd7ba8ea6d527c77f330366e10ae9bb798730/setuptools-71.0.3-py3-none-any.whl",
-        "version": "71.0.3"
+        "url": "https://files.pythonhosted.org/packages/d2/93/40d9bd9c7cf5d5e556894cc2a2c492e6e4ef4eda6ce9806bd1a8c47ae351/setuptools-71.0.4-py3-none-any.whl",
+        "version": "71.0.4"
       },
       "sh": {
         "sha256": "2f2f79a65abd00696cf2e9ad26508cf8abb6dba5745f40255f1c0ded2876926d",
@@ -752,10 +752,10 @@
         "version": "2.2.2"
       },
       "uvicorn": {
-        "sha256": "cd17daa7f3b9d7a24de3617820e634d0933b69eed8e33a516071174427238c81",
+        "sha256": "94a3608da0e530cea8f69683aa4126364ac18e3826b6630d1a65f4638aade503",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/b2/f9/e6f30ba6094733e4f9794fd098ca0543a19b07ac1fa3075d595bf0f1fb60/uvicorn-0.30.1-py3-none-any.whl",
-        "version": "0.30.1"
+        "url": "https://files.pythonhosted.org/packages/63/84/2a26b4eac1cf0c6b5b176dd4346cc4912af5e1b0efc150b865e28636ac34/uvicorn-0.30.3-py3-none-any.whl",
+        "version": "0.30.3"
       },
       "uvloop": {
         "sha256": "5a05128d315e2912791de6088c34136bfcdd0c7cbc1cf85fd6fd1bb321b7c849",
@@ -1258,5 +1258,5 @@
       }
     }
   },
-  "invalidationHash": "f5f309acde79ec4808388874f81a02dd122a2dda9eb1cc24deb2a0e5db9dee1f"
+  "invalidationHash": "bec665639eefe16815084d852ef1ffcf53d34983173c86dd230f129862d12619"
 }
