@@ -110,10 +110,10 @@
         "version": "12.5.0"
       },
       "datasets": {
-        "sha256": "29336bd316a7d827ccd4da2236596279b20ca2ac78f64c04c9483da7cbc2459b",
+        "sha256": "76ac02e3bdfff824492e20678f0b6b1b6d080515957fe834b00c2ba8d6b18e5e",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/66/f8/38298237d18d4b6a8ee5dfe390e97bed5adb8e01ec6f9680c0ddf3066728/datasets-2.14.4-py3-none-any.whl",
-        "version": "2.14.4"
+        "url": "https://files.pythonhosted.org/packages/60/2d/963b266bb8f88492d5ab4232d74292af8beb5b6fdae97902df9e284d4c32/datasets-2.20.0-py3-none-any.whl",
+        "version": "2.20.0"
       },
       "diffusers": {
         "sha256": "d5e9bb13c8097b4eed10df23d1294d2e5a418f53e3f89c7ef228b5b982970428",
@@ -122,10 +122,10 @@
         "version": "0.29.2"
       },
       "dill": {
-        "sha256": "76b122c08ef4ce2eedcd4d1abd8e641114bfc6c2867f49f3c41facf65bf19f5e",
+        "sha256": "c36ca9ffb54365bdd2f8eb3eff7d2a21237f8452b57ace88b1ac615b7e815bd7",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/f5/3a/74a29b11cf2cdfcd6ba89c0cecd70b37cd1ba7b77978ce611eb7a146a832/dill-0.3.7-py3-none-any.whl",
-        "version": "0.3.7"
+        "url": "https://files.pythonhosted.org/packages/c9/7a/cef76fd8438a42f96db64ddaa85280485a9c395e7df3db8158cfec1eee34/dill-0.3.8-py3-none-any.whl",
+        "version": "0.3.8"
       },
       "evaluate": {
         "sha256": "5fdcaf8a086b075c2b8e2c5898f501224b020b0ac7d07be76536e47e661c0c65",
@@ -158,10 +158,10 @@
         "version": "1.4.1"
       },
       "fsspec": {
-        "sha256": "3cb443f8bcd2efb31295a5b9fdb02aee81d8452c80d28f97a6d0959e6cee101e",
+        "sha256": "e0fdbc446d67e182f49a70b82cf7889028a63588fde6b222521f10937b2b670c",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/5e/44/73bea497ac69bafde2ee4269292fa3b41f1198f4bb7bbaaabde30ad29d4a/fsspec-2024.6.1-py3-none-any.whl",
-        "version": "2024.6.1"
+        "url": "https://files.pythonhosted.org/packages/ba/a3/16e9fe32187e9c8bc7f9b7bcd9728529faa725231a0c96f2f98714ff2fc5/fsspec-2024.5.0-py3-none-any.whl",
+        "version": "2024.5.0"
       },
       "gevent": {
         "sha256": "ca80b121bbec76d7794fcb45e65a7eca660a76cc1a104ed439cdbd7df5f0b060",
@@ -320,10 +320,10 @@
         "version": "6.0.5"
       },
       "multiprocess": {
-        "sha256": "7dd58e33235e83cf09d625e55cffd7b0f0eede7ee9223cdd666a87624f60c21a",
+        "sha256": "c4a9944c67bd49f823687463660a2d6daae94c289adff97e0f9d696ba6371d02",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/35/a8/36d8d7b3e46b377800d8dec47891cdf05842d1a2366909ae4a0c89fbc5e6/multiprocess-0.70.15-py310-none-any.whl",
-        "version": "0.70.15"
+        "url": "https://files.pythonhosted.org/packages/bc/f7/7ec7fddc92e50714ea3745631f79bd9c96424cb2702632521028e57d3a36/multiprocess-0.70.16-py310-none-any.whl",
+        "version": "0.70.16"
       },
       "mypy-extensions": {
         "sha256": "4392f6c0eb8a5668a69e23d168ffa70f0be9ccfd32b5cc2d26a34ae5b844552d",
@@ -498,6 +498,12 @@
         "type": "url",
         "url": "https://files.pythonhosted.org/packages/ee/fb/c1b47f0ada36d856a352da261a44d7344d8f22e2f7db3945f8c3b81be5dd/pyarrow-17.0.0-cp310-cp310-manylinux_2_28_x86_64.whl",
         "version": "17.0.0"
+      },
+      "pyarrow-hotfix": {
+        "sha256": "dcc9ae2d220dff0083be6a9aa8e0cdee5182ad358d4931fce825c545e5c89178",
+        "type": "url",
+        "url": "https://files.pythonhosted.org/packages/e4/f4/9ec2222f5f5f8ea04f66f184caafd991a39c8782e31f5b0266f101cb68ca/pyarrow_hotfix-0.6-py3-none-any.whl",
+        "version": "0.6"
       },
       "pydantic": {
         "sha256": "73ee9fddd406dc318b885c7a2eab8a6472b68b8fb5ba8150949fc3db939f23c8",
@@ -879,6 +885,7 @@
         "datasets": [
           "aiohttp",
           "dill",
+          "filelock",
           "fsspec",
           "huggingface-hub",
           "multiprocess",
@@ -886,6 +893,7 @@
           "packaging",
           "pandas",
           "pyarrow",
+          "pyarrow-hotfix",
           "pyyaml",
           "requests",
           "tqdm",
@@ -1073,6 +1081,7 @@
         "pyarrow": [
           "numpy"
         ],
+        "pyarrow-hotfix": [],
         "pydantic": [
           "annotated-types",
           "pydantic-core",
@@ -1258,5 +1267,5 @@
       }
     }
   },
-  "invalidationHash": "bec665639eefe16815084d852ef1ffcf53d34983173c86dd230f129862d12619"
+  "invalidationHash": "2084796847b80c7c6eb4d142f3f6f15b2c0fce135751e7e06ae1b0abca591744"
 }

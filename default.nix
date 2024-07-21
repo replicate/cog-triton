@@ -35,6 +35,7 @@ in
     constraintsList = [
       # "nvidia-cudnn-cu12==${cudaPackages.cudnn.version}"
       "nvidia-cublas-cu12==${cudaPackages.libcublas.version}"
+      "datasets>2.15.0" # picks older fsspec but newer datasets
     ];
     # HACK: cog requires pydantic <2, but we do need the extra deps pydantic2 brings in
     overridesList = [
