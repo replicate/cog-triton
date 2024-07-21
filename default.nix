@@ -54,6 +54,9 @@ in
     extra-substituters = https://storage.googleapis.com/replicate-nix-cache-dev/
   '';
   python-env.pip.drvs = {
+    nvidia-modelopt.mkDerivation.propagatedBuildInputs = [
+      pythonDrvs.setuptools.public
+    ];
     # tensorrt likes doing a pip invocation from it's setup.py
     # circumvent by manually depending on tensorrt_libs, tensorrt_bindings
     # and setting this env variable
