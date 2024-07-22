@@ -140,7 +140,7 @@ in
   deps.tensorrt-src = pkgs.fetchFromGitHub {
     owner = "NVIDIA";
     repo = "TensorRT";
-    rev = "v10.0.1";
+    rev = "v10.0.1"; # FIXME
     hash = "sha256-lSEw0GM0eW2BHNBq/wTQA8v3aNueE3FT+k9F5nH1OgA=";
   };
   # todo: replace with lockfile
