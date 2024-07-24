@@ -33,7 +33,8 @@
       makeBuilder = name: callCognix ( { config, lib, pkgs, ... }: {
         inherit name;
         # only grab deps of tensorrt-llm, omegaconf, hf-transfer
-        cognix.python_root_packages = [ "tensorrt-llm" "omegaconf" "hf-transfer" ];
+        cognix.python_root_packages = [ "omegaconf" "hf-transfer" "transformers" "torch" ];
+
 
         # override cog.yaml:
         cog.concurrency.max = lib.mkForce 1;
@@ -44,6 +45,7 @@
         cognix.environment.TRTLLM_PYTHON = (config.python-env.public.extendModules {
           modules = [{
             _file = ./.;
+            pip.rootDependencies = lib.mkOverride 49 { tensorrt-llm = true; hf-transfer = true; };
             pip.drvs.pydantic = let mkMoreForce = lib.mkOverride 49; in {
               version = mkMoreForce "2.8.2";
               mkDerivation.src = mkMoreForce (pkgs.fetchurl {

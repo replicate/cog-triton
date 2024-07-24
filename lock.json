@@ -236,10 +236,10 @@
         "version": "0.27.0"
       },
       "huggingface-hub": {
-        "sha256": "d3a623d0f2cbb9399299aefc85e3423fa2689f18ab9b6e1aa0f95d1793889f30",
+        "sha256": "abdf3244d3a274c4b1fbc5c4a1ef700032b3f60ba93cc63e4f036fd082aa2805",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/96/e6/a1fd9cccd2c08244243aeef71b61cb9b2ba26575d8fd6f7c41edc95e9de0/huggingface_hub-0.24.1-py3-none-any.whl",
-        "version": "0.24.1"
+        "url": "https://files.pythonhosted.org/packages/93/14/6a82b1c2eab5a828f7d3d675811660eb68424e8b039191f418a94e8d9726/huggingface_hub-0.24.2-py3-none-any.whl",
+        "version": "0.24.2"
       },
       "humanfriendly": {
         "sha256": "1697e1a8a8f550fd43c2865cd84542fc175a61dcb779b6fee18cf6b6ccba1477",
@@ -260,10 +260,10 @@
         "version": "3.7"
       },
       "importlib-metadata": {
-        "sha256": "3cd29f739ed65973840b068e3132135ce954c254d48b5b640484467ef7ab3c8c",
+        "sha256": "11901fa0c2f97919b288679932bb64febaeacf289d18ac84dd68cb2e74213369",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/c7/f3/6bd738acf4e03b2cd8360521cf5edd398866acc1b4bc95fa9fced218e52b/importlib_metadata-8.1.0-py3-none-any.whl",
-        "version": "8.1.0"
+        "url": "https://files.pythonhosted.org/packages/82/47/bb25ec04985d0693da478797c3d8c1092b140f3a53ccb984fbbd38affa5b/importlib_metadata-8.2.0-py3-none-any.whl",
+        "version": "8.2.0"
       },
       "janus": {
         "sha256": "2596ea5482711c1ee3ef2df6c290aaf370a13c55a007826e8f7c32d696d1d00a",
@@ -716,10 +716,10 @@
         "version": "4.66.4"
       },
       "transformers": {
-        "sha256": "eb44b731902e062acbaff196ae4896d7cb3494ddf38275aa00a5fcfb5b34f17d",
+        "sha256": "283c8b47cf38640c5c0caea60be0dfa948669fa48e9739b03717cbf5e8b20f11",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/e3/89/66b0d61558c971dd2c8cbe125a471603fce0a1b8850c2f4d99a07584fca2/transformers-4.43.1-py3-none-any.whl",
-        "version": "4.43.1"
+        "url": "https://files.pythonhosted.org/packages/13/63/cccd0297770d7096c19c99d4c542f3068a30e73cdfd971a920bfa686cb3a/transformers-4.43.2-py3-none-any.whl",
+        "version": "4.43.2"
       },
       "triton": {
         "sha256": "3c84595cbe5e546b1b290d2a58b1494df5a2ef066dd890655e5b8a8a92205c33",
