@@ -12,15 +12,15 @@ in
   imports = [ ./interface.nix ];
   cog.build = {
     python_version = "3.10";
-    cog_version = "0.10.0-alpha16";
+    cog_version = "0.10.0-alpha18";
     cuda = "12.1"; # todo: 12.2
     gpu = true;
     # inspiration: echo tensorrt_llm==0.10.0 | uv pip compile - --extra-index-url https://pypi.nvidia.com -p 3.10 --prerelease=allow --annotation-style=line
     python_packages = [
       "--extra-index-url"
       "https://pypi.nvidia.com"
-      "tensorrt_llm==0.11.0"
-      "tensorrt-cu12==10.1.0"
+      "tensorrt_llm==0.12.0.dev2024072300"
+      "tensorrt-cu12==10.2.0"
       "torch==2.3.1"
       "nvidia-pytriton==0.5.8" # corresponds to 2.46.0
       "omegaconf"
@@ -123,8 +123,8 @@ in
   deps.tensorrt-src = pkgs.fetchFromGitHub {
     owner = "NVIDIA";
     repo = "TensorRT";
-    rev = "v10.0.1";
-    hash = "sha256-lSEw0GM0eW2BHNBq/wTQA8v3aNueE3FT+k9F5nH1OgA=";
+    rev = "v10.2.0";
+    hash = "sha256-Euo9VD4VTpx8XJV97IMETTAx/YkPGXiNdA39Wjp3UMU=";
   };
   # todo: replace with lockfile
   deps.pybind11-stubgen = python3.pkgs.buildPythonPackage rec {

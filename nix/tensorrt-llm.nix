@@ -17,14 +17,14 @@
 }:
 stdenv.mkDerivation (o: {
   pname = "tensorrt_llm";
-  version = "0.11.0";
+  version = "0.12.0.dev2024072300";
   src = fetchFromGitHub {
     owner = "NVIDIA";
     repo = "TensorRT-LLM";
-    rev = "v${o.version}";
+    rev = "bca9a33b022dc6a924bf7913137feed3d28b602d";
     fetchSubmodules = true;
     fetchLFS = true; # libtensorrt_llm_batch_manager_static.a
-    hash = "sha256-J2dqKjuEXVbE9HgoCzhUASZAnsn/hsC+qUTHL6uT4nU=";
+    hash = "sha256-d4xl6SZ1BM51DUkfFcclJYF0l3GrNWJR7S2xyTH9rs4=";
   };
   outputs =
     if withPython then
@@ -146,6 +146,9 @@ stdenv.mkDerivation (o: {
     ''
       mkdir -p $out
       rsync -a --chmod=u+w --include "tensorrt_llm/kernels/" --include "tensorrt_llm/kernels/kvCacheIndex.h" --exclude "tensorrt_llm/kernels/*" $src/cpp $out/
+      pushd $src/cpp/tensorrt_llm
+      find . '(' '(' -type f -executable ')' -or -type l ')' -print0 | rsync -av --chmod=u+w --files-from=- --from0 ./ $out/cpp/tensorrt_llm/
+      popd
       # rsync -a --chmod=u+w $src/cpp/tensorrt_llm/kernels $out/cpp/tensorrt_llm/
       pushd tensorrt_llm
       mkdir -p $out/cpp/build/tensorrt_llm/
@@ -161,7 +164,8 @@ stdenv.mkDerivation (o: {
         fi
       done
       new_path=$(patchelf --print-rpath $out/cpp/build/tensorrt_llm/libtensorrt_llm.so |
-        sed 's#/build/source/cpp/tensorrt_llm#$ORIGIN/../../tensorrt_llm#')
+        sed 's#/build/source/cpp/build/tensorrt_llm#$ORIGIN#g' |
+        sed 's#/build/source/cpp/tensorrt_llm#$ORIGIN/../../tensorrt_llm#g')
       patchelf --set-rpath "$new_path" $out/cpp/build/tensorrt_llm/libtensorrt_llm.so
       popd
     ''

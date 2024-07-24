@@ -49,12 +49,12 @@ let
 in
 oldGccStdenv.mkDerivation rec {
   pname = "tensorrtllm_backend";
-  version = "0.11.0";
+  version = "0.12.0.dev2024072300";
   src = fetchFromGitHub {
     owner = "triton-inference-server";
     repo = "tensorrtllm_backend";
-    rev = "v${version}";
-    hash = "sha256-PzcFpeq7ISqmHa9TBT0lVVYNdkJWB224kRGQKF4uas8=";
+    rev = "693c6377983b7efc2043287db10380d3c128bffd";
+    hash = "sha256-oa/OOO3pp1W/J1yqmwytwO0y25dLYixisorRcB42kUU=";
   };
   nativeBuildInputs = [
     cmake
@@ -97,6 +97,6 @@ oldGccStdenv.mkDerivation rec {
     patchelf $out/backends/tensorrtllm/libtriton_tensorrtllm_common.so \
       --add-rpath '$ORIGIN:${trt_lib_dir}:${tensorrt-llm}/cpp/build/tensorrt_llm:${tensorrt-llm}/cpp/build/tensorrt_llm/plugins:${cudaPackages.cudnn.lib}/lib'
     patchelf $out/backends/tensorrtllm/trtllmExecutorWorker  \
-      --add-rpath '$ORIGIN:${trt_lib_dir}:${tensorrt-llm}/cpp/build/tensorrt_llm:${tensorrt-llm}/cpp/build/tensorrt_llm/plugins:${cudaPackages.cudnn.lib}/lib'
+      --add-rpath '$ORIGIN:${trt_lib_dir}:${tensorrt-llm}/cpp/build/tensorrt_llm:${tensorrt-llm}/cpp/build/tensorrt_llm/plugins:${cudaPackages.cudnn.lib}/lib:${tensorrt-llm}/cpp/build/tensorrt_llm/kernels/decoderMaskedMultiheadAttention:${tensorrt-llm}/cpp/build/tensorrt_llm/kernels/decoderMaskedMultiheadAttention/decoderXQAImplJIT/nvrtcWrapper'
   '';
 }

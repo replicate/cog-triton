@@ -86,10 +86,10 @@
         "version": "3.0.0"
       },
       "cog": {
-        "sha256": "0f658f2da28e37da8040d073af4f4e7a91b567a8d169f077d5afddc33793a62f",
+        "sha256": "abf55ed3309735b2a4fc37f51ac86ab113dcefd8eb4296c0edd5980e02efe463",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/77/2e/440a1d358a45242b6cbabdfbd59e2f51c4106cbcc6b235b5930077929896/cog-0.10.0a16-py3-none-any.whl",
-        "version": "0.10.0a16"
+        "url": "https://files.pythonhosted.org/packages/68/8d/ca4854035294ea02a0a9ffcc11827f315953b5aa1754d68fd23b3753013a/cog-0.10.0a18-py3-none-any.whl",
+        "version": "0.10.0a18"
       },
       "colored": {
         "sha256": "a7069673bd90a35f46cb748d012c17284a0668d2f1c06bc7a51822a2d5ad2112",
@@ -661,29 +661,35 @@
         "url": "https://files.pythonhosted.org/packages/b2/fe/81695a1aa331a842b582453b605175f419fe8540355886031328089d840a/sympy-1.13.1-py3-none-any.whl",
         "version": "1.13.1"
       },
-      "tensorrt-cu12": {
-        "sha256": "a549e2fe472eb03b2737a708c0aef0cac9cb0be1ae46bc7dad72ec1dfc81bd19",
+      "tensorrt": {
+        "sha256": "275c45af70b52b64f8267f1e1f52c2a74419ae5e2cc0eaad65d040bdbf543031",
         "type": "url",
-        "url": "https://pypi.nvidia.com/tensorrt-cu12/tensorrt-cu12-10.1.0.tar.gz",
-        "version": "10.1.0"
+        "url": "https://pypi.nvidia.com/tensorrt/tensorrt-10.2.0.tar.gz",
+        "version": "10.2.0"
+      },
+      "tensorrt-cu12": {
+        "sha256": "a5e387a399bd1ce727a6e0b9aa2698de4c4dadf40a91c2aa61154e9196eddc56",
+        "type": "url",
+        "url": "https://pypi.nvidia.com/tensorrt-cu12/tensorrt-cu12-10.2.0.tar.gz",
+        "version": "10.2.0"
       },
       "tensorrt-cu12-bindings": {
-        "sha256": "91e1bd0eb348524ff209ef6b235d329983ea704b5d16f9a7ba747c08cc3c2495",
+        "sha256": "5f952539d64bb032a3b309635fcfe0c5fa9cccf9262f487a84f5a0c14c6717f6",
         "type": "url",
-        "url": "https://pypi.nvidia.com/tensorrt-cu12-bindings/tensorrt_cu12_bindings-10.1.0-cp310-none-manylinux_2_17_x86_64.whl",
-        "version": "10.1.0"
+        "url": "https://pypi.nvidia.com/tensorrt-cu12-bindings/tensorrt_cu12_bindings-10.2.0-cp310-none-manylinux_2_17_x86_64.whl",
+        "version": "10.2.0"
       },
       "tensorrt-cu12-libs": {
-        "sha256": "1ad13c26b3f441267a746df6859e44eb0e8da78d4382458d1fd2eb7675abd49f",
+        "sha256": "57761499fd120c03b1858f4db3fa16fa690cd785c15275c72bc4f6195f6f9d3e",
         "type": "url",
-        "url": "https://pypi.nvidia.com/tensorrt-cu12-libs/tensorrt_cu12_libs-10.1.0-py2.py3-none-manylinux_2_17_x86_64.whl",
-        "version": "10.1.0"
+        "url": "https://pypi.nvidia.com/tensorrt-cu12-libs/tensorrt_cu12_libs-10.2.0-py2.py3-none-manylinux_2_17_x86_64.whl",
+        "version": "10.2.0"
       },
       "tensorrt-llm": {
-        "sha256": "2bffd83b31eb36cc9429fe38ac23501537a7a42a6eabef107f1e76e28c6180bd",
+        "sha256": "6e4cc6b77231ddeb0e22405da3b99b45d3b186db60a61231753e245699c9fb48",
         "type": "url",
-        "url": "https://pypi.nvidia.com/tensorrt-llm/tensorrt_llm-0.11.0-cp310-cp310-linux_x86_64.whl",
-        "version": "0.11.0"
+        "url": "https://pypi.nvidia.com/tensorrt-llm/tensorrt_llm-0.12.0.dev2024072300-cp310-cp310-linux_x86_64.whl",
+        "version": "0.12.0.dev2024072300"
       },
       "tokenizers": {
         "sha256": "8b01afb7193d47439f091cd8f070a1ced347ad0f9144952a30a41836902fe09e",
@@ -1131,6 +1137,9 @@
         "sympy": [
           "mpmath"
         ],
+        "tensorrt": [
+          "tensorrt-cu12"
+        ],
         "tensorrt-cu12": [
           "tensorrt-cu12-bindings",
           "tensorrt-cu12-libs"
@@ -1164,7 +1173,7 @@
           "pynvml",
           "sentencepiece",
           "strenum",
-          "tensorrt-cu12",
+          "tensorrt",
           "torch",
           "transformers",
           "wheel"
@@ -1268,5 +1277,5 @@
       }
     }
   },
-  "invalidationHash": "f4ffe25a9fa6f00fa52f4463e58c7bfad577099959f60841a3011bfd872c3f06"
+  "invalidationHash": "fb599e2ab6a67ae812038801ccbf85ac8402d919c95ced2d07f252ea5aee7d8a"
 }
