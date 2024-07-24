@@ -2,10 +2,10 @@
   "fetchPipMetadata": {
     "sources": {
       "accelerate": {
-        "sha256": "71fcf4be00872194071de561634268b71417d7f5b16b178e2fa76b6f117c52b0",
+        "sha256": "0a7f33d60ba09afabd028d4f0856dd19c5a734b7a596d637d9dd6e3d0eadbaf3",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/e4/74/564f621699b049b0358f7ad83d7437f8219a5d6efb69bbfcca328b60152f/accelerate-0.32.1-py3-none-any.whl",
-        "version": "0.32.1"
+        "url": "https://files.pythonhosted.org/packages/15/33/b6b4ad5efa8b9f4275d4ed17ff8a44c97276171341ba565fdffb0e3dc5e8/accelerate-0.33.0-py3-none-any.whl",
+        "version": "0.33.0"
       },
       "aiohttp": {
         "sha256": "c26959ca7b75ff768e2776d8055bf9582a6267e24556bb7f7bd29e677932be72",
@@ -206,10 +206,10 @@
         "version": "3.10.0"
       },
       "hf-transfer": {
-        "sha256": "2f42b89735f1cde22f2a795d1f0915741023235666be7de45879e533c7d6010c",
+        "sha256": "f865c33ada5bd3650c2b46e59979f2d7755c3f517f8d0facc78576a0c7d26406",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/ce/00/a3afdb1fee4a9c28228f9962ab2ae3f3fc74380fff195022d76818e9fdac/hf_transfer-0.1.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
-        "version": "0.1.6"
+        "url": "https://files.pythonhosted.org/packages/5e/89/863f333b49603cc8d3c8862a428cc8fbaa9388ac8f076e9fa5ef3e729c3c/hf_transfer-0.1.8-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "version": "0.1.8"
       },
       "hpack": {
         "sha256": "84a076fad3dc9a9f8063ccb8041ef100867b1878b25ef0ee63847a5d53818a6c",
@@ -236,10 +236,10 @@
         "version": "0.27.0"
       },
       "huggingface-hub": {
-        "sha256": "7ad92edefb93d8145c061f6df8d99df2ff85f8379ba5fac8a95aca0642afa5d7",
+        "sha256": "d3a623d0f2cbb9399299aefc85e3423fa2689f18ab9b6e1aa0f95d1793889f30",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/57/c0/cf4435f3186655e3bafdca08cd6c794e3866f1f89ed99595504e7240b6a2/huggingface_hub-0.24.0-py3-none-any.whl",
-        "version": "0.24.0"
+        "url": "https://files.pythonhosted.org/packages/96/e6/a1fd9cccd2c08244243aeef71b61cb9b2ba26575d8fd6f7c41edc95e9de0/huggingface_hub-0.24.1-py3-none-any.whl",
+        "version": "0.24.1"
       },
       "humanfriendly": {
         "sha256": "1697e1a8a8f550fd43c2865cd84542fc175a61dcb779b6fee18cf6b6ccba1477",
@@ -260,10 +260,10 @@
         "version": "3.7"
       },
       "importlib-metadata": {
-        "sha256": "15584cf2b1bf449d98ff8a6ff1abef57bf20f3ac6454f431736cd3e660921b2f",
+        "sha256": "3cd29f739ed65973840b068e3132135ce954c254d48b5b640484467ef7ab3c8c",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/dc/ef/38766b2edb096260d9b1b6ad35adaa0bce3b0567abb452b21eb074af88c4/importlib_metadata-8.0.0-py3-none-any.whl",
-        "version": "8.0.0"
+        "url": "https://files.pythonhosted.org/packages/c7/f3/6bd738acf4e03b2cd8360521cf5edd398866acc1b4bc95fa9fced218e52b/importlib_metadata-8.1.0-py3-none-any.whl",
+        "version": "8.1.0"
       },
       "janus": {
         "sha256": "2596ea5482711c1ee3ef2df6c290aaf370a13c55a007826e8f7c32d696d1d00a",
@@ -374,10 +374,10 @@
         "version": "12.1.105"
       },
       "nvidia-cudnn-cu12": {
-        "sha256": "5ccb288774fdfb07a7e7025ffec286971c06d8d7b4fb162525334616d7629ff9",
+        "sha256": "adf4f59ed7a1341103822ed8df6e144f4d47ea8b10d9bf0ea0047ba738fd7b02",
         "type": "url",
-        "url": "https://pypi.nvidia.com/nvidia-cudnn-cu12/nvidia_cudnn_cu12-8.9.2.26-py3-none-manylinux1_x86_64.whl",
-        "version": "8.9.2.26"
+        "url": "https://pypi.nvidia.com/nvidia-cudnn-cu12/nvidia_cudnn_cu12-8.9.7.29-py3-none-manylinux1_x86_64.whl",
+        "version": "8.9.7.29"
       },
       "nvidia-cufft-cu12": {
         "sha256": "794e3948a1aa71fd817c3775866943936774d1c14e7628c74f6f7417224cdf56",
@@ -446,10 +446,10 @@
         "version": "1.16.1"
       },
       "optimum": {
-        "sha256": "8b3633b9312413ceac5156294a2a0cd221268baf5a2c593f4d54ec20bff296d8",
+        "sha256": "508bc55db3c9434f4e8d5a30c39a46ac63c4cdb45bcc5a641b6c1c77cae88d23",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/fa/e4/f832e42a1eb9d5ac4fa6379295e05aebeae507d171babc1786bfa0210299/optimum-1.21.2-py3-none-any.whl",
-        "version": "1.21.2"
+        "url": "https://files.pythonhosted.org/packages/5d/7a/1cc655edf289cdb533b0ea1d2f382d344248a53ad21eb8e34deb4551684b/optimum-1.17.1-py3-none-any.whl",
+        "version": "1.17.1"
       },
       "packaging": {
         "sha256": "5b8f2217dbdbd2f7f384c41c628544e6d52f2d0f53c6d0c3ea61aa5d1d7ff124",
@@ -608,10 +608,10 @@
         "version": "0.2.0"
       },
       "setuptools": {
-        "sha256": "ed2feca703be3bdbd94e6bb17365d91c6935c6b2a8d0bb09b66a2c435ba0b1a5",
+        "sha256": "33874fdc59b3188304b2e7c80d9029097ea31627180896fb549c578ceb8a0855",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/d2/93/40d9bd9c7cf5d5e556894cc2a2c492e6e4ef4eda6ce9806bd1a8c47ae351/setuptools-71.0.4-py3-none-any.whl",
-        "version": "71.0.4"
+        "url": "https://files.pythonhosted.org/packages/51/a0/ee460cc54e68afcf33190d198299c9579a5eafeadef0016ae8563237ccb6/setuptools-71.1.0-py3-none-any.whl",
+        "version": "71.1.0"
       },
       "sh": {
         "sha256": "2f2f79a65abd00696cf2e9ad26508cf8abb6dba5745f40255f1c0ded2876926d",
@@ -710,10 +710,10 @@
         "version": "4.66.4"
       },
       "transformers": {
-        "sha256": "6d59061392d0f1da312af29c962df9017ff3c0108c681a56d1bc981004d16d24",
+        "sha256": "eb44b731902e062acbaff196ae4896d7cb3494ddf38275aa00a5fcfb5b34f17d",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/6a/dc/23c26b7b0bce5aaccf2b767db3e9c4f5ae4331bd47688c1f2ef091b23696/transformers-4.42.4-py3-none-any.whl",
-        "version": "4.42.4"
+        "url": "https://files.pythonhosted.org/packages/e3/89/66b0d61558c971dd2c8cbe125a471603fce0a1b8850c2f4d99a07584fca2/transformers-4.43.1-py3-none-any.whl",
+        "version": "4.43.1"
       },
       "triton": {
         "sha256": "3c84595cbe5e546b1b290d2a58b1494df5a2ef066dd890655e5b8a8a92205c33",
@@ -1011,7 +1011,8 @@
         "nvidia-cuda-nvrtc-cu12": [],
         "nvidia-cuda-runtime-cu12": [],
         "nvidia-cudnn-cu12": [
-          "nvidia-cublas-cu12"
+          "nvidia-cublas-cu12",
+          "nvidia-cuda-nvrtc-cu12"
         ],
         "nvidia-cufft-cu12": [],
         "nvidia-curand-cu12": [],
@@ -1267,5 +1268,5 @@
       }
     }
   },
-  "invalidationHash": "2084796847b80c7c6eb4d142f3f6f15b2c0fce135751e7e06ae1b0abca591744"
+  "invalidationHash": "f4ffe25a9fa6f00fa52f4463e58c7bfad577099959f60841a3011bfd872c3f06"
 }

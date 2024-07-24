@@ -2,7 +2,7 @@
 let
   deps = config.deps;
   python3 = config.python-env.deps.python;
-  cudaPackages = pkgs.cudaPackages_12_1;
+  inherit (config.cognix) cudaPackages;
   site = python3.sitePackages;
   pythonDrvs = config.python-env.pip.drvs;
   inherit (pkgs) lib;
@@ -30,11 +30,13 @@ in
     # don't ask why it needs ssh
     system_packages = [ "pget" "openssh" "openmpi" ];
   };
+  # patch in cuda packages from nixpkgs
+  cognix.merge-native = {
+    cudnn = "force";
+    cublas = true;
+  };
   python-env.pip = {
-    uv.enable = true;
     constraintsList = [
-      # "nvidia-cudnn-cu12==${cudaPackages.cudnn.version}"
-      "nvidia-cublas-cu12==${cudaPackages.libcublas.version}"
       "datasets>2.15.0" # picks older fsspec but newer datasets
     ];
     # HACK: cog requires pydantic <2, but we do need the extra deps pydantic2 brings in
@@ -102,25 +104,6 @@ in
         if [ "$d" != "${python3.pythonVersion}" ]; then
           rm -r $d
         fi
-      done
-      popd
-    '';
-    # patch in cuda packages from nixpkgs
-    nvidia-cublas-cu12.mkDerivation.postInstall = ''
-      pushd $out/${python3.sitePackages}/nvidia/cublas/lib
-      for f in ./*.so.12; do
-        chmod +w "$f"
-        rm $f
-        ln -s ${cudaPackages.libcublas.lib}/lib/$f ./$f
-      done
-      popd
-    '';
-    nvidia-cudnn-cu12.mkDerivation.postInstall = ''
-      pushd $out/${python3.sitePackages}/nvidia/cudnn/lib
-      for f in ./*.so.8; do
-        chmod +w "$f"
-        rm $f
-        ln -s ${cudaPackages.cudnn.lib}/lib/$f ./$f
       done
       popd
     '';
