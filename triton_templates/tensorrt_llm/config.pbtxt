@@ -54,6 +54,7 @@ input [
     name: "request_output_len"
     data_type: TYPE_INT32
     dims: [ 1 ]
+    reshape: { shape: [ ] }
   },
   {
     name: "draft_input_ids"
@@ -255,12 +256,14 @@ input [
     name: "stop"
     data_type: TYPE_BOOL
     dims: [ 1 ]
+    reshape: { shape: [ ] }
     optional: true
   },
   {
     name: "streaming"
     data_type: TYPE_BOOL
     dims: [ 1 ]
+    reshape: { shape: [ ] }
     optional: true
   },
   {
@@ -350,6 +353,11 @@ output [
     name: "generation_logits"
     data_type: TYPE_FP32
     dims: [ -1, -1, -1 ]
+  },
+  {
+    name: "batch_index"
+    data_type: TYPE_INT32
+    dims: [ 1 ]
   }
 ]
 instance_group [
