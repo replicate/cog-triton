@@ -11,6 +11,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: DeterminateSystems/nix-installer-action@v10
+      with:
+        extra-conf: cores = 12
     - name: Authenticate to Google Cloud Platform
       uses: google-github-actions/auth@v2
       with:
