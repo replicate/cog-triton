@@ -476,10 +476,10 @@
         "version": "0.49.9"
       },
       "protobuf": {
-        "sha256": "7c8daa26095f82482307bc717364e7c13f4f1c99659be82890dcfc215194554d",
+        "sha256": "3319e073562e2515c6ddc643eb92ce20809f5d8f10fead3332f71c63be6a7040",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/15/db/7f731524fe0e56c6b2eb57d05b55d3badd80ef7d1f1ed59db191b2fdd8ab/protobuf-4.25.3-cp37-abi3-manylinux2014_x86_64.whl",
-        "version": "4.25.3"
+        "url": "https://files.pythonhosted.org/packages/ca/6c/cc7ab2fb3a4a7f07f211d8a7bbb76bba633eb09b148296dbd4281e217f95/protobuf-4.25.4-cp37-abi3-manylinux2014_x86_64.whl",
+        "version": "4.25.4"
       },
       "psutil": {
         "sha256": "5fd9a97c8e94059b0ef54a7d4baf13b405011176c3b6ff257c247cae0d560ecd",
@@ -572,10 +572,10 @@
         "version": "26.0.3"
       },
       "regex": {
-        "sha256": "1337b7dbef9b2f71121cdbf1e97e40de33ff114801263b275aafd75303bd62b5",
+        "sha256": "bf7a89eef64b5455835f5ed30254ec19bf41f7541cd94f266ab7cbd463f00c41",
         "type": "url",
-        "url": "https://files.pythonhosted.org/packages/07/17/5d92509b4dccacf9767d8607112c19667e15db2428014440bae4356b8aff/regex-2024.5.15-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
-        "version": "2024.5.15"
+        "url": "https://files.pythonhosted.org/packages/3e/66/04b63f31580026c8b819aed7f171149177d10cfab27477ea8800a2268d50/regex-2024.7.24-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "version": "2024.7.24"
       },
       "requests": {
         "sha256": "70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6",
@@ -686,10 +686,10 @@
         "version": "10.2.0"
       },
       "tensorrt-llm": {
-        "sha256": "6e4cc6b77231ddeb0e22405da3b99b45d3b186db60a61231753e245699c9fb48",
+        "sha256": "fb0615796b865702ec24039ce1df416ecc80082ec0dbc445875fce2de9e73585",
         "type": "url",
-        "url": "https://pypi.nvidia.com/tensorrt-llm/tensorrt_llm-0.12.0.dev2024072300-cp310-cp310-linux_x86_64.whl",
-        "version": "0.12.0.dev2024072300"
+        "url": "https://pypi.nvidia.com/tensorrt-llm/tensorrt_llm-0.12.0.dev2024072301-cp310-cp310-linux_x86_64.whl",
+        "version": "0.12.0.dev2024072301"
       },
       "tokenizers": {
         "sha256": "8b01afb7193d47439f091cd8f070a1ced347ad0f9144952a30a41836902fe09e",
@@ -728,10 +728,10 @@
         "version": "2.3.1"
       },
       "tritonclient": {
-        "sha256": "754ab373a45306be0c45afbcde06838179d04561694f6d15e138530153aee581",
+        "sha256": "7074885798e8a711fedaf94d6dd77f310973fe2ebf29fb2837db350a43e2d6a5",
         "type": "url",
-        "url": "https://pypi.nvidia.com/tritonclient/tritonclient-2.47.0-py3-none-manylinux1_x86_64.whl",
-        "version": "2.47.0"
+        "url": "https://pypi.nvidia.com/tritonclient/tritonclient-2.48.0-py3-none-manylinux1_x86_64.whl",
+        "version": "2.48.0"
       },
       "typer": {
         "sha256": "070d7ca53f785acbccba8e7d28b08dcd88f79f1fbda035ade0aecec71ca5c914",
@@ -1277,5 +1277,5 @@
       }
     }
   },
-  "invalidationHash": "fb599e2ab6a67ae812038801ccbf85ac8402d919c95ced2d07f252ea5aee7d8a"
+  "invalidationHash": "eff1a58e03fa1393029b4e1fbf7ad15a678c0a53cd3cf03db6b6db88514decc5"
 }

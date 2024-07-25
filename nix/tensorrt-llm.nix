@@ -21,10 +21,10 @@ stdenv.mkDerivation (o: {
   src = fetchFromGitHub {
     owner = "NVIDIA";
     repo = "TensorRT-LLM";
-    rev = "bca9a33b022dc6a924bf7913137feed3d28b602d";
+    rev = "5fa9436e17c2f9aeace070f49aa645d2577f676b";
     fetchSubmodules = true;
     fetchLFS = true; # libtensorrt_llm_batch_manager_static.a
-    hash = "sha256-d4xl6SZ1BM51DUkfFcclJYF0l3GrNWJR7S2xyTH9rs4=";
+    hash = "sha256-Ea15Sp3wzye4UGaTRtc+ByUdxNlNRu6uUefXXuJg78A=";
   };
   outputs =
     if withPython then

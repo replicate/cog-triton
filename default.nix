@@ -19,7 +19,7 @@ in
     python_packages = [
       "--extra-index-url"
       "https://pypi.nvidia.com"
-      "tensorrt_llm==0.12.0.dev2024072300"
+      "tensorrt_llm==0.12.0.dev2024072301"
       "tensorrt-cu12==10.2.0"
       "torch==2.3.1"
       "nvidia-pytriton==0.5.8" # corresponds to 2.46.0
