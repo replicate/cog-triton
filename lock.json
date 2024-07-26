@@ -662,28 +662,28 @@
         "version": "1.13.1"
       },
       "tensorrt": {
-        "sha256": "275c45af70b52b64f8267f1e1f52c2a74419ae5e2cc0eaad65d040bdbf543031",
+        "sha256": "ac5336eea871b812047f6ec8bbeed9ae343a539ba02ff86513b04bd081c14738",
         "type": "url",
-        "url": "https://pypi.nvidia.com/tensorrt/tensorrt-10.2.0.tar.gz",
-        "version": "10.2.0"
+        "url": "https://pypi.nvidia.com/tensorrt/tensorrt-10.2.0.post1.tar.gz",
+        "version": "10.2.0.post1"
       },
       "tensorrt-cu12": {
-        "sha256": "a5e387a399bd1ce727a6e0b9aa2698de4c4dadf40a91c2aa61154e9196eddc56",
+        "sha256": "9663446e2872113d619ad5010766cccc1f023d693cb43c3f8f2496563028badc",
         "type": "url",
-        "url": "https://pypi.nvidia.com/tensorrt-cu12/tensorrt-cu12-10.2.0.tar.gz",
-        "version": "10.2.0"
+        "url": "https://pypi.nvidia.com/tensorrt-cu12/tensorrt-cu12-10.2.0.post1.tar.gz",
+        "version": "10.2.0.post1"
       },
       "tensorrt-cu12-bindings": {
-        "sha256": "5f952539d64bb032a3b309635fcfe0c5fa9cccf9262f487a84f5a0c14c6717f6",
+        "sha256": "3248e7951d1f2fa8884759b19456ab7d08a3f75bd6b8e5d58e5cc18788c02171",
         "type": "url",
-        "url": "https://pypi.nvidia.com/tensorrt-cu12-bindings/tensorrt_cu12_bindings-10.2.0-cp310-none-manylinux_2_17_x86_64.whl",
-        "version": "10.2.0"
+        "url": "https://pypi.nvidia.com/tensorrt-cu12-bindings/tensorrt_cu12_bindings-10.2.0.post1-cp310-none-manylinux_2_17_x86_64.whl",
+        "version": "10.2.0.post1"
       },
       "tensorrt-cu12-libs": {
-        "sha256": "57761499fd120c03b1858f4db3fa16fa690cd785c15275c72bc4f6195f6f9d3e",
+        "sha256": "a42f7ecb1659fac27cf68996df0984e68018be61bd8bbd95f51619f9c4e9cf31",
         "type": "url",
-        "url": "https://pypi.nvidia.com/tensorrt-cu12-libs/tensorrt_cu12_libs-10.2.0-py2.py3-none-manylinux_2_17_x86_64.whl",
-        "version": "10.2.0"
+        "url": "https://pypi.nvidia.com/tensorrt-cu12-libs/tensorrt_cu12_libs-10.2.0.post1-py2.py3-none-manylinux_2_17_x86_64.whl",
+        "version": "10.2.0.post1"
       },
       "tensorrt-llm": {
         "sha256": "fb0615796b865702ec24039ce1df416ecc80082ec0dbc445875fce2de9e73585",
@@ -1277,5 +1277,5 @@
       }
     }
   },
-  "invalidationHash": "eff1a58e03fa1393029b4e1fbf7ad15a678c0a53cd3cf03db6b6db88514decc5"
+  "invalidationHash": "c1ec24857cc6649b3e0f8c8f0695235a6ddfb2507809cc4fd9d451d251e1fe85"
 }
