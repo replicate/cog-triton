@@ -7,6 +7,19 @@ let
   pythonDrvs = config.python-env.pip.drvs;
   inherit (pkgs) lib;
   cfg = config.cog-triton; # defined in interface.nix
+  trtllm-env = config.python-env.public.extendModules {
+    modules = [{
+      _file = ./.;
+      pip.rootDependencies = lib.mkOverride 49 { tensorrt-llm = true; hf-transfer = true; };
+      pip.drvs.pydantic = let mkMoreForce = lib.mkOverride 49; in {
+        version = mkMoreForce "2.8.2";
+        mkDerivation.src = mkMoreForce (pkgs.fetchurl {
+          sha256 = "73ee9fddd406dc318b885c7a2eab8a6472b68b8fb5ba8150949fc3db939f23c8";
+          url = "https://files.pythonhosted.org/packages/1f/fa/b7f815b8c9ad021c07f88875b601222ef5e70619391ade4a49234d12d278/pydantic-2.8.2-py3-none-any.whl";
+        });
+      };
+    }];
+  };
 in
 {
   imports = [ ./interface.nix ];
@@ -136,12 +149,15 @@ in
     };
   };
   deps.tensorrt-llm = pkgs.callPackage ./nix/tensorrt-llm.nix {
-    inherit python3 cudaPackages pythonDrvs;
+    inherit python3 cudaPackages;
+    pythonDrvs = config.deps.trtllm-env.config.pip.drvs;
     # TODO: turn into config option
-    withPython = false;
+    withPython = true;
     inherit (cfg) architectures;
     inherit (deps) pybind11-stubgen tensorrt-src;
   };
+  deps.python-with-trtllm = python3.withPackages (_: [ (python3.pkgs.toPythonModule deps.tensorrt-llm.python) ]);
+  deps.trtllm-env = trtllm-env;
   deps.trtllm-backend = pkgs.callPackage ./nix/trtllm-backend.nix {
     inherit python3 cudaPackages pythonDrvs;
     inherit (deps) tensorrt-llm tensorrt-src;
