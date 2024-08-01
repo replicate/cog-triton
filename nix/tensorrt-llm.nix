@@ -58,7 +58,6 @@ stdenv.mkDerivation (o: {
       python3.pkgs.setuptools
     ]
     ++ (with cudaPackages; [
-      # torch hates the split cuda, so only do it without torch
       cuda_cudart
       cuda_nvcc.dev
       cuda_nvrtc.dev
@@ -72,7 +71,6 @@ stdenv.mkDerivation (o: {
       cuda_profiler_api
     ])
     ++ (lib.optionals withPython (with cudaPackages; [
-    #   cudaPackages.cudatoolkit
       cuda_nvtx.dev cuda_nvtx.lib
       libcusparse.dev libcusparse.lib
       libcusolver.dev libcusolver.lib
@@ -137,8 +135,8 @@ stdenv.mkDerivation (o: {
   ];
   # include cstdint in cpp/tensorrt_llm/common/mpiUtils.h after pragma once
   postPatch = ''
-    sed -i 's/#include <mpi.h>/#include <mpi.h>\n#include <cstdint>/' /build/source/cpp/include/tensorrt_llm/common/mpiUtils.h
-    sed -i 's/#pragma once/#pragma once\n#include <cuda_runtime.h>/' /build/source/cpp/tensorrt_llm/kernels/lruKernel.h
+    sed -i 's/#include <mpi.h>/#include <mpi.h>\n#include <cstdint>/' include/tensorrt_llm/common/mpiUtils.h
+    sed -i 's/#pragma once/#pragma once\n#include <cuda_runtime.h>/' tensorrt_llm/kernels/lruKernel.h
   '';
   # configurePhase = "true";
   # buildPhase = ''
