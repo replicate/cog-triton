@@ -58,6 +58,14 @@
       });
     in {
       cog-triton-builder = makeBuilder "cog-triton-builder";
+      # we want to push the model to triton-builder-h100 as well
+      # as cog-triton-builder, but replicate doesn't let us.
+      # so let's add some data to fool it
+      cog-triton-builder-h100 = ((makeBuilder "cog-triton-builder-h100").extendModules {
+        modules = [{
+          cognix.environment.TRTLLM_BUILDER_VARIANT = "h100";
+        }];
+      }).config.public;
       cog-triton-runner-80 = makeRunner "cog-triton-runner-80" ["80-real"] {};
       cog-triton-runner-86 = makeRunner "cog-triton-runner-86" ["86-real"] {};
       cog-triton-runner-90 = makeRunner "cog-triton-runner-90" ["90-real"] {};
