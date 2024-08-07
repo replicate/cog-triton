@@ -40,7 +40,7 @@ in
     python_packages = [
       "--extra-index-url"
       "https://pypi.nvidia.com"
-      "tensorrt_llm==0.12.0.dev2024072301"
+      "tensorrt_llm==0.12.0.dev2024073000"
       "tensorrt-cu12==10.2.0.post1"
       "torch==2.3.1"
       "nvidia-pytriton==0.5.8" # corresponds to 2.46.0
@@ -59,6 +59,7 @@ in
   python-env.pip = {
     constraintsList = [
       "datasets>2.15.0" # picks older fsspec but newer datasets
+      "mpi4py<4" # recent release with breaking changes
     ];
     # HACK: cog requires pydantic <2, but we do need the extra deps pydantic2 brings in
     overridesList = [
