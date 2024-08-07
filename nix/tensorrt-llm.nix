@@ -133,6 +133,11 @@ stdenv.mkDerivation (o: {
     # "-DFAST_BUILD=ON"
     "-DCMAKE_SKIP_BUILD_RPATH=ON"
   ];
+  # workaround: cuda_nvcc exposes a gcc12 that uses a gcc13 libc
+  # however, cmake finds the gcc12 libc somehow, which is wrong
+  postConfigure = ''
+    sed -i 's#${cudaPackages.cuda_nvcc.stdenv.cc.cc.lib}#${stdenv.cc.cc.lib}#g' build.ninja
+  '';
   # include cstdint in cpp/tensorrt_llm/common/mpiUtils.h after pragma once
   postPatch = ''
     sed -i 's/#include <mpi.h>/#include <mpi.h>\n#include <cstdint>/' include/tensorrt_llm/common/mpiUtils.h

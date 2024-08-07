@@ -35,7 +35,7 @@
         # only grab deps of tensorrt-llm, omegaconf, hf-transfer
         cognix.python_root_packages = [ "omegaconf" "hf-transfer" "transformers" "torch" ];
 
-        cog-triton.architectures = [ "86-real" ];
+        cog-triton.architectures = [ "80-real" "86-real" "90-real" ];
 
         # override cog.yaml:
         cog.concurrency.max = lib.mkForce 1;

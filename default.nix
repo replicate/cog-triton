@@ -20,6 +20,14 @@ let
       };
     }];
   };
+  trtllm-pythonDrvs = trtllm-env.config.pip.drvs;
+  toCudaCapability = cmakeArch: {
+    "70-real" = "7.0";
+    "80-real" = "8.0";
+    "86-real" = "8.6";
+    "89-real" = "8.9";
+    "90-real" = "9.0";
+  }.${cmakeArch};
 in
 {
   imports = [ ./interface.nix ];
@@ -70,6 +78,14 @@ in
     extra-substituters = https://storage.googleapis.com/replicate-nix-cache-dev/
   '';
   python-env.pip.drvs = {
+
+    torch.public = lib.mkIf cfg.torchSourceBuild
+      (lib.mkForce config.deps.minimal-torch);
+    tensorrt-llm.public = lib.mkIf cfg.trtllmSourceBuild
+      (lib.mkForce config.deps.tensorrt-llm.override {
+        withPython = true;
+      });
+
     nvidia-modelopt.mkDerivation.propagatedBuildInputs = [
       pythonDrvs.setuptools.public
     ];
@@ -120,6 +136,12 @@ in
       done
       popd
     '';
+    mpi4py.mkDerivation.nativeBuildInputs = [ pkgs.removeReferencesTo ];
+    mpi4py.mkDerivation.postInstall = ''
+      pushd $out/${site}/mpi4py
+      remove-references-to -t ${pkgs.openmpi.dev} mpi.cfg MPI.*.so
+      popd
+    '';
   };
   deps.backend_dir = pkgs.runCommand "triton_backends" {} ''
     mkdir $out
@@ -139,27 +161,43 @@ in
     rev = "v10.2.0";
     hash = "sha256-Euo9VD4VTpx8XJV97IMETTAx/YkPGXiNdA39Wjp3UMU=";
   };
-  # todo: replace with lockfile
-  deps.pybind11-stubgen = python3.pkgs.buildPythonPackage rec {
-    pname = "pybind11-stubgen";
-    version = "2.5";
-    src = pkgs.fetchPypi {
-      inherit pname version;
-      hash = "sha256-lqf+vKski/mKvUu3LMX3KbqHsjRCR0VMF1nmPN6f7zQ=";
+  # make a python3 environment with all the pkgs from lock.json *and* nixpkgs.python
+  # mainly used to build torch, which additionally requires astunparse
+  deps.python3-with-nixpkgs = python3.override {
+    packageOverrides = pyself: pysuper: (lib.mapAttrs (_: v: v.public.out) trtllm-pythonDrvs) // {
+      # todo: replace with lockfile?
+      pybind11-stubgen = pyself.buildPythonPackage rec {
+        pname = "pybind11-stubgen";
+        version = "2.5";
+        src = pyself.fetchPypi {
+          inherit pname version;
+          hash = "sha256-lqf+vKski/mKvUu3LMX3KbqHsjRCR0VMF1nmPN6f7zQ=";
+        };
+      };
+      # prevent infinite loop, don't override torch itself
+      inherit (pysuper) torch;
     };
   };
   deps.tensorrt-llm = pkgs.callPackage ./nix/tensorrt-llm.nix {
     inherit python3 cudaPackages;
     pythonDrvs = config.deps.trtllm-env.config.pip.drvs;
-    # TODO: turn into config option
-    withPython = true;
+    withPython = false;
     inherit (cfg) architectures;
-    inherit (deps) pybind11-stubgen tensorrt-src;
+    inherit (deps.python3-with-nixpkgs.pkgs) pybind11-stubgen;
+    inherit (deps) tensorrt-src;
   };
-  deps.python-with-trtllm = python3.withPackages (_: [ (python3.pkgs.toPythonModule deps.tensorrt-llm.python) ]);
   deps.trtllm-env = trtllm-env;
   deps.trtllm-backend = pkgs.callPackage ./nix/trtllm-backend.nix {
     inherit python3 cudaPackages pythonDrvs;
     inherit (deps) tensorrt-llm tensorrt-src;
+  };
+  deps.minimal-torch = pkgs.callPackage ./nix/torch.nix {
+    python3 = deps.python3-with-nixpkgs;
+    # todo: match/modify config.cognix.cudaPackages
+    cudaPackages = (pkgs.extend (self: super: {
+      config = super.config // {
+        cudaCapabilities = map toCudaCapability cfg.architectures;
+      };
+    })).cudaPackages_12_1;
   };
 }
