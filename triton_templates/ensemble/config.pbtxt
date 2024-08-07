@@ -185,8 +185,8 @@ input [
 ]
 output [
   {
-    name: "text_output"
-    data_type: TYPE_STRING
+    name: "output_ids"
+    data_type: TYPE_INT32
     dims: [ -1 ]
   },
   {

@@ -29,10 +29,10 @@ import os
 from typing import List
 
 import numpy as np
-import tensorrt as trt
-import torch
+# import tensorrt as trt
+# import torch
 import triton_python_backend_utils as pb_utils
-from torch.utils.dlpack import from_dlpack
+# from torch.utils.dlpack import from_dlpack
 from transformers import AutoTokenizer, T5Tokenizer
 
 
