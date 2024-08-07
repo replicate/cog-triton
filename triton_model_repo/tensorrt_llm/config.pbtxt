@@ -35,7 +35,7 @@ model_transaction_policy {
 dynamic_batching {
     preferred_batch_size: [ 64 ]
     max_queue_delay_microseconds: 100
-    default_queue_policy: { max_queue_size: ${max_queue_size} }
+    default_queue_policy: { max_queue_size: 0 }
 }
 
 input [

@@ -28,12 +28,13 @@ instantiate:
         max_queue_delay_microseconds: 100
         max_attention_window_size: 4096
         kv_cache_free_gpu_mem_fraction: 0.95
+        max_queue_size: 0
 
         
     postprocessing:
       args:
         tokenizer_dir: /src/triton_model_repo/tensorrt_llm/1/
-        tokenizer_type: llama
+        tokenizer_type: auto
         triton_max_batch_size: 64
         postprocessing_instance_count: 64
 
