@@ -198,10 +198,11 @@ stdenv.mkDerivation (o: {
   # manually call autoPatchelf so it doesn't cross-link the outputs
   dontAutoPatchelf = true;
   # move the propagatedBuildInputs to $python
-  postFixup = lib.optionalString withPython ''
+  postFixup = (lib.optionalString withPython ''
     mv $out/nix-support $python/
-    autoPatchelf $out
     autoPatchelf $python
+  '') + ''
+    autoPatchelf $out
   '';
   # imports check, wants nvml
   # pushd $python/${python3.sitePackages}
