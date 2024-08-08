@@ -53,7 +53,7 @@ def get_config_paths(model_config, model):
 
 
 def generate_configs(config):
-    models = ['preprocessing', 'tensorrt_llm', 'postprocessing', 'ensemble', 'tensorrt_llm_bls']
+    models = ['preprocessing', 'tensorrt_llm', 'postprocessing', 'ensemble']
 
     for model in models:
         if model not in config:

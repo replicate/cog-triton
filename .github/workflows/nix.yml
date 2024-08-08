@@ -11,6 +11,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: DeterminateSystems/nix-installer-action@v10
+      with:
+        extra-conf: cores = 12
     - name: Authenticate to Google Cloud Platform
       uses: google-github-actions/auth@v2
       with:
@@ -37,6 +39,8 @@ jobs:
       run: |
         nix build --accept-flake-config ".#cog-triton-builder" -o cog-triton-builder
         ./cog-triton-builder push r8.im/replicate-internal/triton-builder
+        nix build --accept-flake-config ".#cog-triton-builder-h100" -o cog-triton-builder-h100
+        ./cog-triton-builder-h100 push r8.im/replicate-internal/triton-builder-h100
     - name: Build cog-triton-runner-80
       env:
         COG_TOKEN: ${{ secrets.COG_TOKEN }}

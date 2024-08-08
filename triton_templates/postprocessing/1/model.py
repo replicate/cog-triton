@@ -28,7 +28,7 @@ import json
 
 import numpy as np
 import triton_python_backend_utils as pb_utils
-from transformers import AutoTokenizer
+# from transformers import AutoTokenizer
 
 
 class TritonPythonModel:
@@ -55,17 +55,35 @@ class TritonPythonModel:
         model_config = json.loads(args['model_config'])
         tokenizer_dir = model_config['parameters']['tokenizer_dir'][
             'string_value']
-        self.skip_special_tokens = model_config['parameters'].get(
-            'skip_special_tokens',
-            {'string_value': "true"})['string_value'].lower() in [
-                'true', '1', 't', 'y', 'yes'
-            ]
 
-        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_dir,
-                                                       legacy=False,
-                                                       padding_side='left',
-                                                       trust_remote_code=True)
-        self.tokenizer.pad_token = self.tokenizer.eos_token
+        skip_special_tokens = model_config['parameters'].get(
+            'skip_special_tokens')
+        if skip_special_tokens is not None:
+            skip_special_tokens_str = skip_special_tokens[
+                'string_value'].lower()
+            if skip_special_tokens_str in [
+                    'true', 'false', '1', '0', 't', 'f', 'y', 'n', 'yes', 'no'
+            ]:
+                self.skip_special_tokens = skip_special_tokens_str in [
+                    'true', '1', 't', 'y', 'yes'
+                ]
+            else:
+                print(
+                    f"[TensorRT-LLM][WARNING] Don't setup 'skip_special_tokens' correctly (set value is {skip_special_tokens['string_value']}). Set it as True by default."
+                )
+                self.skip_special_tokens = True
+        else:
+            print(
+                f"[TensorRT-LLM][WARNING] Don't setup 'skip_special_tokens'. Set it as True by default."
+            )
+            self.skip_special_tokens = True
+
+        # self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_dir,
+        #                                                legacy=False,
+        #                                                padding_side='left',
+        #                                                trust_remote_code=True)
+        # if not self.tokenizer.pad_token:
+        #    self.tokenizer.pad_token = self.tokenizer.eos_token
 
         # Parse model output configs
         output_config = pb_utils.get_output_config_by_name(
@@ -124,6 +142,10 @@ class TritonPythonModel:
             generation_logits = pb_utils.get_input_tensor_by_name(
                 request, 'GENERATION_LOGITS')
 
+            # Get the batch index
+            batch_index = pb_utils.get_input_tensor_by_name(
+                request, 'BATCH_INDEX')
+
             # Reshape Input
             # tokens_batch = tokens_batch.reshape([-1, tokens_batch.shape[0]])
             # tokens_batch = tokens_batch.T
@@ -133,15 +155,10 @@ class TritonPythonModel:
 
             # Create output tensors. You need pb_utils.Tensor
             # objects to create pb_utils.InferenceResponse.
-
             output_tensor = pb_utils.Tensor(
                 'OUTPUT',
                 tokens_batch
             )
-
-            # output_tensor = pb_utils.Tensor(
-            #     'OUTPUT',
-            #     np.array(outputs).astype(self.output_dtype))
 
             outputs = []
             outputs.append(output_tensor)
@@ -185,6 +202,15 @@ class TritonPythonModel:
                     np.array([[[[0.0]]]], dtype=np.float32))
                 outputs.append(out_generation_logits)
 
+            if batch_index:
+                out_batch_index = pb_utils.Tensor('OUT_BATCH_INDEX',
+                                                  batch_index.as_numpy())
+                outputs.append(out_batch_index)
+            else:
+                out_batch_index = pb_utils.Tensor(
+                    'OUT_BATCH_INDEX', np.array([[0]], dtype=np.int32))
+                outputs.append(out_batch_index)
+
             # Create InferenceResponse. You can set an error here in case
             # there was a problem with handling this inference request.
             # Below is an example of how you can set errors in inference
@@ -207,13 +233,19 @@ class TritonPythonModel:
         """
         print('Cleaning up...')
 
-    def _postprocessing(self, tokens_batch, sequence_lengths):
-        outputs = []
-        for batch_idx, beam_tokens in enumerate(tokens_batch):
-            for beam_idx, tokens in enumerate(beam_tokens):
-                seq_len = sequence_lengths[batch_idx][beam_idx]
-                output = self.tokenizer.decode(
-                    tokens[:seq_len],
-                    skip_special_tokens=self.skip_special_tokens)
-                outputs.append(output.encode('utf8'))
-        return outputs
+    # def _postprocessing(self, tokens_batch, sequence_lengths):
+    #     outputs = []
+    #     for batch_idx, beam_tokens in enumerate(tokens_batch):
+    #         for beam_idx, tokens in enumerate(beam_tokens):
+    #             seq_len = sequence_lengths[batch_idx][beam_idx]
+    #             # Exclude fake ids in multimodal models
+    #             fake_id_len = 0
+    #             for i in range(seq_len):
+    #                 if tokens[i] < self.tokenizer.vocab_size:
+    #                     fake_id_len = i
+    #                     break
+    #             output = self.tokenizer.decode(
+    #                 tokens[fake_id_len:seq_len],
+    #                 skip_special_tokens=self.skip_special_tokens)
+    #             outputs.append(output.encode('utf8'))
+    #     return outputs

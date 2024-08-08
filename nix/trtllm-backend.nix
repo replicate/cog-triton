@@ -19,21 +19,21 @@ let
   deps.triton_repo_common = fetchFromGitHub {
     owner = "triton-inference-server";
     repo = "common";
-    rev = "00b3a71519e32e3bc954e9f0d067e155ef8f1a6c";
-    hash = "sha256-KyFicnB0716nIteSNo43RoiDzuVbj17KM4tIbmN6F+s=";
+    rev = "0f2072bbc2d4e85f68b10cf60c0ed4e4ebfc766b";
+    hash = "sha256-7DdJ1zkHrFEImI137Gt/pDKZhBvoQu0lg2ulqA/yLFA=";
   };
   deps.triton_repo_backend = fetchFromGitHub {
     owner = "triton-inference-server";
     repo = "backend";
+    # update for tritons after may 28, 2024
     rev = "a06e9a1157d6b5b9b34b6d05a07bb84d517f17c9";
     hash = "sha256-Ju2zV/jHUuciTs6GbkqcPG8U0y2lkIWSdAsX78DrpV4=";
   };
-  # todo: update with trt-llm 0.9?
   deps.triton_repo_core = fetchFromGitHub {
     owner = "triton-inference-server";
     repo = "core";
-    rev = "5d4a99c285c729a349265ce8dd7a4535e59d29b1";
-    hash = "sha256-WP8bwplo98GmNulX+QA+IrQEc2+GMcTjV53K438vX1g=";
+    rev = "bbcd7816997046821f9d1a22e418acb84ca5364b";
+    hash = "sha256-LWLxMvtV0VQYMQQIfztm10xzQreNAoN9zAexf+5ktHo=";
   };
   deps.googletest = fetchFromGitHub {
     owner = "google";
@@ -43,18 +43,18 @@ let
   };
 
   inherit (python3) sitePackages;
-  trt_lib_dir = "${pythonDrvs.tensorrt-libs.public}/${sitePackages}/tensorrt_libs";
+  trt_lib_dir = "${pythonDrvs.tensorrt-cu12-libs.public}/${sitePackages}/tensorrt_libs";
   # this package wants gcc12
   oldGccStdenv = stdenvAdapters.useLibsFrom stdenv gcc12Stdenv;
 in
 oldGccStdenv.mkDerivation rec {
   pname = "tensorrtllm_backend";
-  version = "0.9.0";
+  version = "0.12.0.dev2024073000";
   src = fetchFromGitHub {
     owner = "triton-inference-server";
     repo = "tensorrtllm_backend";
-    rev = "v${version}";
-    hash = "sha256-aNjVYu7sDrIj/lse/wS3vYaR/vmjtZfxzBWYi3z3KqQ=";
+    rev = "b25d578a48422db3b2d5bd89b16c235dd85c4300";
+    hash = "sha256-UxuMdhkMv89Ozxi4jXioOfR1gf/cYr/bCxt/RG6CdZw=";
   };
   nativeBuildInputs = [
     cmake
@@ -70,6 +70,8 @@ oldGccStdenv.mkDerivation rec {
     cudaPackages.cuda_cccl
     cudaPackages.libcublas.lib
     cudaPackages.libcublas.dev
+    cudaPackages.cuda_nvml_dev.lib
+    cudaPackages.cuda_nvml_dev.dev
   ];
   sourceRoot = "source/inflight_batcher_llm";
   cmakeFlags = [
@@ -84,7 +86,7 @@ oldGccStdenv.mkDerivation rec {
   ];
   postInstall = ''
     mkdir -p $out/backends/tensorrtllm
-    cp libtriton_*.so triton_tensorrtllm_worker $out/backends/tensorrtllm
+    cp libtriton_*.so trtllmExecutorWorker $out/backends/tensorrtllm
     rm -r /build/source/inflight_batcher_llm/build/_deps/repo-core-build
     rm -r /build/source/inflight_batcher_llm/build/libtriton_tensorrtllm_common.so
   '';
@@ -94,7 +96,7 @@ oldGccStdenv.mkDerivation rec {
       --add-rpath '$ORIGIN:${trt_lib_dir}:${tensorrt-llm}/cpp/build/tensorrt_llm:${tensorrt-llm}/cpp/build/tensorrt_llm/plugins:${cudaPackages.cudnn.lib}/lib'
     patchelf $out/backends/tensorrtllm/libtriton_tensorrtllm_common.so \
       --add-rpath '$ORIGIN:${trt_lib_dir}:${tensorrt-llm}/cpp/build/tensorrt_llm:${tensorrt-llm}/cpp/build/tensorrt_llm/plugins:${cudaPackages.cudnn.lib}/lib'
-    patchelf $out/backends/tensorrtllm/triton_tensorrtllm_worker \
-      --add-rpath '$ORIGIN:${trt_lib_dir}:${tensorrt-llm}/cpp/build/tensorrt_llm:${tensorrt-llm}/cpp/build/tensorrt_llm/plugins:${cudaPackages.cudnn.lib}/lib'
+    patchelf $out/backends/tensorrtllm/trtllmExecutorWorker  \
+      --add-rpath '$ORIGIN:${trt_lib_dir}:${tensorrt-llm}/cpp/build/tensorrt_llm:${tensorrt-llm}/cpp/build/tensorrt_llm/plugins:${cudaPackages.cudnn.lib}/lib:${tensorrt-llm}/cpp/build/tensorrt_llm/kernels/decoderMaskedMultiheadAttention:${tensorrt-llm}/cpp/build/tensorrt_llm/kernels/decoderMaskedMultiheadAttention/decoderXQAImplJIT/nvrtcWrapper'
   '';
 }

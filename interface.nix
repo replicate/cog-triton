@@ -9,5 +9,7 @@
       # https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
       # 80: A100, 86: A5000, A40, A800, 89: L40, 90: H100
     };
+    torchSourceBuild = mkEnableOption "Build Torch from source to be smaller";
+    trtllmSourceBuild = mkEnableOption "Build trtllm python from source to be smaller";
   };
 }

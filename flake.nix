@@ -4,7 +4,7 @@
     extra-substituters = "https://storage.googleapis.com/replicate-nix-cache-dev/";
   };
   inputs = {
-    cognix.url = "github:datakami/cognix/24.03";
+    cognix.url = "github:datakami/cognix/24.07";
   };
 
   outputs = { self, cognix }@inputs: (cognix.lib.cognixFlake inputs {}) // {
@@ -26,23 +26,35 @@
 
         cog-triton.architectures = architectures;
         # don't need this file in a runner
-        python-env.pip.drvs.tensorrt-libs.mkDerivation.postInstall = lib.mkAfter ''
+        python-env.pip.drvs.tensorrt-cu12-libs.mkDerivation.postInstall = lib.mkAfter ''
           rm $out/lib/python*/site-packages/tensorrt_libs/libnvinfer_builder_resource*
         '';
       });
-      makeBuilder = name: callCognix ( { config, lib, ... }: {
+      makeBuilder = name: callCognix ( { config, lib, pkgs, ... }: {
         inherit name;
         # only grab deps of tensorrt-llm, omegaconf, hf-transfer
-        cognix.python_root_packages = [ "tensorrt-llm" "omegaconf" "hf-transfer" ];
+        cognix.python_root_packages = [ "omegaconf" "hf-transfer" "transformers" "torch" ];
+
+        cog-triton.architectures = [ "80-real" "86-real" "90-real" ];
 
         # override cog.yaml:
         cog.concurrency.max = lib.mkForce 1;
         cognix.rootPath = lib.mkForce "${./cog-trt-llm}";
         # this just needs the examples/ dir
         cognix.environment.TRTLLM_DIR = config.deps.tensorrt-llm.examples;
+        # HACK: cog needs pydantic v1, but trt-llm needs pydantic v2
+        cognix.environment.TRTLLM_PYTHON = config.deps.trtllm-env.config.public.pyEnv;
       });
     in {
       cog-triton-builder = makeBuilder "cog-triton-builder";
+      # we want to push the model to triton-builder-h100 as well
+      # as cog-triton-builder, but replicate doesn't let us.
+      # so let's add some data to fool it
+      cog-triton-builder-h100 = ((makeBuilder "cog-triton-builder-h100").extendModules {
+        modules = [{
+          cognix.environment.TRTLLM_BUILDER_VARIANT = "h100";
+        }];
+      }).config.public;
       cog-triton-runner-80 = makeRunner "cog-triton-runner-80" ["80-real"] {};
       cog-triton-runner-86 = makeRunner "cog-triton-runner-86" ["86-real"] {};
       cog-triton-runner-90 = makeRunner "cog-triton-runner-90" ["90-real"] {};

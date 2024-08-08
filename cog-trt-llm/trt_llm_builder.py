@@ -111,6 +111,9 @@ class TRTLLMBuilder:
         elif executable == "trtllm-build":
             cmd = [executable]
 
+        if "TRTLLM_PYTHON" in os.environ:
+            cmd[0] = os.path.join(os.environ["TRTLLM_PYTHON"], "bin", cmd[0])
+
         for k, v in args.items():
             cmd += ["--" + str(k)]
             cmd += [str(v)] if v else []
