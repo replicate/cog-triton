@@ -58,6 +58,7 @@
       cog-triton-builder = makeBuilder "cog-triton-builder";
       cog-triton-runner-80 = makeRunner "cog-triton-runner-80" ["80-real"] {};
       cog-triton-runner-86 = makeRunner "cog-triton-runner-86" ["86-real"] {};
+      cog-triton-runner-89 = makeRunner "cog-triton-runner-89" ["89-real"] {};
       cog-triton-runner-90 = makeRunner "cog-triton-runner-90" ["90-real"] {};
       # mistral example, update for new engine
       # default = self.packages.x86_64-linux.cog-triton-mistral-7b;
